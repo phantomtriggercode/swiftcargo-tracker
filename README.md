@@ -134,14 +134,28 @@ No code changes needed — just update the `SMTP_*` constants in `config/config.
 
 1. Log in to `/admin/`.
 2. **New Shipment**: fill in sender, receiver (their email is where alerts go),
-   package details, and origin/destination coordinates. Look up coordinates for any
-   place at [latlong.net](https://www.latlong.net). Creating a shipment sends an
-   initial "Pending" confirmation email.
+   package details, and origin/destination. Creating a shipment sends an initial
+   "Pending" confirmation email.
 3. **Add Update** (from the dashboard): pick a new status, enter the current
-   location + coordinates, add an optional note, and save. This instantly:
+   location, add an optional note, and save. This instantly:
    - Updates the shipment's live position (shown on the public tracking map).
    - Adds a new row to the status timeline.
    - Emails the receiver about the change.
+
+### Turning any address into map coordinates
+
+Every location field (origin, destination, and each tracking update's location)
+has a **"Find on map"** button next to it. Paste in any address — a street
+address, a home address, a business name, or just a city — and click it; the
+latitude/longitude fields fill in automatically.
+
+This works by having the server (`api/geocode.php`) forward your query to
+[Nominatim](https://nominatim.org), OpenStreetMap's free, keyless geocoder — the
+same project that provides the map tiles. No API key, no signup, no paid
+service. It's gated behind admin login since it makes an outbound request per
+lookup. If a lookup can't find a precise match (very new addresses, unnamed
+rural roads, etc.), just enter coordinates manually — [latlong.net](https://www.latlong.net)
+is a reliable fallback for that.
 
 ## Security notes
 

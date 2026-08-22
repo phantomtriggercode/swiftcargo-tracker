@@ -94,17 +94,21 @@ include __DIR__ . '/includes/admin_header.php';
       </select>
     </div>
     <div class="form-group">
-      <label>Location Label</label>
-      <input type="text" name="location_label" placeholder="e.g. Casablanca, Morocco" required>
+      <label>Location — Address or Place</label>
+      <div class="input-with-button">
+        <input type="text" id="location_label" name="location_label" placeholder="Paste any address — street, home, or a place name" required>
+        <button type="button" id="location-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+      </div>
+      <span id="location-geocode-status" class="geocode-status"></span>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>Latitude</label>
-        <input type="text" name="lat" placeholder="e.g. 33.5731" required>
+        <input type="text" id="lat" name="lat" placeholder="e.g. 33.5731" required>
       </div>
       <div class="form-group">
         <label>Longitude</label>
-        <input type="text" name="lng" placeholder="e.g. -7.5898" required>
+        <input type="text" id="lng" name="lng" placeholder="e.g. -7.5898" required>
       </div>
     </div>
     <div class="form-group">
@@ -114,5 +118,10 @@ include __DIR__ . '/includes/admin_header.php';
     <button type="submit" class="btn btn-primary btn-block">Save Update &amp; Email Receiver</button>
   </form>
 </div>
+
+<script src="/assets/js/geocode.js"></script>
+<script>
+  attachGeocodeLookup('location_label', 'lat', 'lng', 'location-lookup-btn', 'location-geocode-status');
+</script>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>

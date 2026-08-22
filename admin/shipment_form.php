@@ -182,43 +182,59 @@ include __DIR__ . '/includes/admin_header.php';
 
     <h3>Origin</h3>
     <div class="form-group">
-      <label>Origin Label (city, country)</label>
-      <input type="text" name="origin_label" value="<?= h($shipment['origin_label'] ?? '') ?>" placeholder="e.g. Lagos, Nigeria" required>
+      <label>Origin Address or Place</label>
+      <div class="input-with-button">
+        <input type="text" id="origin_label" name="origin_label" value="<?= h($shipment['origin_label'] ?? '') ?>" placeholder="Paste any address — street, home, or a place name" required>
+        <button type="button" id="origin-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+      </div>
+      <span id="origin-geocode-status" class="geocode-status"></span>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>Origin Latitude</label>
-        <input type="text" name="origin_lat" value="<?= h($shipment['origin_lat'] ?? '') ?>" placeholder="e.g. 6.5244" required>
+        <input type="text" id="origin_lat" name="origin_lat" value="<?= h($shipment['origin_lat'] ?? '') ?>" placeholder="e.g. 6.5244" required>
       </div>
       <div class="form-group">
         <label>Origin Longitude</label>
-        <input type="text" name="origin_lng" value="<?= h($shipment['origin_lng'] ?? '') ?>" placeholder="e.g. 3.3792" required>
+        <input type="text" id="origin_lng" name="origin_lng" value="<?= h($shipment['origin_lng'] ?? '') ?>" placeholder="e.g. 3.3792" required>
       </div>
     </div>
 
     <h3>Destination</h3>
     <div class="form-group">
-      <label>Destination Label (city, country)</label>
-      <input type="text" name="destination_label" value="<?= h($shipment['destination_label'] ?? '') ?>" placeholder="e.g. London, United Kingdom" required>
+      <label>Destination Address or Place</label>
+      <div class="input-with-button">
+        <input type="text" id="destination_label" name="destination_label" value="<?= h($shipment['destination_label'] ?? '') ?>" placeholder="Paste any address — street, home, or a place name" required>
+        <button type="button" id="destination-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+      </div>
+      <span id="destination-geocode-status" class="geocode-status"></span>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>Destination Latitude</label>
-        <input type="text" name="destination_lat" value="<?= h($shipment['destination_lat'] ?? '') ?>" placeholder="e.g. 51.5072" required>
+        <input type="text" id="destination_lat" name="destination_lat" value="<?= h($shipment['destination_lat'] ?? '') ?>" placeholder="e.g. 51.5072" required>
       </div>
       <div class="form-group">
         <label>Destination Longitude</label>
-        <input type="text" name="destination_lng" value="<?= h($shipment['destination_lng'] ?? '') ?>" placeholder="e.g. -0.1276" required>
+        <input type="text" id="destination_lng" name="destination_lng" value="<?= h($shipment['destination_lng'] ?? '') ?>" placeholder="e.g. -0.1276" required>
       </div>
     </div>
 
     <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
-      Tip: look up coordinates for any place at
-      <a href="https://www.latlong.net" target="_blank" style="color:var(--brand-red);">latlong.net</a>.
+      Click "Find on map" to auto-fill coordinates from the address above, or type
+      coordinates manually — look them up at
+      <a href="https://www.latlong.net" target="_blank" style="color:var(--brand-red);">latlong.net</a>
+      if a lookup doesn't find a precise match.
     </p>
 
     <button type="submit" class="btn btn-primary btn-block"><?= $shipment ? 'Save Changes' : 'Create Shipment' ?></button>
   </form>
 </div>
+
+<script src="/assets/js/geocode.js"></script>
+<script>
+  attachGeocodeLookup('origin_label', 'origin_lat', 'origin_lng', 'origin-lookup-btn', 'origin-geocode-status');
+  attachGeocodeLookup('destination_label', 'destination_lat', 'destination_lng', 'destination-lookup-btn', 'destination-geocode-status');
+</script>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>

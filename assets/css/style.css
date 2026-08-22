@@ -341,6 +341,13 @@ img { max-width: 100%; display: block; }
 .form-group textarea:focus { outline: none; border-color: var(--brand-red); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
+.input-with-button { display: flex; gap: 8px; }
+.input-with-button input { flex: 1; }
+.input-with-button .btn { flex: none; white-space: nowrap; }
+.geocode-status { display: block; font-size: 12.5px; margin-top: 6px; min-height: 16px; }
+.geocode-status.geocode-success { color: var(--ok); }
+.geocode-status.geocode-error { color: var(--danger); }
+
 /* ---------- Admin layout ---------- */
 .admin-wrap { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
 .admin-sidebar { background: var(--ink); color: var(--white); padding: 24px 18px; }
