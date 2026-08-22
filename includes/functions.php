@@ -24,9 +24,11 @@ function status_badge_class(string $status): string
     return match ($status) {
         'Delivered' => 'badge-delivered',
         'Out for Delivery' => 'badge-transit',
-        'In Transit' => 'badge-transit',
+        'En Route', 'In Transit' => 'badge-transit',
+        'Customs Clearance', 'Insurance Clearance' => 'badge-hold',
         'Picked Up' => 'badge-pending',
         'Pending' => 'badge-pending',
+        'On Hold' => 'badge-hold',
         'Delayed', 'Exception' => 'badge-alert',
         default => 'badge-pending',
     };

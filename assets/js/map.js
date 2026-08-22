@@ -18,13 +18,14 @@
   });
   var destIcon = L.divIcon({
     className: '',
-    html: '<div style="width:14px;height:14px;border-radius:50%;background:#16a34a;border:3px solid #fff;box-shadow:0 0 0 2px #16a34a;"></div>',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#374151;border:3px solid #fff;box-shadow:0 0 0 2px #374151;"></div>',
     iconSize: [14, 14],
     iconAnchor: [7, 7]
   });
+  // Current live position — green with an idling pulse ring (see .current-marker-pulse in style.css).
   var packageIcon = L.divIcon({
     className: '',
-    html: '<div style="width:20px;height:20px;border-radius:50%;background:#d40511;border:3px solid #fff;box-shadow:0 0 10px rgba(212,5,17,0.6);"></div>',
+    html: '<div class="current-marker-pulse"></div><div style="position:relative;width:20px;height:20px;border-radius:50%;background:#16a34a;border:3px solid #fff;box-shadow:0 0 10px rgba(22,163,74,0.7);"></div>',
     iconSize: [20, 20],
     iconAnchor: [10, 10]
   });
@@ -34,7 +35,14 @@
   var destMarker = L.marker([data.destination_lat, data.destination_lng], { icon: destIcon })
     .addTo(map).bindPopup('Destination: ' + data.destination_label);
   var currentMarker = L.marker([data.current_lat, data.current_lng], { icon: packageIcon })
-    .addTo(map).bindPopup('Current position — ' + data.status);
+    .addTo(map)
+    .bindPopup('Current position — ' + data.status)
+    .bindTooltip(data.current_location_label || data.status, {
+      permanent: true,
+      direction: 'top',
+      offset: [0, -14],
+      className: 'current-location-tooltip'
+    });
 
   var routeLine = L.polyline(
     [[data.origin_lat, data.origin_lng], [data.current_lat, data.current_lng], [data.destination_lat, data.destination_lng]],
@@ -68,6 +76,11 @@
             [s.current_lat, s.current_lng],
             [data.destination_lat, data.destination_lng]
           ]);
+        }
+
+        if (s.current_location_label && s.current_location_label !== data.current_location_label) {
+          data.current_location_label = s.current_location_label;
+          currentMarker.setTooltipContent(s.current_location_label);
         }
 
         var badge = document.getElementById('status-badge');

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/settings.php';
 
 $activeNav = 'home';
 $pageTitle = 'Global Shipping & Live Package Tracking';
@@ -10,11 +11,8 @@ include __DIR__ . '/includes/header.php';
 <section class="hero">
   <div class="container hero-grid">
     <div>
-      <h1>Ship anywhere. Track everything. Live.</h1>
-      <p class="lead">
-        SwiftCargo moves packages across the globe and shows you exactly where they are —
-        on a live map — with an email sent to your receiver on every single update.
-      </p>
+      <h1><?= h(get_setting('home_hero_title', 'Ship anywhere. Track everything. Live.')) ?></h1>
+      <p class="lead"><?= h(get_setting('home_hero_lead')) ?></p>
     </div>
     <img src="/assets/images/hero-illustration.svg" alt="Live shipment tracking preview showing a route on a map, a live position marker, and an email alert notification" class="hero-illustration">
   </div>
@@ -25,11 +23,12 @@ include __DIR__ . '/includes/header.php';
     <h3>Track your shipment</h3>
     <p>Enter your tracking number to see live location and delivery status.</p>
     <form class="track-form" action="/track.php" method="get">
-      <input type="text" name="tn" placeholder="e.g. SC1000000NG" required autocomplete="off">
+      <input type="text" name="tn" placeholder="e.g. SC1000000US" required autocomplete="off">
       <button type="submit" class="btn btn-primary">Track</button>
     </form>
     <div class="demo-hint">
-      Demo tracking numbers: <code>SC1000000NG</code> (in transit) &middot; <code>SC1000001NG</code> (delivered)
+      Demo tracking numbers: <code>SC1000000US</code> (en route) &middot; <code>SC1000001US</code> (delivered)
+      &middot; Need a quote instead? <a href="/request-shipment.php" style="color:var(--brand-red);">Request a shipment</a>
     </div>
   </div>
 </div>
@@ -37,10 +36,10 @@ include __DIR__ . '/includes/header.php';
 <section class="stats-strip">
   <div class="container">
     <div class="grid-4">
-      <div><div class="stat-num">220+</div><div class="stat-label">Countries &amp; territories served</div></div>
-      <div><div class="stat-num">98.6%</div><div class="stat-label">On-time delivery rate</div></div>
-      <div><div class="stat-num">24/7</div><div class="stat-label">Live tracking &amp; support</div></div>
-      <div><div class="stat-num">1.2M+</div><div class="stat-label">Packages delivered</div></div>
+      <div><div class="stat-num"><?= h(get_setting('stat_countries', '195+')) ?></div><div class="stat-label">Countries &amp; territories served</div></div>
+      <div><div class="stat-num"><?= h(get_setting('stat_ontime', '98.6%')) ?></div><div class="stat-label">On-time delivery rate</div></div>
+      <div><div class="stat-num"><?= h(get_setting('stat_support', '24/7')) ?></div><div class="stat-label">Live tracking &amp; support</div></div>
+      <div><div class="stat-num"><?= h(get_setting('stat_delivered', '1.2M+')) ?></div><div class="stat-label">Packages delivered</div></div>
     </div>
   </div>
 </section>
@@ -70,13 +69,13 @@ include __DIR__ . '/includes/header.php';
       </div>
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/box.svg" alt="" width="24" height="24"></div>
-        <h3>Express &amp; Standard Options</h3>
-        <p>Choose the service level that matches your urgency — Standard, Express or Priority.</p>
+        <h3>Regular &amp; Express Options</h3>
+        <p>Choose the service level that matches your urgency, and ship by air, sea, or land.</p>
       </div>
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/globe.svg" alt="" width="24" height="24"></div>
         <h3>Worldwide Coverage</h3>
-        <p>From Lagos to London, Abuja to New York — we move freight across every continent.</p>
+        <p>From coast to coast across the U.S. and to <a href="/countries.php" style="color:var(--brand-red);">every country worldwide</a>, we move freight and parcels reliably.</p>
       </div>
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/shield.svg" alt="" width="24" height="24"></div>

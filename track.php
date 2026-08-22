@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/settings.php';
 
 $tn = trim($_GET['tn'] ?? '');
 $shipment = null;
@@ -28,7 +29,7 @@ include __DIR__ . '/includes/header.php';
     <h3 style="margin:0 0 4px;">Track your shipment</h3>
     <p style="color:#d1d5db;margin:0 0 16px;font-size:14px;">Enter a tracking number to see live location and full status history.</p>
     <form class="track-form" action="/track.php" method="get">
-      <input type="text" name="tn" value="<?= h($tn) ?>" placeholder="e.g. SC1000000NG" required autocomplete="off">
+      <input type="text" name="tn" value="<?= h($tn) ?>" placeholder="e.g. SC1000000US" required autocomplete="off">
       <button type="submit" class="btn btn-yellow">Track</button>
     </form>
   </div>
@@ -65,8 +66,32 @@ include __DIR__ . '/includes/header.php';
             <div class="meta-value"><?= h($shipment['service_type']) ?></div>
           </div>
           <div class="meta-box">
+            <div class="meta-label">Shipping Method</div>
+            <div class="meta-value">
+              <?= h($shipment['shipping_method']) ?><?= $shipment['land_method'] ? ' — ' . h($shipment['land_method']) : '' ?>
+            </div>
+          </div>
+          <div class="meta-box">
             <div class="meta-label">Package</div>
             <div class="meta-value"><?= h($shipment['package_description']) ?></div>
+          </div>
+          <div class="meta-box">
+            <div class="meta-label">Packaging</div>
+            <div class="meta-value"><?= h($shipment['packaging_type']) ?><?= $shipment['dimensions'] ? ' · ' . h($shipment['dimensions']) : '' ?></div>
+          </div>
+          <div class="meta-box">
+            <div class="meta-label">Weight</div>
+            <div class="meta-value"><?= h((string) $shipment['weight_kg']) ?> kg</div>
+          </div>
+          <div class="meta-box">
+            <div class="meta-label">Insurance</div>
+            <div class="meta-value">
+              <?php if ($shipment['insured']): ?>
+                Insured <?php if ($shipment['insurance_value']): ?>($<?= number_format((float) $shipment['insurance_value'], 2) ?>)<?php endif; ?>
+              <?php else: ?>
+                Not insured
+              <?php endif; ?>
+            </div>
           </div>
           <div class="meta-box">
             <div class="meta-label">Estimated Delivery</div>
@@ -103,6 +128,7 @@ include __DIR__ . '/includes/header.php';
           'status' => $shipment['status'],
           'current_lat' => (float) $shipment['current_lat'],
           'current_lng' => (float) $shipment['current_lng'],
+          'current_location_label' => $events ? end($events)['location_label'] : $shipment['origin_label'],
           'origin_label' => $shipment['origin_label'],
           'origin_lat' => (float) $shipment['origin_lat'],
           'origin_lng' => (float) $shipment['origin_lng'],

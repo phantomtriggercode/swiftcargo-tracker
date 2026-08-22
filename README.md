@@ -13,9 +13,18 @@ real domain.
     current position, and destination, with the position auto-refreshing every 15
     seconds by polling the site's own `api/track.php` endpoint.
   - A full timestamped status timeline.
-- **Staff admin panel** (`/admin`) to create shipments and add tracking updates.
+- **Staff admin panel** (`/admin`) to create shipments and add tracking updates,
+  each with a shipping method (Air / Sea / Land, with Van/Trailer/Train for Land),
+  packaging type (Box, Crate, Pallet, Loose Cargo, FCL/LCL container, envelope),
+  Regular/Express service level, and optional declared-value insurance.
   Every time a status update is added, the receiver automatically gets an **email
   alert** — no third-party API/service, just plain SMTP.
+- A full **content management system**: Home/About/Contact/Footer copy and the
+  supported-countries list are all editable from the admin panel — nothing is
+  hardcoded.
+- A public **"Request a Shipment"** page with a live, admin-configurable cost
+  calculator; submissions land in an admin queue that can be reviewed and
+  converted straight into a real shipment.
 
 ### "No API" — what that means here
 
@@ -45,13 +54,14 @@ connection to send email.
 
 ```
 config/         Database + SMTP config (config.php is git-ignored — copy config.sample.php)
-sql/            schema.sql — run this once to create tables + demo data
-includes/       Shared PHP: db helpers, auth, mailer, header/footer
-admin/          Staff panel: login, dashboard, create/edit shipment, add tracking update
-api/            track.php — small JSON endpoint the live map polls
+sql/            schema.sql (fresh installs) + migrations/ (updates for an existing DB)
+includes/       Shared PHP: db helpers, auth, mailer, settings/CMS helper, header/footer
+admin/          Staff panel: dashboard, shipments, tracking updates, requests, content, rates
+api/            track.php (live map polling) + geocode.php (address lookup)
 assets/         CSS + JS
 vendor/         PHPMailer (vendored, committed to the repo)
-index.php, track.php, services.php, about.php, contact.php   Public pages
+index.php, track.php, services.php, about.php, contact.php,
+countries.php, request-shipment.php                          Public pages
 ```
 
 ## Local testing
@@ -77,6 +87,11 @@ In **hPanel → Databases → MySQL Databases**:
 2. Open **phpMyAdmin** for that database, go to the **Import** tab, and upload
    `sql/schema.sql` from this repo. This creates all tables and seeds two demo
    shipments plus a default admin login.
+
+**Already have a live SwiftCargo Tracker site from an earlier version?** Don't
+re-import `schema.sql` — instead import `sql/migrations/002_expand_features.sql`
+once via the same phpMyAdmin Import tab. It only adds the new columns/tables and
+leaves your existing shipments untouched. See "Updating an existing site" below.
 
 ### 3. Upload the files
 Using Hostinger's **File Manager** (or FTP):
@@ -156,6 +171,47 @@ service. It's gated behind admin login since it makes an outbound request per
 lookup. If a lookup can't find a precise match (very new addresses, unnamed
 rural roads, etc.), just enter coordinates manually — [latlong.net](https://www.latlong.net)
 is a reliable fallback for that.
+
+## Updating an existing site
+
+If you already deployed an earlier version of this project:
+
+1. Download the latest code (GitHub → Code → Download ZIP, or `git pull`).
+2. Re-upload the changed/new files to `public_html` (your `config/config.php`
+   is untouched — don't overwrite it, and it isn't in the ZIP anyway since it's
+   git-ignored).
+3. In phpMyAdmin, open the **Import** tab and upload `sql/migrations/002_expand_features.sql`
+   — run it once. It adds the new columns and tables (shipping method, packaging,
+   insurance, expanded statuses, site content, calculator rates, shipment requests)
+   without touching your existing shipments.
+
+## Managing site content
+
+`/admin/content.php` has tabs for **Home**, **About**, **Contact**, **Footer**, and
+**Countries** — every headline, paragraph, stat number, contact detail, and the
+full list of countries you ship to is editable there, no code changes needed.
+The public `/countries.php` page and the footer read directly from this content.
+
+## Public shipment requests & the shipping calculator
+
+`/request-shipment.php` lets any visitor request a shipment: what they're
+shipping, weight/dimensions, packaging type, shipping method (Air/Sea/Land, with
+Van/Trailer/Train for Land), Regular/Express service, optional insurance, and a
+preferred pickup date/time and method. As they fill it in, a live cost estimate
+updates instantly using the rates you've configured.
+
+Configure those rates at `/admin/rates.php` — base fee, price per kg, a
+multiplier per shipping method, an Express multiplier, and an insurance
+percentage. The formula is:
+```
+estimate = (base_fee + price_per_kg × weight_kg) × method_multiplier × service_multiplier
+         + (insured ? declared_value × insurance_percent / 100 : 0)
+```
+
+Every submission lands in `/admin/requests.php`, where you can mark it
+New/Contacted/Converted/Closed, or click **Convert** to open a pre-filled New
+Shipment form (assign a tracking number and it becomes a real, trackable
+shipment).
 
 ## Security notes
 

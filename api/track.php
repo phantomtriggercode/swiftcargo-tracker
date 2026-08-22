@@ -32,6 +32,7 @@ echo json_encode([
         'status' => $shipment['status'],
         'current_lat' => (float) $shipment['current_lat'],
         'current_lng' => (float) $shipment['current_lng'],
+        'current_location_label' => $events ? end($events)['location_label'] : $shipment['origin_label'],
         'origin_label' => $shipment['origin_label'],
         'origin_lat' => (float) $shipment['origin_lat'],
         'origin_lng' => (float) $shipment['origin_lng'],

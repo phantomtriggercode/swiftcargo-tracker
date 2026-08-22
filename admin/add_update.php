@@ -15,7 +15,10 @@ if (!$shipment) {
     redirect('/admin/dashboard.php');
 }
 
-$statuses = ['Pending', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delivered', 'Delayed', 'Exception'];
+$statuses = [
+    'Pending', 'Picked Up', 'En Route', 'Customs Clearance', 'Insurance Clearance',
+    'Out for Delivery', 'Delivered', 'On Hold', 'Delayed', 'Exception',
+];
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -104,11 +107,11 @@ include __DIR__ . '/includes/admin_header.php';
     <div class="form-row">
       <div class="form-group">
         <label>Latitude</label>
-        <input type="text" id="lat" name="lat" placeholder="e.g. 33.5731" required>
+        <input type="text" id="lat" name="lat" placeholder="e.g. 39.7392" required>
       </div>
       <div class="form-group">
         <label>Longitude</label>
-        <input type="text" id="lng" name="lng" placeholder="e.g. -7.5898" required>
+        <input type="text" id="lng" name="lng" placeholder="e.g. -104.9903" required>
       </div>
     </div>
     <div class="form-group">

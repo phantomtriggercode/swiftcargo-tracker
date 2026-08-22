@@ -35,7 +35,9 @@ $activeNav = $activeNav ?? '';
     <nav class="main-nav">
       <a href="/index.php" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
       <a href="/track.php" class="<?= $activeNav === 'track' ? 'active' : '' ?>">Track Shipment</a>
+      <a href="/request-shipment.php" class="<?= $activeNav === 'request' ? 'active' : '' ?>">Ship Now</a>
       <a href="/services.php" class="<?= $activeNav === 'services' ? 'active' : '' ?>">Services</a>
+      <a href="/countries.php" class="<?= $activeNav === 'countries' ? 'active' : '' ?>">Countries</a>
       <a href="/about.php" class="<?= $activeNav === 'about' ? 'active' : '' ?>">About</a>
       <a href="/contact.php" class="<?= $activeNav === 'contact' ? 'active' : '' ?>">Contact</a>
     </nav>
