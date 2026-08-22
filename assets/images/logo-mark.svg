@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="SwiftCargo logo">
+  <rect width="48" height="48" rx="12" fill="#d40511"/>
+
+  <!-- motion chevrons -->
+  <g stroke="#ffcc00" stroke-width="2.4" stroke-linecap="round" fill="none" opacity="0.9">
+    <path d="M6 18 L10 22 L6 26"/>
+    <path d="M10.5 18 L14.5 22 L10.5 26"/>
+  </g>
+
+  <!-- isometric package -->
+  <g stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="29,9 38,14.5 29,20 20,14.5" fill="#ffcc00"/>
+    <polygon points="20,14.5 29,20 29,33 20,27.5" fill="#ffffff" fill-opacity="0.92"/>
+    <polygon points="29,20 38,14.5 38,27.5 29,33" fill="#ffffff" fill-opacity="0.62"/>
+  </g>
+</svg>

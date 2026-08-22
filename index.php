@@ -8,12 +8,15 @@ include __DIR__ . '/includes/header.php';
 ?>
 
 <section class="hero">
-  <div class="container">
-    <h1>Ship anywhere. Track everything. Live.</h1>
-    <p class="lead">
-      SwiftCargo moves packages across the globe and shows you exactly where they are —
-      on a live map — with an email sent to your receiver on every single update.
-    </p>
+  <div class="container hero-grid">
+    <div>
+      <h1>Ship anywhere. Track everything. Live.</h1>
+      <p class="lead">
+        SwiftCargo moves packages across the globe and shows you exactly where they are —
+        on a live map — with an email sent to your receiver on every single update.
+      </p>
+    </div>
+    <img src="/assets/images/hero-illustration.svg" alt="Live shipment tracking preview showing a route on a map, a live position marker, and an email alert notification" class="hero-illustration">
   </div>
 </section>
 
@@ -51,32 +54,32 @@ include __DIR__ . '/includes/header.php';
     </div>
     <div class="grid-3">
       <div class="card">
-        <div class="icon">&#128506;</div>
+        <div class="icon"><img src="/assets/images/icons/map-pin.svg" alt="" width="24" height="24"></div>
         <h3>Live Map Tracking</h3>
         <p>Watch your package move across an interactive world map in real time, from pickup to doorstep.</p>
       </div>
       <div class="card">
-        <div class="icon">&#128231;</div>
+        <div class="icon"><img src="/assets/images/icons/mail.svg" alt="" width="24" height="24"></div>
         <h3>Automatic Email Alerts</h3>
         <p>The receiver gets an email the instant a shipment status changes — picked up, in transit, out for delivery, delivered.</p>
       </div>
       <div class="card">
-        <div class="icon">&#9201;</div>
+        <div class="icon"><img src="/assets/images/icons/clock.svg" alt="" width="24" height="24"></div>
         <h3>Real-Time Status Timeline</h3>
         <p>A full, timestamped history of every checkpoint your package has passed through.</p>
       </div>
       <div class="card">
-        <div class="icon">&#128230;</div>
+        <div class="icon"><img src="/assets/images/icons/box.svg" alt="" width="24" height="24"></div>
         <h3>Express &amp; Standard Options</h3>
         <p>Choose the service level that matches your urgency — Standard, Express or Priority.</p>
       </div>
       <div class="card">
-        <div class="icon">&#127760;</div>
+        <div class="icon"><img src="/assets/images/icons/globe.svg" alt="" width="24" height="24"></div>
         <h3>Worldwide Coverage</h3>
         <p>From Lagos to London, Abuja to New York — we move freight across every continent.</p>
       </div>
       <div class="card">
-        <div class="icon">&#128274;</div>
+        <div class="icon"><img src="/assets/images/icons/shield.svg" alt="" width="24" height="24"></div>
         <h3>Secure Handling</h3>
         <p>Every parcel is logged, verified and handled by trained staff at each checkpoint.</p>
       </div>

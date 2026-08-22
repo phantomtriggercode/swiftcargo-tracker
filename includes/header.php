@@ -11,6 +11,7 @@ $activeNav = $activeNav ?? '';
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= isset($pageTitle) ? h($pageTitle) . ' — ' . h(SITE_NAME) : h(SITE_NAME) . ' | Global Shipping & Tracking' ?></title>
 <meta name="description" content="Track your shipment live on the map and get instant email alerts on every status update.">
+<link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
@@ -28,7 +29,7 @@ $activeNav = $activeNav ?? '';
 <header class="site-header">
   <div class="container">
     <a href="/index.php" class="logo">
-      <span class="mark">SC</span>
+      <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
       <span><span class="word-swift">Swift</span><span class="word-cargo">Cargo</span></span>
     </a>
     <nav class="main-nav">

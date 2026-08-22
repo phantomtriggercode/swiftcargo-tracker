@@ -26,4 +26,4 @@ define('SMTP_SECURE', 'tls'); // 'tls' for port 587, 'ssl' for port 465
 
 // ---- Site ----
 define('SITE_NAME', 'SwiftCargo');
-define('SITE_URL', 'http://localhost/swiftcargo-tracker');
+define('SITE_URL', 'https://darkorange-goose-190777.hostingersite.com');

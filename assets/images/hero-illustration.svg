@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 460" width="600" height="460" role="img" aria-label="Live shipment tracking preview">
+  <defs>
+    <clipPath id="panel-clip">
+      <rect x="0" y="0" width="600" height="460" rx="24"/>
+    </clipPath>
+  </defs>
+
+  <rect x="0" y="0" width="600" height="460" rx="24" fill="#ffffff"/>
+
+  <g clip-path="url(#panel-clip)">
+    <!-- globe grid -->
+    <g stroke="#fca5a5" stroke-width="1" opacity="0.45" fill="none">
+      <circle cx="300" cy="235" r="185"/>
+      <ellipse cx="300" cy="235" rx="80" ry="185"/>
+      <ellipse cx="300" cy="235" rx="150" ry="185"/>
+      <line x1="115" y1="235" x2="485" y2="235"/>
+      <line x1="300" y1="50" x2="300" y2="420"/>
+    </g>
+
+    <!-- route -->
+    <path d="M110,350 C200,270 250,190 300,235 C350,280 400,150 480,95"
+          fill="none" stroke="#d40511" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
+
+    <!-- origin pin -->
+    <circle cx="110" cy="350" r="9" fill="#111827" stroke="#ffffff" stroke-width="3"/>
+    <!-- destination pin -->
+    <circle cx="480" cy="95" r="9" fill="#16a34a" stroke="#ffffff" stroke-width="3"/>
+
+    <!-- current position marker with pulse -->
+    <circle cx="300" cy="235" r="22" fill="#d40511" opacity="0.18">
+      <animate attributeName="r" values="18;28;18" dur="2.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.28;0;0.28" dur="2.4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="300" cy="235" r="15" fill="#d40511" stroke="#ffffff" stroke-width="4"/>
+    <path d="M294,238 302,231 309,235 302,239 300,244Z" fill="#ffffff"/>
+
+    <!-- floating card: email alert -->
+    <g transform="translate(372,54)">
+      <rect width="182" height="60" rx="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+      <rect x="14" y="17" width="26" height="26" rx="6" fill="#fdecec"/>
+      <path d="M20 25.5h14v11a1.5 1.5 0 0 1-1.5 1.5h-11a1.5 1.5 0 0 1-1.5-1.5v-11Z" fill="none" stroke="#d40511" stroke-width="1.6"/>
+      <path d="M20.5 26 27 31.2 33.5 26" fill="none" stroke="#d40511" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="52" y="28" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Email sent</text>
+      <text x="52" y="43" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#6b7280">Status update &#8594; receiver</text>
+    </g>
+
+    <!-- floating card: live position -->
+    <g transform="translate(46,352)">
+      <rect width="178" height="58" rx="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="26" cy="29" r="6" fill="#16a34a"/>
+      <circle cx="26" cy="29" r="10" fill="none" stroke="#16a34a" stroke-width="1.5" opacity="0.5">
+        <animate attributeName="r" values="8;14;8" dur="1.8s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.6;0;0.6" dur="1.8s" repeatCount="indefinite"/>
+      </circle>
+      <text x="46" y="24" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Live position</text>
+      <text x="46" y="40" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#6b7280">Updating on the map</text>
+    </g>
+  </g>
+
+  <rect x="1" y="1" width="598" height="458" rx="23" fill="none" stroke="#f3f4f6" stroke-width="2"/>
+</svg>

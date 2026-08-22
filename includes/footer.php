@@ -3,7 +3,7 @@
     <div class="footer-grid">
       <div>
         <a href="/index.php" class="logo" style="margin-bottom:14px;">
-          <span class="mark">SC</span>
+          <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
           <span style="color:#fff;">SwiftCargo</span>
         </a>
         <p style="color:#9ca3af;font-size:14px;max-width:320px;">

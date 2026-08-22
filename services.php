@@ -18,17 +18,17 @@ include __DIR__ . '/includes/header.php';
   <div class="container">
     <div class="grid-3">
       <div class="card">
-        <div class="icon">&#9889;</div>
+        <div class="icon"><img src="/assets/images/icons/rocket.svg" alt="" width="24" height="24"></div>
         <h3>Priority</h3>
         <p>Our fastest service for time-critical shipments, with premium handling and priority routing at every hub.</p>
       </div>
       <div class="card">
-        <div class="icon">&#9992;</div>
+        <div class="icon"><img src="/assets/images/icons/plane.svg" alt="" width="24" height="24"></div>
         <h3>Express</h3>
         <p>Reliable, fast international delivery — ideal for business documents and time-sensitive parcels.</p>
       </div>
       <div class="card">
-        <div class="icon">&#128666;</div>
+        <div class="icon"><img src="/assets/images/icons/truck.svg" alt="" width="24" height="24"></div>
         <h3>Standard</h3>
         <p>Cost-effective shipping for everyday parcels, with the same live tracking and email alerts.</p>
       </div>
@@ -43,10 +43,10 @@ include __DIR__ . '/includes/header.php';
       <h2>Full visibility, no extra cost</h2>
     </div>
     <div class="grid-4">
-      <div class="card"><h3>Live Map Tracking</h3><p>Free on every shipment, every service tier.</p></div>
-      <div class="card"><h3>Email Alerts</h3><p>Automatic updates sent to your receiver's inbox.</p></div>
-      <div class="card"><h3>Delivery Timeline</h3><p>A timestamped history from pickup to drop-off.</p></div>
-      <div class="card"><h3>24/7 Support</h3><p>Our team is available around the clock.</p></div>
+      <div class="card"><div class="icon"><img src="/assets/images/icons/map-pin.svg" alt="" width="24" height="24"></div><h3>Live Map Tracking</h3><p>Free on every shipment, every service tier.</p></div>
+      <div class="card"><div class="icon"><img src="/assets/images/icons/mail.svg" alt="" width="24" height="24"></div><h3>Email Alerts</h3><p>Automatic updates sent to your receiver's inbox.</p></div>
+      <div class="card"><div class="icon"><img src="/assets/images/icons/clock.svg" alt="" width="24" height="24"></div><h3>Delivery Timeline</h3><p>A timestamped history from pickup to drop-off.</p></div>
+      <div class="card"><div class="icon"><img src="/assets/images/icons/shield.svg" alt="" width="24" height="24"></div><h3>24/7 Support</h3><p>Our team is available around the clock.</p></div>
     </div>
   </div>
 </section>

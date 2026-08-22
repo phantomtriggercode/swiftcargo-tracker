@@ -11,13 +11,14 @@ $activeAdminNav = $activeAdminNav ?? '';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= isset($pageTitle) ? h($pageTitle) . ' — Admin' : 'Admin' ?> | <?= h(SITE_NAME) ?></title>
+<link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 <div class="admin-wrap">
   <aside class="admin-sidebar">
     <a href="/admin/dashboard.php" class="logo">
-      <span class="mark">SC</span>
+      <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
       <span class="word-cargo">SwiftCargo</span>
     </a>
     <nav>
