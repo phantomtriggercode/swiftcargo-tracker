@@ -34,7 +34,7 @@ function smtp_config(): array
 /**
  * @return array{ok: bool, error?: string}
  */
-function send_smtp_mail(string $toEmail, string $toName, string $subject, string $htmlBody, string $altBody): array
+function send_smtp_mail(string $toEmail, string $toName, string $subject, string $htmlBody, string $altBody, ?string $replyToEmail = null, ?string $replyToName = null): array
 {
     $cfg = smtp_config();
     $mail = new PHPMailer(true);
@@ -52,6 +52,9 @@ function send_smtp_mail(string $toEmail, string $toName, string $subject, string
 
         $mail->setFrom($cfg['from_email'], $cfg['from_name']);
         $mail->addAddress($toEmail, $toName);
+        if ($replyToEmail) {
+            $mail->addReplyTo($replyToEmail, $replyToName ?? '');
+        }
 
         $mail->isHTML(true);
         $mail->Subject = $subject;
