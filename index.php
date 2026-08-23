@@ -23,12 +23,11 @@ include __DIR__ . '/includes/header.php';
     <h3>Track your shipment</h3>
     <p>Enter your tracking number to see live location and delivery status.</p>
     <form class="track-form" action="/track.php" method="get">
-      <input type="text" name="tn" placeholder="e.g. SC1000000US" required autocomplete="off">
+      <input type="text" name="tn" placeholder="Enter your tracking number" required autocomplete="off">
       <button type="submit" class="btn btn-primary">Track</button>
     </form>
     <div class="demo-hint">
-      Demo tracking numbers: <code>SC1000000US</code> (en route) &middot; <code>SC1000001US</code> (delivered)
-      &middot; Need a quote instead? <a href="/request-shipment.php" style="color:var(--brand-red);">Request a shipment</a>
+      Need a quote instead? <a href="/request-shipment.php" style="color:var(--brand-red);">Request a shipment</a>
     </div>
   </div>
 </div>

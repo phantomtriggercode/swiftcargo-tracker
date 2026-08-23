@@ -76,7 +76,7 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('about_title', 'About SwiftCargo'),
 ('about_lead', 'A US-based freight and parcel carrier built around one idea: you should always know exactly where your shipment is.'),
-('about_body', 'SwiftCargo was built to give shippers and receivers complete visibility into every shipment, from the moment it is booked to the moment it is signed for. Every parcel and freight load is tracked through our network of hubs, with live map positioning and automatic email alerts sent the instant a shipment''s status changes.\n\nWe move shipments by air, sea, and land across all 50 states and to destinations worldwide, offering both Regular and Express service levels, optional shipment insurance, and support for freight packaging including pallets, crates, and full or partial container loads.\n\nThis site is operated for educational and demonstration purposes. All tracking data shown is either seed data or was entered by a site administrator for demonstration.');
+('about_body', 'SwiftCargo was built to give shippers and receivers complete visibility into every shipment, from the moment it is booked to the moment it is signed for. Every parcel and freight load is tracked through our network of hubs, with live map positioning and automatic email alerts sent the instant a shipment''s status changes.\n\nWe move shipments by air, sea, and land across all 50 states and to destinations worldwide, offering both Regular and Express service levels, optional shipment insurance, and support for freight packaging including pallets, crates, and full or partial container loads.');
 
 -- Contact page
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
@@ -88,7 +88,7 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 -- Footer
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('footer_tagline', 'Reliable freight and parcel shipping across the United States and worldwide, with real-time tracking and instant email alerts, so you always know where your shipment is.'),
-('footer_bottom_note', 'Demo project — not a real courier company.');
+('footer_bottom_note', '');
 
 -- Countries we ship to
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES

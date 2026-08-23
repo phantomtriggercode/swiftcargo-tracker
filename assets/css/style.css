@@ -479,7 +479,10 @@ table.data-table { width: 100%; border-collapse: collapse; background: var(--whi
 table.data-table th, table.data-table td { padding: 12px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border); }
 table.data-table th { background: #f9fafb; font-weight: 700; color: var(--ink-soft); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.4px; }
 table.data-table tr:last-child td { border-bottom: none; }
-table.data-table td.actions { display: flex; gap: 8px; }
+table.data-table td.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+table.data-table td.actions form { display: contents; }
+.btn-danger { background: transparent; border: 1.5px solid var(--danger); color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: var(--white); }
 
 .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--ink); padding: 20px; }
 

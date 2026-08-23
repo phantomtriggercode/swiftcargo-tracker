@@ -29,7 +29,7 @@ include __DIR__ . '/includes/header.php';
     <h3 style="margin:0 0 4px;">Track your shipment</h3>
     <p style="color:#d1d5db;margin:0 0 16px;font-size:14px;">Enter a tracking number to see live location and full status history.</p>
     <form class="track-form" action="/track.php" method="get">
-      <input type="text" name="tn" value="<?= h($tn) ?>" placeholder="e.g. SC1000000US" required autocomplete="off">
+      <input type="text" name="tn" value="<?= h($tn) ?>" placeholder="Enter your tracking number" required autocomplete="off">
       <button type="submit" class="btn btn-yellow">Track</button>
     </form>
   </div>

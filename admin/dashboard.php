@@ -51,6 +51,10 @@ include __DIR__ . '/includes/admin_header.php';
           <a class="btn btn-outline btn-sm" href="/track.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Track</a>
           <a class="btn btn-outline btn-sm" href="/documents/waybill.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Waybill</a>
           <a class="btn btn-outline btn-sm" href="/documents/label.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Label</a>
+          <form method="post" action="/admin/shipment_delete.php" onsubmit="return confirm('Delete shipment <?= h(addslashes($s['tracking_number'])) ?> and its full tracking history? This cannot be undone.');">
+            <input type="hidden" name="id" value="<?= (int) $s['id'] ?>">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
         </td>
       </tr>
     <?php endforeach; ?>
