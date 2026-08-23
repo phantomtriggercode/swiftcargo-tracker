@@ -46,9 +46,11 @@ include __DIR__ . '/includes/admin_header.php';
         <td><span class="badge <?= status_badge_class($s['status']) ?>"><?= h($s['status']) ?></span></td>
         <td style="font-size:13px;color:var(--muted);"><?= h(date('M j, g:i A', strtotime($s['updated_at']))) ?></td>
         <td class="actions">
-          <a class="btn btn-outline btn-sm" href="/admin/add_update.php?id=<?= (int) $s['id'] ?>">Add Update</a>
+          <a class="btn btn-outline btn-sm" href="/admin/add_update.php?id=<?= (int) $s['id'] ?>">Update</a>
           <a class="btn btn-outline btn-sm" href="/admin/shipment_form.php?id=<?= (int) $s['id'] ?>">Edit</a>
-          <a class="btn btn-outline btn-sm" href="/track.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">View</a>
+          <a class="btn btn-outline btn-sm" href="/track.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Track</a>
+          <a class="btn btn-outline btn-sm" href="/documents/waybill.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Waybill</a>
+          <a class="btn btn-outline btn-sm" href="/documents/label.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Label</a>
         </td>
       </tr>
     <?php endforeach; ?>

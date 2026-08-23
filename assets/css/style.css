@@ -259,6 +259,7 @@ img { max-width: 100%; display: block; }
 .tn-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 22px; }
 .tn-heading h2 { margin: 0; font-size: 22px; }
 .tn-heading .tn-code { color: var(--muted); font-size: 14px; }
+.doc-actions { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
 
 .badge {
   display: inline-block;

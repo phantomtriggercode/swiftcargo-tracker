@@ -40,6 +40,9 @@ prefix — change it on your first login.
 - Custom illustrated homepage sections (warehouse handling, fleet, van
   unloading, doorstep delivery) — original hand-built vector art, not stock
   photography.
+- **Printable PDF waybill and shipping label** for every shipment, with a
+  real scannable barcode. Staff can print from the dashboard, and the
+  receiver can print their own from the tracking page — see below.
 
 ### "No API" — what that means here
 
@@ -52,6 +55,10 @@ No paid/keyed third-party APIs are used anywhere:
   sends mail. No SendGrid/Mailgun/SES API involved.
 - **Live updates**: the map polls a small JSON endpoint that is part of this app
   (`api/track.php`), not an external API.
+- **Barcode**: a Code 39 barcode encoder hand-written in plain PHP
+  (`includes/barcode.php`), rendered locally with GD — no barcode-generator API.
+- **PDF documents**: [Dompdf](https://github.com/dompdf/dompdf) renders the
+  waybill/label HTML to a PDF entirely on your server — no cloud PDF/print API.
 
 The only "endpoint" the JS calls is your own server, and the only external network
 calls the PHP backend makes are (a) loading Leaflet's JS/CSS from its CDN and map
@@ -62,8 +69,10 @@ connection to send email.
 
 - PHP 8+ (no framework — plain scripts + includes)
 - MySQL / MariaDB
-- [PHPMailer](https://github.com/PHPMailer/PHPMailer) (vendored via Composer, included in this repo's `vendor/` folder — no Composer needed on the server)
+- [PHPMailer](https://github.com/PHPMailer/PHPMailer) and [Dompdf](https://github.com/dompdf/dompdf)
+  (vendored via Composer, included in this repo's `vendor/` folder — no Composer needed on the server)
 - [Leaflet.js](https://leafletjs.com) + OpenStreetMap tiles (loaded from CDN, no build step)
+- PHP's GD extension (for barcode rendering — enabled by default on Hostinger)
 
 ## Project structure
 
@@ -210,14 +219,17 @@ If you already deployed an earlier version of this project:
    is untouched — don't overwrite it, and it isn't in the ZIP anyway since it's
    git-ignored). Make sure `assets/images/uploads/` and its `.htaccess` come
    along — that's where uploaded logos are stored.
-3. **Database migration:** if you're updating from before the shipping
+3. Make sure `documents/` and the (larger, now ~15MB) `vendor/` folder come
+   along too — that's the waybill/label PDF endpoints and the Dompdf library
+   they use. Check with your host that PHP's **GD extension** is enabled
+   (it is by default on Hostinger) since the barcode needs it.
+4. **Database migration:** if you're updating from before the shipping
    method/packaging/insurance/CMS features existed, import
    `sql/migrations/002_expand_features.sql` once via phpMyAdmin's Import tab
    (see the note above). If you already have that, **no further database
    migration is needed** for branding, SMTP-in-dashboard, the booking wizard,
-   or the expanded content tabs — those all use the `settings` table's
-   existing flexible key/value structure, so new settings just appear the
-   first time you save them from the relevant admin page.
+   the expanded content tabs, or the waybill/label PDFs — none of that
+   touches the database schema.
 
 ## Managing site content
 
@@ -251,11 +263,48 @@ New/Contacted/Converted/Closed, or click **Convert** to open a pre-filled New
 Shipment form (assign a tracking number and it becomes a real, trackable
 shipment).
 
+## Printable waybill & shipping label
+
+Every shipment has two downloadable PDF documents, generated on the fly —
+nothing pre-rendered or stored:
+
+- **Waybill** (`/documents/waybill.php?tn=<tracking number>`) — a full
+  letter-size shipping document: sender/receiver blocks, service and
+  shipping-method details, package info, insurance, and a barcode.
+- **Label** (`/documents/label.php?tn=<tracking number>`) — a standard
+  4"×6" carrier-style label: prominent SHIP TO address, service badge,
+  weight/packaging/method, and a large barcode — sized to print on a real
+  label printer or a normal sheet of paper.
+
+Both open inline in the browser's PDF viewer (with its own print/save/download
+controls) so "print" and "save as PDF" both just work, from any device.
+
+**Where to find them:**
+- **Staff**: on `/admin/dashboard.php`, every shipment row has **Waybill** and
+  **Label** links.
+- **Receivers**: on the public tracking page (`/track.php?tn=...`), right
+  below the status badge, there are **Print Waybill (PDF)** and **Print Label
+  (PDF)** buttons — anyone who has the tracking number can print their own
+  copy, the same way a real courier's tracking page would let you reprint a
+  label.
+
+The barcode is a genuine Code 39 barcode (verifiable with any barcode
+scanner/app) rendered by a barcode encoder hand-written for this project in
+`includes/barcode.php` — not a third-party barcode API.
+
 ## Security notes
 
 - `config/config.php`, `sql/`, `vendor/`, and `includes/` all have `.htaccess`
   files denying direct web access — only PHP scripts that `require` them can read
   their contents.
+- **The waybill and label expose full sender/receiver addresses to anyone
+  with the tracking number** — this is intentional, matching the request that
+  receivers be able to print their own label/waybill from the tracking page,
+  and it's inherent to what a shipping label is. It's a bit more than the
+  public tracking page itself shows (which only shows the receiver's name).
+  If that's not the trade-off you want for a real deployment, gate
+  `documents/waybill.php` and `documents/label.php` behind `require_admin()`
+  and remove the public-facing buttons on `track.php`.
 - Passwords are hashed with PHP's `password_hash()` (bcrypt).
 - All DB queries use PDO prepared statements.
 - All user-supplied output is escaped with `htmlspecialchars()` via the `h()` helper.

@@ -51,6 +51,15 @@ include __DIR__ . '/includes/header.php';
       <span class="badge <?= status_badge_class($shipment['status']) ?>" id="status-badge"><?= h($shipment['status']) ?></span>
     </div>
 
+    <div class="doc-actions">
+      <a href="/documents/waybill.php?tn=<?= urlencode($shipment['tracking_number']) ?>" target="_blank" class="btn btn-outline btn-sm">
+        <img src="/assets/images/icons/box.svg" alt="" width="14" height="14" style="vertical-align:-2px;"> Print Waybill (PDF)
+      </a>
+      <a href="/documents/label.php?tn=<?= urlencode($shipment['tracking_number']) ?>" target="_blank" class="btn btn-outline btn-sm">
+        <img src="/assets/images/icons/box.svg" alt="" width="14" height="14" style="vertical-align:-2px;"> Print Label (PDF)
+      </a>
+    </div>
+
     <div class="tracking-layout">
       <div>
         <div id="map"></div>
