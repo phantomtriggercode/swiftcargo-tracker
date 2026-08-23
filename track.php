@@ -64,6 +64,14 @@ include __DIR__ . '/includes/header.php';
       <div>
         <div id="map"></div>
         <div class="map-live-tag"><span class="dot"></span> Live position — auto-refreshes every 15s</div>
+        <div class="map-legend">
+          <span><span class="swatch swatch-origin"></span> Origin</span>
+          <span><span class="swatch swatch-history"></span> Past checkpoint (numbered)</span>
+          <span><span class="swatch swatch-current"></span> Current position</span>
+          <span><span class="swatch swatch-dest"></span> Destination</span>
+          <span><span class="swatch-line swatch-line-traveled"></span> Traveled</span>
+          <span><span class="swatch-line swatch-line-remaining"></span> Remaining</span>
+        </div>
 
         <div class="shipment-meta">
           <div class="meta-box">
@@ -144,6 +152,17 @@ include __DIR__ . '/includes/header.php';
           'destination_label' => $shipment['destination_label'],
           'destination_lat' => (float) $shipment['destination_lat'],
           'destination_lng' => (float) $shipment['destination_lng'],
+          'events' => array_map(static function (array $e) {
+              return [
+                  'id' => (int) $e['id'],
+                  'status' => $e['status'],
+                  'location_label' => $e['location_label'],
+                  'lat' => (float) $e['lat'],
+                  'lng' => (float) $e['lng'],
+                  'note' => $e['note'],
+                  'event_time' => $e['event_time'],
+              ];
+          }, $events),
       ]) ?>;
     </script>
     <script src="/assets/js/map.js"></script>

@@ -1,6 +1,7 @@
 (function () {
   var data = window.SHIPMENT_INIT;
   if (!data || typeof L === 'undefined') return;
+  data.events = data.events || [];
 
   var map = L.map('map', { scrollWheelZoom: false });
 
@@ -29,6 +30,17 @@
     iconSize: [20, 20],
     iconAnchor: [10, 10]
   });
+  // Past checkpoints — small numbered stops showing the order the shipment passed through.
+  function historyIcon(n) {
+    return L.divIcon({
+      className: '',
+      html: '<div style="width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #9ca3af;'
+        + 'display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#4b5563;'
+        + 'box-shadow:0 1px 4px rgba(17,24,39,0.3);">' + n + '</div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+  }
 
   var originMarker = L.marker([data.origin_lat, data.origin_lng], { icon: originIcon })
     .addTo(map).bindPopup('Origin: ' + data.origin_label);
@@ -44,18 +56,58 @@
       className: 'current-location-tooltip'
     });
 
-  var routeLine = L.polyline(
-    [[data.origin_lat, data.origin_lng], [data.current_lat, data.current_lng], [data.destination_lat, data.destination_lng]],
-    { color: '#d40511', weight: 3, dashArray: '6 6', opacity: 0.7 }
-  ).addTo(map);
+  // Solid line = the path already traveled (origin through every past checkpoint to now).
+  // Dashed line = the remaining leg from the current position to the destination.
+  var traveledLine = L.polyline([], { color: '#111827', weight: 3, opacity: 0.55 }).addTo(map);
+  var remainingLine = L.polyline([], { color: '#d40511', weight: 3, dashArray: '6 6', opacity: 0.7 }).addTo(map);
+  var historyMarkers = [];
+
+  function sameSpot(lat1, lng1, lat2, lng2) {
+    return Math.abs(lat1 - lat2) < 0.0005 && Math.abs(lng1 - lng2) < 0.0005;
+  }
+
+  function renderHistory(events) {
+    historyMarkers.forEach(function (m) { map.removeLayer(m); });
+    historyMarkers = [];
+
+    // Every event except the most recent one is "history" — the latest event
+    // is where the shipment is right now, already shown by the green marker.
+    var past = events.slice(0, Math.max(0, events.length - 1));
+    var traveledPoints = [[data.origin_lat, data.origin_lng]];
+    var seq = 1;
+
+    past.forEach(function (ev) {
+      var onOrigin = sameSpot(ev.lat, ev.lng, data.origin_lat, data.origin_lng);
+      var onDest = sameSpot(ev.lat, ev.lng, data.destination_lat, data.destination_lng);
+      if (!onOrigin && !onDest) {
+        var marker = L.marker([ev.lat, ev.lng], { icon: historyIcon(seq) })
+          .addTo(map)
+          .bindPopup(
+            '<strong>' + escapeHtml(ev.status) + '</strong><br>'
+            + escapeHtml(ev.location_label) + '<br>'
+            + '<span style="color:#6b7280;font-size:12px;">' + escapeHtml(formatDate(ev.event_time)) + '</span>'
+          );
+        historyMarkers.push(marker);
+        seq++;
+      }
+      traveledPoints.push([ev.lat, ev.lng]);
+    });
+
+    traveledPoints.push([data.current_lat, data.current_lng]);
+    traveledLine.setLatLngs(traveledPoints);
+    remainingLine.setLatLngs([[data.current_lat, data.current_lng], [data.destination_lat, data.destination_lng]]);
+  }
+
+  renderHistory(data.events);
 
   function fitAll() {
-    var bounds = L.latLngBounds([
+    var points = [
       [data.origin_lat, data.origin_lng],
       [data.destination_lat, data.destination_lng],
       [data.current_lat, data.current_lng]
-    ]);
-    map.fitBounds(bounds, { padding: [40, 40] });
+    ];
+    data.events.forEach(function (ev) { points.push([ev.lat, ev.lng]); });
+    map.fitBounds(L.latLngBounds(points), { padding: [40, 40] });
   }
   fitAll();
 
@@ -71,17 +123,17 @@
           data.current_lat = s.current_lat;
           data.current_lng = s.current_lng;
           currentMarker.setLatLng([s.current_lat, s.current_lng]);
-          routeLine.setLatLngs([
-            [data.origin_lat, data.origin_lng],
-            [s.current_lat, s.current_lng],
-            [data.destination_lat, data.destination_lng]
-          ]);
         }
 
         if (s.current_location_label && s.current_location_label !== data.current_location_label) {
           data.current_location_label = s.current_location_label;
           currentMarker.setTooltipContent(s.current_location_label);
         }
+
+        if (res.events) {
+          data.events = res.events;
+        }
+        renderHistory(data.events);
 
         var badge = document.getElementById('status-badge');
         if (badge && badge.textContent !== s.status) {

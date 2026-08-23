@@ -366,6 +366,22 @@ img { max-width: 100%; display: block; }
   100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
 }
 
+.map-legend {
+  display: flex; flex-wrap: wrap; gap: 12px 18px;
+  margin-top: 12px; padding: 10px 14px;
+  background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px;
+  font-size: 12.5px; color: var(--ink-soft);
+}
+.map-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.map-legend .swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.map-legend .swatch-line { width: 16px; height: 0; border-top: 2.5px solid; flex: none; }
+.map-legend .swatch-origin { background: #111827; }
+.map-legend .swatch-history { background: #fff; border: 2px solid #9ca3af; }
+.map-legend .swatch-current { background: #16a34a; }
+.map-legend .swatch-dest { background: #374151; }
+.map-legend .swatch-line-traveled { border-top-color: #111827; opacity: 0.6; }
+.map-legend .swatch-line-remaining { border-top-style: dashed; border-top-color: #d40511; }
+
 /* Current-position map marker: green, idling pulse ring + a permanent label above it */
 .current-marker-pulse {
   position: absolute;
