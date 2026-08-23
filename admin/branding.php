@@ -3,19 +3,17 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
+require_once __DIR__ . '/../includes/uploads.php';
 require_admin();
 
 $errors = [];
 $success = null;
 
-$uploadDir = __DIR__ . '/../assets/images/uploads/';
-$allowedExt = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'];
-$maxBytes = 2 * 1024 * 1024; // 2MB
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? 'save';
 
     if ($action === 'reset_logo') {
+        delete_uploaded_image(get_setting('logo_path', ''));
         set_setting('logo_path', '');
         flash_set('success', 'Logo reset to the default mark.');
         redirect('/admin/branding.php');
@@ -26,42 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Site name cannot be empty.';
     }
 
-    $logoPath = null;
-    if (!empty($_FILES['logo']['name']) && $_FILES['logo']['error'] !== UPLOAD_ERR_NO_FILE) {
-        if ($_FILES['logo']['error'] !== UPLOAD_ERR_OK) {
-            $errors[] = 'Logo upload failed. Please try again.';
-        } elseif ($_FILES['logo']['size'] > $maxBytes) {
-            $errors[] = 'Logo file is too large (max 2MB).';
-        } else {
-            $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
-            if (!in_array($ext, $allowedExt, true)) {
-                $errors[] = 'Logo must be a PNG, JPG, WEBP, GIF, or SVG image.';
-            } elseif ($ext !== 'svg' && @getimagesize($_FILES['logo']['tmp_name']) === false) {
-                $errors[] = 'That file does not look like a valid image.';
-            } elseif ($ext === 'svg' && stripos((string) file_get_contents($_FILES['logo']['tmp_name']), '<script') !== false) {
-                $errors[] = 'SVG file rejected for containing a script tag.';
-            } else {
-                $filename = 'logo-' . bin2hex(random_bytes(6)) . '.' . $ext;
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-                if (move_uploaded_file($_FILES['logo']['tmp_name'], $uploadDir . $filename)) {
-                    $logoPath = '/assets/images/uploads/' . $filename;
-                } else {
-                    $errors[] = 'Could not save the uploaded logo.';
-                }
-            }
-        }
+    $upload = handle_image_upload('logo', 'logo', 2 * 1024 * 1024);
+    if (!$upload['ok']) {
+        $errors[] = $upload['error'];
     }
 
     if (!$errors) {
         set_setting('site_name', $siteName);
-        if ($logoPath !== null) {
+        if ($upload['path'] !== null) {
             $oldLogo = get_setting('logo_path', '');
-            set_setting('logo_path', $logoPath);
-            if ($oldLogo !== '' && str_starts_with($oldLogo, '/assets/images/uploads/')) {
-                @unlink(__DIR__ . '/../' . ltrim($oldLogo, '/'));
-            }
+            set_setting('logo_path', $upload['path']);
+            delete_uploaded_image($oldLogo);
         }
         flash_set('success', 'Branding updated.');
         redirect('/admin/branding.php');

@@ -415,6 +415,16 @@ img { max-width: 100%; display: block; }
 .admin-topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 26px; }
 .admin-topbar h1 { font-size: 22px; margin: 0; }
 
+.image-slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+.image-slot-card { max-width: none; margin: 0; padding: 18px; }
+.image-slot-preview {
+  width: 100%; height: 140px; object-fit: contain; background: var(--bg-soft);
+  border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px;
+}
+.image-slot-card h3 { margin: 0 0 4px; font-size: 15px; }
+.image-slot-where { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
+.image-slot-card input[type="file"] { width: 100%; font-size: 12.5px; }
+
 .admin-mobile-bar { display: none; }
 .admin-menu-btn { display: none; }
 .admin-sidebar-backdrop { display: none; }

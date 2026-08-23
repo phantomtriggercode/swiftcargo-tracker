@@ -14,7 +14,7 @@ include __DIR__ . '/includes/header.php';
       <h1><?= h(get_setting('home_hero_title', 'Ship anywhere. Track everything. Live.')) ?></h1>
       <p class="lead"><?= h(get_setting('home_hero_lead')) ?></p>
     </div>
-    <img src="/assets/images/hero-illustration.svg" alt="Live shipment tracking preview showing a route on a map, a live position marker, and an email alert notification" class="hero-illustration">
+    <img src="<?= h(get_site_image('home_hero_image', '/assets/images/hero-illustration.svg')) ?>" alt="Live shipment tracking preview showing a route on a map, a live position marker, and an email alert notification" class="hero-illustration">
   </div>
 </section>
 
@@ -94,7 +94,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="feature-row">
-      <img src="/assets/images/illustrations/warehouse-handler.svg" alt="Warehouse worker carefully handling a package" loading="lazy">
+      <img src="<?= h(get_site_image('home_row1_image', '/assets/images/illustrations/warehouse-handler.svg')) ?>" alt="Warehouse worker carefully handling a package" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row1_title', 'Careful handling at every hub')) ?></h3>
         <p><?= h(get_setting('home_row1_desc', 'Every parcel and pallet is scanned, verified, and handled by trained staff the moment it arrives at one of our facilities — logged instantly so your tracking page updates in real time.')) ?></p>
@@ -102,7 +102,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="feature-row reverse">
-      <img src="/assets/images/illustrations/delivery-truck.svg" alt="Delivery truck on the road" loading="lazy">
+      <img src="<?= h(get_site_image('home_row2_image', '/assets/images/illustrations/delivery-truck.svg')) ?>" alt="Delivery truck on the road" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row2_title', 'A fleet built for reliability')) ?></h3>
         <p><?= h(get_setting('home_row2_desc', 'Ground transport by van, trailer, or rail, and air and sea freight for long-haul and international shipments — routed for speed without cutting corners.')) ?></p>
@@ -110,7 +110,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="feature-row">
-      <img src="/assets/images/illustrations/van-unloading.svg" alt="Worker unloading packages from a delivery van" loading="lazy">
+      <img src="<?= h(get_site_image('home_row3_image', '/assets/images/illustrations/van-unloading.svg')) ?>" alt="Worker unloading packages from a delivery van" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row3_title', 'Fast, careful unloading')) ?></h3>
         <p><?= h(get_setting('home_row3_desc', 'At every stop, our team unloads and sorts shipments quickly and carefully, keeping your delivery window tight and your package intact.')) ?></p>
@@ -118,7 +118,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="feature-row reverse">
-      <img src="/assets/images/illustrations/doorstep-delivery.svg" alt="Courier handing a package to a customer at their front door" loading="lazy">
+      <img src="<?= h(get_site_image('home_row4_image', '/assets/images/illustrations/doorstep-delivery.svg')) ?>" alt="Courier handing a package to a customer at their front door" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row4_title', 'Right to your door')) ?></h3>
         <p><?= h(get_setting('home_row4_desc', "The last mile matters most. Our couriers deliver directly to your doorstep, and your receiver gets an email the moment it's dropped off.")) ?></p>

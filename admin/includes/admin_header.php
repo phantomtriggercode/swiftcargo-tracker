@@ -45,6 +45,7 @@ $activeAdminNav = $activeAdminNav ?? '';
       <a href="/admin/shipment_form.php" class="<?= $activeAdminNav === 'new' ? 'active' : '' ?>">New Shipment</a>
       <a href="/admin/requests.php" class="<?= $activeAdminNav === 'requests' ? 'active' : '' ?>">Shipment Requests</a>
       <a href="/admin/content.php" class="<?= $activeAdminNav === 'content' ? 'active' : '' ?>">Site Content</a>
+      <a href="/admin/images.php" class="<?= $activeAdminNav === 'images' ? 'active' : '' ?>">Site Images</a>
       <a href="/admin/rates.php" class="<?= $activeAdminNav === 'rates' ? 'active' : '' ?>">Calculator Rates</a>
       <a href="/admin/branding.php" class="<?= $activeAdminNav === 'branding' ? 'active' : '' ?>">Branding</a>
       <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>

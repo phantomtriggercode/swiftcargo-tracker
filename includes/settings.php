@@ -83,3 +83,14 @@ function get_logo_url(): ?string
     $path = get_setting('logo_path', '');
     return $path !== '' ? $path : null;
 }
+
+/**
+ * Admin-replaceable site image (hero/illustration photos). An empty stored
+ * value means "reset to default" — set_setting() only upserts rows, it
+ * can't remove one, so a blank string is how a reset is represented.
+ */
+function get_site_image(string $key, string $default): string
+{
+    $path = get_setting($key, '');
+    return $path !== '' ? $path : $default;
+}
