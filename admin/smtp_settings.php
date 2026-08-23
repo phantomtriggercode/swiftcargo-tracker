@@ -85,9 +85,9 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="form-card" style="max-width:560px;">
   <p style="margin-top:0;color:var(--muted);font-size:14px;">
-    Enter any SMTP mailbox's details here — your own webmail from Hostinger
-    (hPanel &rarr; Emails &rarr; create a mailbox, then use its host/username/password),
-    a Gmail account with an <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--brand-red);">App Password</a>,
+    Enter any SMTP mailbox's details here — a mailbox from your web hosting
+    provider's control panel, a Gmail account with an
+    <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--brand-red);">App Password</a>,
     or a free <a href="https://ethereal.email" target="_blank" style="color:var(--brand-red);">Ethereal</a> test
     inbox for development. No third-party email API is used — this connects
     directly to the mailbox over standard SMTP.
