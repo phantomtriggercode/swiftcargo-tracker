@@ -10,27 +10,62 @@ $slots = [
     'home_hero_image' => [
         'label' => 'Homepage Hero Image',
         'where' => 'Top of the homepage, next to the main headline.',
-        'default' => '/assets/images/hero-illustration.svg',
+        'default' => '/assets/images/illustrations/photo-hero-collage.jpg',
     ],
     'home_row1_image' => [
         'label' => '"Careful handling at every hub"',
         'where' => 'Homepage — "How We Operate" section, row 1.',
-        'default' => '/assets/images/illustrations/warehouse-handler.svg',
+        'default' => '/assets/images/illustrations/photo-warehouse-stacking.jpg',
     ],
     'home_row2_image' => [
         'label' => '"A fleet built for reliability"',
         'where' => 'Homepage — "How We Operate" section, row 2.',
-        'default' => '/assets/images/illustrations/delivery-truck.svg',
+        'default' => '/assets/images/illustrations/photo-semi-sunset.jpg',
     ],
     'home_row3_image' => [
         'label' => '"Fast, careful unloading"',
         'where' => 'Homepage — "How We Operate" section, row 3.',
-        'default' => '/assets/images/illustrations/van-unloading.svg',
+        'default' => '/assets/images/illustrations/photo-warehouse-unloading.jpg',
     ],
     'home_row4_image' => [
         'label' => '"Right to your door"',
         'where' => 'Homepage — "How We Operate" section, row 4.',
-        'default' => '/assets/images/illustrations/doorstep-delivery.svg',
+        'default' => '/assets/images/illustrations/photo-doorstep-handoff.png',
+    ],
+    'home_gallery_image1' => [
+        'label' => 'Fleet Gallery — Photo 1 (large)',
+        'where' => 'Homepage — "Our Fleet in Motion" gallery, big tile.',
+        'default' => '/assets/images/illustrations/photo-doorstep-alt.jpg',
+    ],
+    'home_gallery_image2' => [
+        'label' => 'Fleet Gallery — Photo 2',
+        'where' => 'Homepage — "Our Fleet in Motion" gallery.',
+        'default' => '/assets/images/illustrations/photo-van-city.jpg',
+    ],
+    'home_gallery_image3' => [
+        'label' => 'Fleet Gallery — Photo 3',
+        'where' => 'Homepage — "Our Fleet in Motion" gallery.',
+        'default' => '/assets/images/illustrations/photo-container-yard.jpg',
+    ],
+    'home_gallery_image4' => [
+        'label' => 'Fleet Gallery — Photo 4',
+        'where' => 'Homepage — "Our Fleet in Motion" gallery.',
+        'default' => '/assets/images/illustrations/photo-van-dusk.jpg',
+    ],
+    'home_gallery_image5' => [
+        'label' => 'Fleet Gallery — Photo 5',
+        'where' => 'Homepage — "Our Fleet in Motion" gallery.',
+        'default' => '/assets/images/illustrations/photo-porch-delivery.jpg',
+    ],
+    'about_hero_image' => [
+        'label' => 'About Page Banner',
+        'where' => 'About Us page, below the headline.',
+        'default' => '/assets/images/illustrations/photo-staff-clipboard.jpg',
+    ],
+    'services_hero_image' => [
+        'label' => 'Services Page Banner',
+        'where' => 'Services page, below the headline.',
+        'default' => '/assets/images/illustrations/photo-semi-mountains.jpg',
     ],
 ];
 

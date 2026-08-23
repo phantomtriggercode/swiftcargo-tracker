@@ -14,7 +14,7 @@ include __DIR__ . '/includes/header.php';
       <h1><?= h(get_setting('home_hero_title', 'Ship anywhere. Track everything. Live.')) ?></h1>
       <p class="lead"><?= h(get_setting('home_hero_lead')) ?></p>
     </div>
-    <img src="<?= h(get_site_image('home_hero_image', '/assets/images/hero-illustration.svg')) ?>" alt="Live shipment tracking preview showing a route on a map, a live position marker, and an email alert notification" class="hero-illustration">
+    <img src="<?= h(get_site_image('home_hero_image', '/assets/images/illustrations/photo-hero-collage.jpg')) ?>" alt="Live shipment tracking preview showing a route on a map, a live position marker, and an email alert notification" class="hero-illustration">
   </div>
 </section>
 
@@ -94,7 +94,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="feature-row">
-      <img src="<?= h(get_site_image('home_row1_image', '/assets/images/illustrations/warehouse-handler.svg')) ?>" alt="Warehouse worker carefully handling a package" loading="lazy">
+      <img src="<?= h(get_site_image('home_row1_image', '/assets/images/illustrations/photo-warehouse-stacking.jpg')) ?>" alt="Warehouse workers carefully stacking and handling packages" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row1_title', 'Careful handling at every hub')) ?></h3>
         <p><?= h(get_setting('home_row1_desc', 'Every parcel and pallet is scanned, verified, and handled by trained staff the moment it arrives at one of our facilities — logged instantly so your tracking page updates in real time.')) ?></p>
@@ -102,7 +102,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="feature-row reverse">
-      <img src="<?= h(get_site_image('home_row2_image', '/assets/images/illustrations/delivery-truck.svg')) ?>" alt="Delivery truck on the road" loading="lazy">
+      <img src="<?= h(get_site_image('home_row2_image', '/assets/images/illustrations/photo-semi-sunset.jpg')) ?>" alt="Delivery truck on the highway at sunset" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row2_title', 'A fleet built for reliability')) ?></h3>
         <p><?= h(get_setting('home_row2_desc', 'Ground transport by van, trailer, or rail, and air and sea freight for long-haul and international shipments — routed for speed without cutting corners.')) ?></p>
@@ -110,7 +110,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="feature-row">
-      <img src="<?= h(get_site_image('home_row3_image', '/assets/images/illustrations/van-unloading.svg')) ?>" alt="Worker unloading packages from a delivery van" loading="lazy">
+      <img src="<?= h(get_site_image('home_row3_image', '/assets/images/illustrations/photo-warehouse-unloading.jpg')) ?>" alt="Warehouse team unloading and sorting packages from a delivery truck" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row3_title', 'Fast, careful unloading')) ?></h3>
         <p><?= h(get_setting('home_row3_desc', 'At every stop, our team unloads and sorts shipments quickly and carefully, keeping your delivery window tight and your package intact.')) ?></p>
@@ -118,7 +118,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="feature-row reverse">
-      <img src="<?= h(get_site_image('home_row4_image', '/assets/images/illustrations/doorstep-delivery.svg')) ?>" alt="Courier handing a package to a customer at their front door" loading="lazy">
+      <img src="<?= h(get_site_image('home_row4_image', '/assets/images/illustrations/photo-doorstep-handoff.png')) ?>" alt="Courier handing a package to a customer at their front door" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row4_title', 'Right to your door')) ?></h3>
         <p><?= h(get_setting('home_row4_desc', "The last mile matters most. Our couriers deliver directly to your doorstep, and your receiver gets an email the moment it's dropped off.")) ?></p>
@@ -149,6 +149,22 @@ include __DIR__ . '/includes/header.php';
         <h3><?= h(get_setting('home_step3_title', 'You & the receiver stay informed')) ?></h3>
         <p><?= h(get_setting('home_step3_desc', 'Every update triggers an instant email, and anyone can watch progress on the live map.')) ?></p>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow"><?= h(get_setting('home_gallery_eyebrow', 'In Action')) ?></div>
+      <h2><?= h(get_setting('home_gallery_title', 'Our Fleet in Motion')) ?></h2>
+    </div>
+    <div class="photo-gallery">
+      <img src="<?= h(get_site_image('home_gallery_image1', '/assets/images/illustrations/photo-doorstep-alt.jpg')) ?>" alt="Courier delivering a package to a customer at their front door" loading="lazy">
+      <img src="<?= h(get_site_image('home_gallery_image2', '/assets/images/illustrations/photo-van-city.jpg')) ?>" alt="Delivery van in transit through the city" loading="lazy">
+      <img src="<?= h(get_site_image('home_gallery_image3', '/assets/images/illustrations/photo-container-yard.jpg')) ?>" alt="Shipping container being loaded at a rail yard" loading="lazy">
+      <img src="<?= h(get_site_image('home_gallery_image4', '/assets/images/illustrations/photo-van-dusk.jpg')) ?>" alt="Delivery van on the highway at dusk" loading="lazy">
+      <img src="<?= h(get_site_image('home_gallery_image5', '/assets/images/illustrations/photo-porch-delivery.jpg')) ?>" alt="Courier delivering a package to a customer's porch" loading="lazy">
     </div>
   </div>
 </section>

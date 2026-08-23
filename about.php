@@ -15,6 +15,10 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
+<div class="container">
+  <img src="<?= h(get_site_image('about_hero_image', '/assets/images/illustrations/photo-staff-clipboard.jpg')) ?>" alt="Our team reviewing a shipment checklist in the warehouse" class="page-banner-image">
+</div>
+
 <section class="section">
   <div class="container" style="max-width:800px;font-size:16px;color:var(--ink-soft);">
     <?= render_paragraphs(get_setting('about_body')) ?>

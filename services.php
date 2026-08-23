@@ -15,6 +15,10 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
+<div class="container">
+  <img src="<?= h(get_site_image('services_hero_image', '/assets/images/illustrations/photo-semi-mountains.jpg')) ?>" alt="Freight truck on a long-haul route" class="page-banner-image">
+</div>
+
 <section class="section">
   <div class="container">
     <div class="grid-3">
