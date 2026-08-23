@@ -27,7 +27,7 @@ $activeAdminNav = $activeAdminNav ?? '';
       <span class="word-cargo"><?= h(get_site_name()) ?></span>
     </a>
     <nav>
-      <a href="/admin/dashboard.php" class="<?= $activeAdminNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
+      <a href="/admin/dashboard.php" class="<?= $activeAdminNav === 'dashboard' ? 'active' : '' ?>">Shipments</a>
       <a href="/admin/shipment_form.php" class="<?= $activeAdminNav === 'new' ? 'active' : '' ?>">New Shipment</a>
       <a href="/admin/requests.php" class="<?= $activeAdminNav === 'requests' ? 'active' : '' ?>">Shipment Requests</a>
       <a href="/admin/content.php" class="<?= $activeAdminNav === 'content' ? 'active' : '' ?>">Site Content</a>

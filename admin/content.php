@@ -20,7 +20,7 @@ $sections = [
     ],
     'request' => ['request_title', 'request_lead'],
     'contact' => ['contact_intro', 'contact_phone', 'contact_email', 'contact_address'],
-    'footer' => ['footer_tagline', 'footer_bottom_note'],
+    'footer' => ['footer_tagline', 'contact_email', 'contact_phone', 'footer_rights_text', 'footer_bottom_note'],
     'countries' => ['countries_intro', 'countries_list'],
 ];
 
@@ -221,6 +221,23 @@ include __DIR__ . '/includes/admin_header.php';
       <div class="form-group">
         <label>Footer Tagline</label>
         <textarea name="footer_tagline" rows="3"><?= h(get_setting('footer_tagline')) ?></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Get in Touch — Email</label>
+          <input type="text" name="contact_email" value="<?= h(get_setting('contact_email')) ?>">
+        </div>
+        <div class="form-group">
+          <label>Get in Touch — Phone</label>
+          <input type="text" name="contact_phone" value="<?= h(get_setting('contact_phone')) ?>">
+        </div>
+      </div>
+      <p style="margin-top:-6px;color:var(--muted);font-size:13px;">
+        These are the same email and phone shown on the Contact page — editing them here updates both.
+      </p>
+      <div class="form-group">
+        <label>Rights Text (after "&copy; <?= date('Y') ?> <?= h(get_site_name()) ?>.")</label>
+        <input type="text" name="footer_rights_text" value="<?= h(get_setting('footer_rights_text', 'All rights reserved.')) ?>">
       </div>
       <div class="form-group">
         <label>Footer Bottom Note</label>

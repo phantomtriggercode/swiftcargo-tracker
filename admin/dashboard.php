@@ -7,7 +7,7 @@ require_admin();
 $shipments = db()->query('SELECT * FROM shipments ORDER BY created_at DESC')->fetchAll();
 
 $activeAdminNav = 'dashboard';
-$pageTitle = 'Dashboard';
+$pageTitle = 'Shipments';
 include __DIR__ . '/includes/admin_header.php';
 ?>
 

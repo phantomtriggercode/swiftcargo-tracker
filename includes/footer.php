@@ -41,7 +41,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <div>&copy; <?= date('Y') ?> <?= h(get_site_name()) ?>. All rights reserved.</div>
+      <div>&copy; <?= date('Y') ?> <?= h(get_site_name()) ?>. <?= h(get_setting('footer_rights_text', 'All rights reserved.')) ?></div>
       <div><?= h(get_setting('footer_bottom_note')) ?></div>
     </div>
   </div>
