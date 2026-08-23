@@ -40,8 +40,8 @@ include __DIR__ . '/includes/header.php';
 <section class="section section-soft">
   <div class="container">
     <div class="section-head">
-      <div class="eyebrow">Every plan includes</div>
-      <h2>Full visibility, no extra cost</h2>
+      <div class="eyebrow"><?= h(get_setting('services_include_eyebrow', 'Every plan includes')) ?></div>
+      <h2><?= h(get_setting('services_include_title', 'Full visibility, no extra cost')) ?></h2>
     </div>
     <div class="grid-4">
       <div class="card"><div class="icon"><img src="/assets/images/icons/map-pin.svg" alt="" width="24" height="24"></div><h3><?= h(get_setting('services_include1_title', 'Live Map Tracking')) ?></h3><p><?= h(get_setting('services_include1_desc', 'Free on every shipment, every service tier.')) ?></p></div>

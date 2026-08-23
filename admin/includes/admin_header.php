@@ -16,8 +16,22 @@ $activeAdminNav = $activeAdminNav ?? '';
 <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
+
+<div class="admin-mobile-bar">
+  <a href="/admin/dashboard.php" class="logo">
+    <?php if ($logoUrl = get_logo_url()): ?>
+      <img src="<?= h($logoUrl) ?>" alt="" width="28" height="28" class="mark-img">
+    <?php else: ?>
+      <img src="/assets/images/logo-mark.svg" alt="" width="28" height="28" class="mark-img">
+    <?php endif; ?>
+    <span class="word-cargo"><?= h(get_site_name()) ?></span>
+  </a>
+  <button type="button" class="admin-menu-btn" id="admin-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="admin-sidebar">&#9776;</button>
+</div>
+<div class="admin-sidebar-backdrop" id="admin-sidebar-backdrop"></div>
+
 <div class="admin-wrap">
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="admin-sidebar">
     <a href="/admin/dashboard.php" class="logo">
       <?php if ($logoUrl = get_logo_url()): ?>
         <img src="<?= h($logoUrl) ?>" alt="" width="34" height="34" class="mark-img">
@@ -39,3 +53,30 @@ $activeAdminNav = $activeAdminNav ?? '';
     </nav>
   </aside>
   <main class="admin-main">
+<script>
+  (function () {
+    var menuBtn = document.getElementById('admin-menu-btn');
+    var sidebar = document.getElementById('admin-sidebar');
+    var backdrop = document.getElementById('admin-sidebar-backdrop');
+    if (!menuBtn || !sidebar || !backdrop) return;
+
+    function closeMenu() {
+      sidebar.classList.remove('is-open');
+      backdrop.classList.remove('is-open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    }
+    function openMenu() {
+      sidebar.classList.add('is-open');
+      backdrop.classList.add('is-open');
+      menuBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    menuBtn.addEventListener('click', function () {
+      sidebar.classList.contains('is-open') ? closeMenu() : openMenu();
+    });
+    backdrop.addEventListener('click', closeMenu);
+    sidebar.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', closeMenu);
+    });
+  })();
+</script>

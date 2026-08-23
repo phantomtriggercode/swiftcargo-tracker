@@ -23,6 +23,7 @@ include __DIR__ . '/includes/admin_header.php';
   <div class="alert alert-error"><?= h($msg) ?></div>
 <?php endif; ?>
 
+<div class="table-responsive">
 <table class="data-table">
   <thead>
     <tr>
@@ -60,5 +61,6 @@ include __DIR__ . '/includes/admin_header.php';
     <?php endforeach; ?>
   </tbody>
 </table>
+</div>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>

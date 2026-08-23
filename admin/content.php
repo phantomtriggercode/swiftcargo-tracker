@@ -6,13 +6,33 @@ require_once __DIR__ . '/../includes/settings.php';
 require_admin();
 
 $sections = [
-    'home' => ['home_hero_title', 'home_hero_lead', 'stat_countries', 'stat_ontime', 'stat_support', 'stat_delivered'],
+    'home' => [
+        'home_hero_title', 'home_hero_lead', 'stat_countries', 'stat_ontime', 'stat_support', 'stat_delivered',
+        'home_track_title', 'home_track_lead',
+        'home_features_eyebrow', 'home_features_title', 'home_features_lead',
+        'home_feature1_title', 'home_feature1_desc',
+        'home_feature2_title', 'home_feature2_desc',
+        'home_feature3_title', 'home_feature3_desc',
+        'home_feature4_title', 'home_feature4_desc',
+        'home_feature5_title', 'home_feature5_desc',
+        'home_feature6_title', 'home_feature6_desc',
+        'home_operate_eyebrow', 'home_operate_title', 'home_operate_lead',
+        'home_row1_title', 'home_row1_desc',
+        'home_row2_title', 'home_row2_desc',
+        'home_row3_title', 'home_row3_desc',
+        'home_row4_title', 'home_row4_desc',
+        'home_steps_eyebrow', 'home_steps_title',
+        'home_step1_title', 'home_step1_desc',
+        'home_step2_title', 'home_step2_desc',
+        'home_step3_title', 'home_step3_desc',
+    ],
     'about' => ['about_title', 'about_lead', 'about_body'],
     'services' => [
         'services_title', 'services_lead',
         'services_card1_title', 'services_card1_desc',
         'services_card2_title', 'services_card2_desc',
         'services_card3_title', 'services_card3_desc',
+        'services_include_eyebrow', 'services_include_title',
         'services_include1_title', 'services_include1_desc',
         'services_include2_title', 'services_include2_desc',
         'services_include3_title', 'services_include3_desc',
@@ -21,7 +41,7 @@ $sections = [
     'request' => ['request_title', 'request_lead'],
     'contact' => ['contact_intro', 'contact_phone', 'contact_email', 'contact_address'],
     'footer' => ['footer_tagline', 'contact_email', 'contact_phone', 'footer_rights_text', 'footer_bottom_note'],
-    'countries' => ['countries_intro', 'countries_list'],
+    'countries' => ['countries_title', 'countries_intro', 'countries_list'],
 ];
 
 $tabLabels = [
@@ -100,6 +120,120 @@ include __DIR__ . '/includes/admin_header.php';
           <input type="text" name="stat_delivered" value="<?= h(get_setting('stat_delivered')) ?>">
         </div>
       </div>
+
+      <h3>Track Box</h3>
+      <div class="form-group">
+        <label>Heading</label>
+        <input type="text" name="home_track_title" value="<?= h(get_setting('home_track_title', 'Track your shipment')) ?>">
+      </div>
+      <div class="form-group">
+        <label>Subtext</label>
+        <input type="text" name="home_track_lead" value="<?= h(get_setting('home_track_lead', 'Enter your tracking number to see live location and delivery status.')) ?>">
+      </div>
+
+      <h3>"Why Us" Section</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Eyebrow</label>
+          <input type="text" name="home_features_eyebrow" value="<?= h(get_setting('home_features_eyebrow', 'Why ' . get_site_name())) ?>">
+        </div>
+        <div class="form-group">
+          <label>Heading</label>
+          <input type="text" name="home_features_title" value="<?= h(get_setting('home_features_title', 'Built for peace of mind')) ?>">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Lead Paragraph</label>
+        <input type="text" name="home_features_lead" value="<?= h(get_setting('home_features_lead', 'Every shipment is monitored end-to-end, with automatic alerts so your receiver is never left guessing.')) ?>">
+      </div>
+      <?php
+      $featureDefaults = [
+          1 => ['Live Map Tracking', 'Watch your package move across an interactive world map in real time, from pickup to doorstep.'],
+          2 => ['Automatic Email Alerts', 'The receiver gets an email the instant a shipment status changes — picked up, in transit, out for delivery, delivered.'],
+          3 => ['Real-Time Status Timeline', 'A full, timestamped history of every checkpoint your package has passed through.'],
+          4 => ['Regular & Express Options', 'Choose the service level that matches your urgency, and ship by air, sea, or land.'],
+          5 => ['Worldwide Coverage', 'From coast to coast across the U.S. and worldwide, we move freight and parcels reliably to every country we serve.'],
+          6 => ['Secure Handling', 'Every parcel is logged, verified and handled by trained staff at each checkpoint.'],
+      ];
+      foreach ($featureDefaults as $i => [$defTitle, $defDesc]):
+      ?>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Card <?= $i ?> Title</label>
+            <input type="text" name="home_feature<?= $i ?>_title" value="<?= h(get_setting("home_feature{$i}_title", $defTitle)) ?>">
+          </div>
+          <div class="form-group">
+            <label>Card <?= $i ?> Description</label>
+            <input type="text" name="home_feature<?= $i ?>_desc" value="<?= h(get_setting("home_feature{$i}_desc", $defDesc)) ?>">
+          </div>
+        </div>
+      <?php endforeach; ?>
+
+      <h3>"How We Operate" Section</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Eyebrow</label>
+          <input type="text" name="home_operate_eyebrow" value="<?= h(get_setting('home_operate_eyebrow', 'How We Operate')) ?>">
+        </div>
+        <div class="form-group">
+          <label>Heading</label>
+          <input type="text" name="home_operate_title" value="<?= h(get_setting('home_operate_title', 'Real people, real fleet, real care')) ?>">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Lead Paragraph</label>
+        <input type="text" name="home_operate_lead" value="<?= h(get_setting('home_operate_lead', 'From the warehouse floor to your front door, every shipment is handled by trained staff and tracked the whole way.')) ?>">
+      </div>
+      <?php
+      $rowDefaults = [
+          1 => ['Careful handling at every hub', 'Every parcel and pallet is scanned, verified, and handled by trained staff the moment it arrives at one of our facilities — logged instantly so your tracking page updates in real time.'],
+          2 => ['A fleet built for reliability', 'Ground transport by van, trailer, or rail, and air and sea freight for long-haul and international shipments — routed for speed without cutting corners.'],
+          3 => ['Fast, careful unloading', 'At every stop, our team unloads and sorts shipments quickly and carefully, keeping your delivery window tight and your package intact.'],
+          4 => ['Right to your door', "The last mile matters most. Our couriers deliver directly to your doorstep, and your receiver gets an email the moment it's dropped off."],
+      ];
+      foreach ($rowDefaults as $i => [$defTitle, $defDesc]):
+      ?>
+        <div class="form-group">
+          <label>Row <?= $i ?> Title</label>
+          <input type="text" name="home_row<?= $i ?>_title" value="<?= h(get_setting("home_row{$i}_title", $defTitle)) ?>">
+        </div>
+        <div class="form-group">
+          <label>Row <?= $i ?> Description</label>
+          <textarea name="home_row<?= $i ?>_desc" rows="2"><?= h(get_setting("home_row{$i}_desc", $defDesc)) ?></textarea>
+        </div>
+      <?php endforeach; ?>
+
+      <h3>"How It Works" Section</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Eyebrow</label>
+          <input type="text" name="home_steps_eyebrow" value="<?= h(get_setting('home_steps_eyebrow', 'How it works')) ?>">
+        </div>
+        <div class="form-group">
+          <label>Heading</label>
+          <input type="text" name="home_steps_title" value="<?= h(get_setting('home_steps_title', 'Three simple steps')) ?>">
+        </div>
+      </div>
+      <?php
+      $stepDefaults = [
+          1 => ['Book a shipment', 'Our team creates your shipment and issues a unique tracking number.'],
+          2 => ['We move it', 'Your package travels through our network of hubs — each checkpoint logged live.'],
+          3 => ['You & the receiver stay informed', 'Every update triggers an instant email, and anyone can watch progress on the live map.'],
+      ];
+      foreach ($stepDefaults as $i => [$defTitle, $defDesc]):
+      ?>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Step <?= $i ?> Title</label>
+            <input type="text" name="home_step<?= $i ?>_title" value="<?= h(get_setting("home_step{$i}_title", $defTitle)) ?>">
+          </div>
+          <div class="form-group">
+            <label>Step <?= $i ?> Description</label>
+            <input type="text" name="home_step<?= $i ?>_desc" value="<?= h(get_setting("home_step{$i}_desc", $defDesc)) ?>">
+          </div>
+        </div>
+      <?php endforeach; ?>
+
       <button type="submit" class="btn btn-primary">Save Home Content</button>
     </form>
 
@@ -154,7 +288,17 @@ include __DIR__ . '/includes/admin_header.php';
         </div>
       <?php endforeach; ?>
 
-      <h3>"Every Plan Includes" Cards</h3>
+      <h3>"Every Plan Includes" Section</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Eyebrow</label>
+          <input type="text" name="services_include_eyebrow" value="<?= h(get_setting('services_include_eyebrow', 'Every plan includes')) ?>">
+        </div>
+        <div class="form-group">
+          <label>Heading</label>
+          <input type="text" name="services_include_title" value="<?= h(get_setting('services_include_title', 'Full visibility, no extra cost')) ?>">
+        </div>
+      </div>
       <?php
       $includeDefaults = [
           1 => ['Live Map Tracking', 'Free on every shipment, every service tier.'],
@@ -249,6 +393,10 @@ include __DIR__ . '/includes/admin_header.php';
   <?php elseif ($activeTab === 'countries'): ?>
     <form method="post">
       <input type="hidden" name="section" value="countries">
+      <div class="form-group">
+        <label>Page Title</label>
+        <input type="text" name="countries_title" value="<?= h(get_setting('countries_title', 'Countries We Ship To')) ?>">
+      </div>
       <div class="form-group">
         <label>Intro Text</label>
         <textarea name="countries_intro" rows="2"><?= h(get_setting('countries_intro')) ?></textarea>

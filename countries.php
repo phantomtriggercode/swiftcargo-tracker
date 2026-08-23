@@ -12,7 +12,7 @@ include __DIR__ . '/includes/header.php';
 
 <section class="hero" style="padding-bottom:60px;">
   <div class="container">
-    <h1 style="font-size:34px;">Countries We Ship To</h1>
+    <h1 style="font-size:34px;"><?= h(get_setting('countries_title', 'Countries We Ship To')) ?></h1>
     <p class="lead"><?= h(get_setting('countries_intro')) ?></p>
   </div>
 </section>
