@@ -9,7 +9,7 @@ $activeNav = $activeNav ?? '';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= isset($pageTitle) ? h($pageTitle) . ' — ' . h(SITE_NAME) : h(SITE_NAME) . ' | Global Shipping & Tracking' ?></title>
+<title><?= isset($pageTitle) ? h($pageTitle) . ' — ' . h(get_site_name()) : h(get_site_name()) . ' | Global Shipping & Tracking' ?></title>
 <meta name="description" content="Track your shipment live on the map and get instant email alerts on every status update.">
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
@@ -18,7 +18,7 @@ $activeNav = $activeNav ?? '';
 
 <div class="topbar">
   <div class="container">
-    <div>Customer Service: <a href="tel:+18005550199">+1 (800) 555-0199</a></div>
+    <div>Customer Service: <a href="tel:<?= h(preg_replace('/[^0-9+]/', '', get_setting('contact_phone', '+18005550199'))) ?>"><?= h(get_setting('contact_phone', '+1 (800) 555-0199')) ?></a></div>
     <div class="topbar-links">
       <a href="/contact.php">Support</a>
       <a href="/admin/login.php">Staff Login</a>
@@ -29,8 +29,12 @@ $activeNav = $activeNav ?? '';
 <header class="site-header">
   <div class="container">
     <a href="/index.php" class="logo">
-      <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
-      <span><span class="word-swift">Swift</span><span class="word-cargo">Cargo</span></span>
+      <?php if ($logoUrl = get_logo_url()): ?>
+        <img src="<?= h($logoUrl) ?>" alt="" width="34" height="34" class="mark-img">
+      <?php else: ?>
+        <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
+      <?php endif; ?>
+      <span class="word-brand"><?= h(get_site_name()) ?></span>
     </a>
     <nav class="main-nav">
       <a href="/index.php" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>

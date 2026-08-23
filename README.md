@@ -1,9 +1,16 @@
-# SwiftCargo Tracker
+# Shipping & Live Tracking Site
 
-A DHL-style shipping & live package tracking website built in **plain PHP + MySQL**
-so it runs on Hostinger's cheapest shared hosting plan (which only supports PHP/MySQL,
-not Node.js) using the free **temporary domain** Hostinger gives you before you buy a
-real domain.
+A white-labeled, DHL-style shipping & live package tracking website built in
+**plain PHP + MySQL** so it runs on Hostinger's cheapest shared hosting plan
+(which only supports PHP/MySQL, not Node.js) using the free **temporary
+domain** Hostinger gives you before you buy a real domain.
+
+**Not tied to any brand or domain.** The site name, logo, and virtually all
+page content and settings — including email delivery — are configured from
+the admin dashboard, not the codebase. Deploy this under any domain and set
+it up as any company from `/admin` with zero code edits. "SwiftCargo" only
+appears as the out-of-the-box default brand name and demo tracking-number
+prefix — change it on your first login.
 
 ## What it does
 
@@ -19,12 +26,20 @@ real domain.
   Regular/Express service level, and optional declared-value insurance.
   Every time a status update is added, the receiver automatically gets an **email
   alert** — no third-party API/service, just plain SMTP.
-- A full **content management system**: Home/About/Contact/Footer copy and the
-  supported-countries list are all editable from the admin panel — nothing is
-  hardcoded.
-- A public **"Request a Shipment"** page with a live, admin-configurable cost
-  calculator; submissions land in an admin queue that can be reviewed and
+- A full **content management system**: Home/About/Services/Contact/Footer
+  copy and the supported-countries list are all editable from the admin
+  panel — nothing is hardcoded.
+- **Branding and email, configured in the dashboard, not code**: set the site
+  name and upload a logo at `/admin/branding.php`; set SMTP host/port/username
+  /password (from any mailbox — Hostinger webmail, Gmail, etc.) at
+  `/admin/smtp_settings.php`, with a one-click test-email button.
+- A public **multi-step "Request a Shipment"** wizard (route & schedule →
+  package details → service options → review) with a live, admin-configurable
+  cost calculator; submissions land in an admin queue that can be reviewed and
   converted straight into a real shipment.
+- Custom illustrated homepage sections (warehouse handling, fleet, van
+  unloading, doorstep delivery) — original hand-built vector art, not stock
+  photography.
 
 ### "No API" — what that means here
 
@@ -53,12 +68,16 @@ connection to send email.
 ## Project structure
 
 ```
-config/         Database + SMTP config (config.php is git-ignored — copy config.sample.php)
+config/         Database config (config.php is git-ignored — copy config.sample.php).
+                SMTP_* constants here are only the first-boot fallback — the
+                dashboard's saved settings take priority once you set them.
 sql/            schema.sql (fresh installs) + migrations/ (updates for an existing DB)
 includes/       Shared PHP: db helpers, auth, mailer, settings/CMS helper, header/footer
-admin/          Staff panel: dashboard, shipments, tracking updates, requests, content, rates
+admin/          Staff panel: dashboard, shipments, tracking updates, requests,
+                content, rates, branding, SMTP settings
 api/            track.php (live map polling) + geocode.php (address lookup)
-assets/         CSS + JS
+assets/         CSS + JS + images (including illustrations/ and uploads/ for
+                admin-uploaded logos)
 vendor/         PHPMailer (vendored, committed to the repo)
 index.php, track.php, services.php, about.php, contact.php,
 countries.php, request-shipment.php                          Public pages
@@ -103,10 +122,10 @@ Using Hostinger's **File Manager** (or FTP):
 
 ### 4. Configure the app
 1. In `config/`, duplicate `config.sample.php` as `config.php`.
-2. Fill in your real MySQL credentials from step 2.
-3. Fill in SMTP credentials (see next section for email).
-4. Set `SITE_URL` to your Hostinger temporary domain, e.g.
-   `https://yourname.hostingerapp.com`.
+2. Fill in your real MySQL credentials from step 2. That's the only thing
+   that *must* be set here — everything else (SMTP, site name, logo, page
+   content) is configured from `/admin` after you log in (see below), and
+   `SITE_URL` auto-detects your domain if you leave it as-is.
 
 `config/config.php` is git-ignored on purpose — never commit real credentials.
 
@@ -122,28 +141,38 @@ php -r "echo password_hash('YourNewPassword', PASSWORD_DEFAULT);"
 ```
 and update the `admins` table's `password_hash` column via phpMyAdmin.
 
-## Setting up email alerts (SMTP, no API)
+## Setting up email alerts (SMTP, no API) — in the dashboard
 
-This project currently ships configured for **Ethereal** — a free fake-SMTP inbox
-meant for development/demos. Emails sent through it never reach a real inbox; you
-view them in a web inbox instead. This is intentional for a first demo deployment
-so you can see the full flow working without handing over real email credentials.
+Go to **`/admin/smtp_settings.php`** and enter any mailbox's SMTP details —
+host, port, username, password, and encryption type. Use the "Send a Test
+Email" button to confirm it works before relying on it. This is stored in
+the database and takes priority over the `SMTP_*` constants in
+`config/config.php`, so you never need to touch code for this again — not
+even to switch providers later.
 
-**To try it right now:**
-1. Go to https://ethereal.email and click "Create Ethereal Account" (free, instant,
-   no signup form beyond a click).
-2. Copy the generated SMTP **host, username, and password** into `config/config.php`
-   (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`).
-3. Add a tracking update from the admin panel — the "email sent" flash message will
-   confirm it went out.
-4. View the sent email by logging in at https://ethereal.email/messages with the
-   same generated username/password.
+**Options for the mailbox itself:**
+- **Your own domain's webmail** (recommended for a real deployment) — in
+  hPanel → Emails, create a mailbox, then use `smtp.hostinger.com`, port 587,
+  TLS, and that mailbox's address + password.
+- **A personal Gmail account** with an [App Password](https://myaccount.google.com/apppasswords) —
+  `smtp.gmail.com`, port 587, TLS.
+- **[Ethereal](https://ethereal.email)** — a free, instant, throwaway SMTP
+  inbox for testing. Emails sent through it never reach a real inbox; view
+  them at https://ethereal.email/messages with the same generated
+  username/password. Good for trying the whole flow before you have a real
+  mailbox ready. Click "Create Ethereal Account" there to get credentials.
 
-**To send real emails to real inboxes later**, swap in real SMTP credentials — for
-example your own Hostinger email mailbox (hPanel → Emails → create a mailbox, then
-use `smtp.hostinger.com`, port 587, your mailbox address + password), or a personal
-Gmail account with an [App Password](https://myaccount.google.com/apppasswords).
-No code changes needed — just update the `SMTP_*` constants in `config/config.php`.
+`config/config.php`'s `SMTP_*` constants still work as a fallback for a fresh
+install before you've visited the dashboard — but the dashboard is the
+intended way to manage this.
+
+## Branding & white-labeling
+
+Go to **`/admin/branding.php`** to set the site name and upload a logo (PNG,
+JPG, WEBP, GIF, or SVG). This name and logo appear in the header, footer,
+staff login, browser tab, and outgoing emails — everywhere the brand shows up
+site-wide. There's no dependency between this and your domain name; set
+whatever brand you want regardless of what domain you deploy under.
 
 ## Adding shipments & tracking updates
 
@@ -179,26 +208,35 @@ If you already deployed an earlier version of this project:
 1. Download the latest code (GitHub → Code → Download ZIP, or `git pull`).
 2. Re-upload the changed/new files to `public_html` (your `config/config.php`
    is untouched — don't overwrite it, and it isn't in the ZIP anyway since it's
-   git-ignored).
-3. In phpMyAdmin, open the **Import** tab and upload `sql/migrations/002_expand_features.sql`
-   — run it once. It adds the new columns and tables (shipping method, packaging,
-   insurance, expanded statuses, site content, calculator rates, shipment requests)
-   without touching your existing shipments.
+   git-ignored). Make sure `assets/images/uploads/` and its `.htaccess` come
+   along — that's where uploaded logos are stored.
+3. **Database migration:** if you're updating from before the shipping
+   method/packaging/insurance/CMS features existed, import
+   `sql/migrations/002_expand_features.sql` once via phpMyAdmin's Import tab
+   (see the note above). If you already have that, **no further database
+   migration is needed** for branding, SMTP-in-dashboard, the booking wizard,
+   or the expanded content tabs — those all use the `settings` table's
+   existing flexible key/value structure, so new settings just appear the
+   first time you save them from the relevant admin page.
 
 ## Managing site content
 
-`/admin/content.php` has tabs for **Home**, **About**, **Contact**, **Footer**, and
-**Countries** — every headline, paragraph, stat number, contact detail, and the
-full list of countries you ship to is editable there, no code changes needed.
-The public `/countries.php` page and the footer read directly from this content.
+`/admin/content.php` has tabs for **Home**, **About**, **Services**, **Ship
+Now Page**, **Contact**, **Footer**, and **Countries** — every headline,
+paragraph, stat number, service tier, contact detail, and the full list of
+countries you ship to is editable there, no code changes needed. The public
+pages read directly from this content. Branding (name/logo) and SMTP are
+separate pages — see above — since they're settings rather than marketing copy.
 
 ## Public shipment requests & the shipping calculator
 
-`/request-shipment.php` lets any visitor request a shipment: what they're
-shipping, weight/dimensions, packaging type, shipping method (Air/Sea/Land, with
-Van/Trailer/Train for Land), Regular/Express service, optional insurance, and a
-preferred pickup date/time and method. As they fill it in, a live cost estimate
-updates instantly using the rates you've configured.
+`/request-shipment.php` is a guided 4-step wizard (Route & Schedule → Package
+Details → Service Options → Review & Submit) where any visitor can request a
+shipment: what they're shipping, weight/dimensions, packaging type, shipping
+method (Air/Sea/Land, with Van/Trailer/Train for Land), Regular/Express
+service, optional insurance, and a preferred pickup date/time and method. A
+live cost estimate updates as they go and is shown again on the review step
+before they submit.
 
 Configure those rates at `/admin/rates.php` — base fee, price per kg, a
 multiplier per shipping method, an Express multiplier, and an insurance
@@ -221,4 +259,10 @@ shipment).
 - Passwords are hashed with PHP's `password_hash()` (bcrypt).
 - All DB queries use PDO prepared statements.
 - All user-supplied output is escaped with `htmlspecialchars()` via the `h()` helper.
+- `assets/images/uploads/` (logo uploads) has its own `.htaccess` that blocks
+  PHP execution from that folder, and uploaded files are validated as real
+  images (or scanned for `<script` tags for SVGs) before being saved.
+- The SMTP password saved via `/admin/smtp_settings.php` is stored in the
+  same database as everything else — treat your database credentials as
+  sensitive, same as you already do for `config/config.php`.
 - Change the default admin password before sharing your temporary domain publicly.

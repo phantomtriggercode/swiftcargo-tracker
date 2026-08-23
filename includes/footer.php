@@ -3,8 +3,12 @@
     <div class="footer-grid">
       <div>
         <a href="/index.php" class="logo" style="margin-bottom:14px;">
-          <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
-          <span style="color:#fff;">SwiftCargo</span>
+          <?php if ($logoUrl = get_logo_url()): ?>
+            <img src="<?= h($logoUrl) ?>" alt="" width="34" height="34" class="mark-img">
+          <?php else: ?>
+            <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
+          <?php endif; ?>
+          <span style="color:#fff;"><?= h(get_site_name()) ?></span>
         </a>
         <p style="color:#9ca3af;font-size:14px;max-width:320px;">
           <?= h(get_setting('footer_tagline')) ?>
@@ -37,7 +41,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <div>&copy; <?= date('Y') ?> SwiftCargo. All rights reserved.</div>
+      <div>&copy; <?= date('Y') ?> <?= h(get_site_name()) ?>. All rights reserved.</div>
       <div><?= h(get_setting('footer_bottom_note')) ?></div>
     </div>
   </div>

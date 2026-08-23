@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/settings.php';
 
 if (admin_logged_in()) {
     redirect('/admin/dashboard.php');
@@ -24,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Staff Login | <?= h(SITE_NAME) ?></title>
+<title>Staff Login | <?= h(get_site_name()) ?></title>
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 </head>
@@ -32,8 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-page">
   <div class="form-card">
     <a href="/index.php" class="logo" style="justify-content:center;margin-bottom:22px;">
-      <img src="/assets/images/logo-mark.svg" alt="" width="36" height="36" class="mark-img">
-      <span><span class="word-swift">Swift</span><span class="word-cargo">Cargo</span></span>
+      <?php if ($logoUrl = get_logo_url()): ?>
+        <img src="<?= h($logoUrl) ?>" alt="" width="36" height="36" class="mark-img">
+      <?php else: ?>
+        <img src="/assets/images/logo-mark.svg" alt="" width="36" height="36" class="mark-img">
+      <?php endif; ?>
+      <span><?= h(get_site_name()) ?></span>
     </a>
     <h3 style="text-align:center;margin:0 0 20px;">Staff Login</h3>
 

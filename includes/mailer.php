@@ -5,38 +5,58 @@
  * No third-party email API (SendGrid, Mailgun, etc.) is used anywhere here —
  * this talks directly to an SMTP server using the standard SMTP protocol,
  * the same way any desktop email client does.
+ *
+ * SMTP credentials are read from the settings table first (editable at
+ * /admin/smtp_settings.php using any webmail/SMTP provider's details),
+ * falling back to the SMTP_* constants in config.php if nothing has been
+ * saved yet.
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/settings.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
+function smtp_config(): array
+{
+    return [
+        'host' => get_setting('smtp_host', defined('SMTP_HOST') ? SMTP_HOST : ''),
+        'port' => (int) get_setting('smtp_port', (string) (defined('SMTP_PORT') ? SMTP_PORT : 587)),
+        'user' => get_setting('smtp_user', defined('SMTP_USER') ? SMTP_USER : ''),
+        'pass' => get_setting('smtp_pass', defined('SMTP_PASS') ? SMTP_PASS : ''),
+        'secure' => get_setting('smtp_secure', defined('SMTP_SECURE') ? SMTP_SECURE : 'tls'),
+        'from_email' => get_setting('smtp_from_email', defined('SMTP_FROM') ? SMTP_FROM : ''),
+        'from_name' => get_setting('smtp_from_name', defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : get_site_name()),
+    ];
+}
+
 /**
  * @return array{ok: bool, error?: string}
  */
-function send_tracking_update_email(array $shipment, array $event): array
+function send_smtp_mail(string $toEmail, string $toName, string $subject, string $htmlBody, string $altBody): array
 {
+    $cfg = smtp_config();
     $mail = new PHPMailer(true);
 
     try {
         $mail->isSMTP();
-        $mail->Host       = SMTP_HOST;
+        $mail->Host       = $cfg['host'];
         $mail->SMTPAuth   = true;
-        $mail->Username   = SMTP_USER;
-        $mail->Password   = SMTP_PASS;
-        $mail->SMTPSecure = SMTP_SECURE === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = SMTP_PORT;
+        $mail->Username   = $cfg['user'];
+        $mail->Password   = $cfg['pass'];
+        $mail->SMTPSecure = $cfg['secure'] === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = $cfg['port'];
         $mail->Timeout    = 10;
         $mail->SMTPKeepAlive = false;
 
-        $mail->setFrom(SMTP_FROM, SMTP_FROM_NAME);
-        $mail->addAddress($shipment['receiver_email'], $shipment['receiver_name']);
+        $mail->setFrom($cfg['from_email'], $cfg['from_name']);
+        $mail->addAddress($toEmail, $toName);
 
         $mail->isHTML(true);
-        $mail->Subject = SITE_NAME . ' — Shipment ' . $shipment['tracking_number'] . ' update: ' . $event['status'];
-        $mail->Body    = render_tracking_email_html($shipment, $event);
-        $mail->AltBody = render_tracking_email_text($shipment, $event);
+        $mail->Subject = $subject;
+        $mail->Body    = $htmlBody;
+        $mail->AltBody = $altBody;
 
         $mail->send();
         return ['ok' => true];
@@ -45,9 +65,26 @@ function send_tracking_update_email(array $shipment, array $event): array
     }
 }
 
+/**
+ * @return array{ok: bool, error?: string}
+ */
+function send_tracking_update_email(array $shipment, array $event): array
+{
+    $site = get_site_name();
+    $subject = $site . ' — Shipment ' . $shipment['tracking_number'] . ' update: ' . $event['status'];
+
+    return send_smtp_mail(
+        $shipment['receiver_email'],
+        $shipment['receiver_name'],
+        $subject,
+        render_tracking_email_html($shipment, $event),
+        render_tracking_email_text($shipment, $event)
+    );
+}
+
 function render_tracking_email_html(array $shipment, array $event): string
 {
-    $trackUrl = rtrim(SITE_URL, '/') . '/track.php?tn=' . urlencode($shipment['tracking_number']);
+    $trackUrl = get_site_url() . '/track.php?tn=' . urlencode($shipment['tracking_number']);
     $status = h($event['status']);
     $location = h($event['location_label']);
     $noteText = trim((string) ($event['note'] ?? ''));
@@ -56,7 +93,7 @@ function render_tracking_email_html(array $shipment, array $event): string
         : '';
     $tn = h($shipment['tracking_number']);
     $receiver = h($shipment['receiver_name']);
-    $site = h(SITE_NAME);
+    $site = h(get_site_name());
 
     return <<<HTML
     <div style="font-family:Arial,Helvetica,sans-serif;background:#f4f5f7;padding:24px;">
@@ -96,8 +133,8 @@ function render_tracking_email_html(array $shipment, array $event): string
 
 function render_tracking_email_text(array $shipment, array $event): string
 {
-    $trackUrl = rtrim(SITE_URL, '/') . '/track.php?tn=' . urlencode($shipment['tracking_number']);
-    return SITE_NAME . " tracking update\n\n"
+    $trackUrl = get_site_url() . '/track.php?tn=' . urlencode($shipment['tracking_number']);
+    return get_site_name() . " tracking update\n\n"
         . "Tracking number: {$shipment['tracking_number']}\n"
         . "Status: {$event['status']}\n"
         . "Location: {$event['location_label']}\n"

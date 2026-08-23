@@ -107,8 +107,8 @@ include __DIR__ . '/includes/header.php';
 
 <section class="hero" style="padding-bottom:60px;">
   <div class="container">
-    <h1 style="font-size:34px;">Request a Shipment</h1>
-    <p class="lead">Tell us what you're shipping and when — we'll get back to you with a confirmed quote. Prices below are a live estimate.</p>
+    <h1 style="font-size:34px;"><?= h(get_setting('request_title', 'Request a Shipment')) ?></h1>
+    <p class="lead"><?= h(get_setting('request_lead', "Tell us what you're shipping and when — we'll get back to you with a confirmed quote. Prices below are a live estimate.")) ?></p>
   </div>
 </section>
 
@@ -130,131 +130,189 @@ include __DIR__ . '/includes/header.php';
         <div class="alert alert-error"><?= h($err) ?></div>
       <?php endforeach; ?>
 
+      <!-- step progress indicator -->
+      <div class="wizard-steps" id="wizard-steps">
+        <div class="wizard-step-node active" data-step="1">
+          <div class="wizard-step-circle">1</div>
+          <div class="wizard-step-label">Route &amp; Schedule</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step-node" data-step="2">
+          <div class="wizard-step-circle">2</div>
+          <div class="wizard-step-label">Package Details</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step-node" data-step="3">
+          <div class="wizard-step-circle">3</div>
+          <div class="wizard-step-label">Service Options</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step-node" data-step="4">
+          <div class="wizard-step-circle">4</div>
+          <div class="wizard-step-label">Review &amp; Submit</div>
+        </div>
+      </div>
+
       <div class="form-card" style="max-width:none;">
         <form method="post" id="request-form">
-          <h3 style="margin-top:0;">Your Details</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Full Name</label>
-              <input type="text" name="full_name" value="<?= h($_POST['full_name'] ?? '') ?>" required>
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" name="email" value="<?= h($_POST['email'] ?? '') ?>" required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Phone (optional)</label>
-            <input type="text" name="phone" value="<?= h($_POST['phone'] ?? '') ?>">
-          </div>
 
-          <h3>Shipment Route</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Pickup Location</label>
-              <input type="text" name="ship_from" value="<?= h($_POST['ship_from'] ?? '') ?>" placeholder="e.g. Los Angeles, CA, USA" required>
+          <!-- Step 1: Route & Schedule -->
+          <div class="wizard-panel" data-step="1">
+            <h3 style="margin-top:0;">Your Details</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="full_name" name="full_name" value="<?= h($_POST['full_name'] ?? '') ?>" required>
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" name="email" value="<?= h($_POST['email'] ?? '') ?>" required>
+              </div>
             </div>
             <div class="form-group">
-              <label>Delivery Destination</label>
-              <input type="text" name="ship_to" value="<?= h($_POST['ship_to'] ?? '') ?>" placeholder="e.g. New York, NY, USA" required>
+              <label>Phone (optional)</label>
+              <input type="text" id="phone" name="phone" value="<?= h($_POST['phone'] ?? '') ?>">
             </div>
-          </div>
 
-          <h3>What You're Shipping</h3>
-          <div class="form-group">
-            <label>Package Description</label>
-            <input type="text" name="package_description" value="<?= h($_POST['package_description'] ?? '') ?>" placeholder="e.g. Household furniture, 6 boxes" required>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Weight (kg)</label>
-              <input type="number" step="0.01" min="0.01" id="weight_kg" name="weight_kg" value="<?= h($_POST['weight_kg'] ?? '1') ?>" required>
+            <h3>Shipment Route</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pickup Location</label>
+                <input type="text" id="ship_from" name="ship_from" value="<?= h($_POST['ship_from'] ?? '') ?>" placeholder="e.g. Los Angeles, CA, USA" required>
+              </div>
+              <div class="form-group">
+                <label>Delivery Destination</label>
+                <input type="text" id="ship_to" name="ship_to" value="<?= h($_POST['ship_to'] ?? '') ?>" placeholder="e.g. New York, NY, USA" required>
+              </div>
             </div>
-            <div class="form-group">
-              <label>Dimensions (optional)</label>
-              <input type="text" name="dimensions" value="<?= h($_POST['dimensions'] ?? '') ?>" placeholder="e.g. 24in x 18in x 12in">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Packaging Type</label>
-            <select name="packaging_type" id="packaging_type">
-              <?php foreach ($packagingTypes as $opt): ?>
-                <option value="<?= h($opt) ?>" <?= ($_POST['packaging_type'] ?? '') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
 
-          <h3>How You Want It Shipped</h3>
-          <div class="form-row">
+            <h3>Pickup</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Preferred Date</label>
+                <input type="date" id="preferred_date" name="preferred_date" value="<?= h($_POST['preferred_date'] ?? '') ?>">
+              </div>
+              <div class="form-group">
+                <label>Preferred Time</label>
+                <select id="preferred_time" name="preferred_time">
+                  <option value="">Any time</option>
+                  <option value="Morning (8am–12pm)" <?= ($_POST['preferred_time'] ?? '') === 'Morning (8am–12pm)' ? 'selected' : '' ?>>Morning (8am–12pm)</option>
+                  <option value="Afternoon (12pm–4pm)" <?= ($_POST['preferred_time'] ?? '') === 'Afternoon (12pm–4pm)' ? 'selected' : '' ?>>Afternoon (12pm–4pm)</option>
+                  <option value="Evening (4pm–8pm)" <?= ($_POST['preferred_time'] ?? '') === 'Evening (4pm–8pm)' ? 'selected' : '' ?>>Evening (4pm–8pm)</option>
+                </select>
+              </div>
+            </div>
             <div class="form-group">
-              <label>Shipping Method</label>
-              <select name="shipping_method" id="shipping_method">
-                <?php foreach ($shippingMethods as $opt): ?>
-                  <option value="<?= h($opt) ?>" <?= ($_POST['shipping_method'] ?? '') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
+              <label>Pickup Method</label>
+              <select id="pickup_method" name="pickup_method">
+                <?php foreach ($pickupMethods as $opt): ?>
+                  <option value="<?= h($opt) ?>" <?= ($_POST['pickup_method'] ?? 'Pickup') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
                 <?php endforeach; ?>
               </select>
             </div>
-            <div class="form-group" id="land-method-group" style="display:none;">
-              <label>Land Transport Type</label>
-              <select name="land_method" id="land_method">
-                <?php foreach ($landMethods as $opt): ?>
-                  <option value="<?= h($opt) ?>" <?= ($_POST['land_method'] ?? '') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
+
+            <div class="wizard-nav">
+              <span></span>
+              <button type="button" class="btn btn-primary wizard-next">Next: Package Details &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Package Details -->
+          <div class="wizard-panel" data-step="2" hidden>
+            <h3 style="margin-top:0;">What You're Shipping</h3>
+            <div class="form-group">
+              <label>Package Description</label>
+              <input type="text" id="package_description" name="package_description" value="<?= h($_POST['package_description'] ?? '') ?>" placeholder="e.g. Household furniture, 6 boxes" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" step="0.01" min="0.01" id="weight_kg" name="weight_kg" value="<?= h($_POST['weight_kg'] ?? '1') ?>" required>
+              </div>
+              <div class="form-group">
+                <label>Dimensions (optional)</label>
+                <input type="text" id="dimensions" name="dimensions" value="<?= h($_POST['dimensions'] ?? '') ?>" placeholder="e.g. 24in x 18in x 12in">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Packaging Type</label>
+              <select name="packaging_type" id="packaging_type">
+                <?php foreach ($packagingTypes as $opt): ?>
+                  <option value="<?= h($opt) ?>" <?= ($_POST['packaging_type'] ?? '') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
                 <?php endforeach; ?>
               </select>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Service Type</label>
-            <select name="service_type" id="service_type">
-              <?php foreach ($serviceTypes as $opt): ?>
-                <option value="<?= h($opt) ?>" <?= ($_POST['service_type'] ?? '') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
-              <?php endforeach; ?>
-            </select>
+
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-outline wizard-back">&larr; Back</button>
+              <button type="button" class="btn btn-primary wizard-next">Next: Service Options &rarr;</button>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label style="display:flex;align-items:center;gap:8px;font-weight:600;">
-              <input type="checkbox" name="insured" id="insured" value="1" style="width:auto;" <?= !empty($_POST['insured']) ? 'checked' : '' ?>>
-              Add shipment insurance
-            </label>
-          </div>
-          <div class="form-group" id="insurance-value-group" style="display:none;">
-            <label>Declared Value (USD)</label>
-            <input type="number" step="0.01" min="0" id="insurance_value" name="insurance_value" value="<?= h($_POST['insurance_value'] ?? '') ?>">
-          </div>
-
-          <h3>Pickup</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Preferred Date</label>
-              <input type="date" name="preferred_date" value="<?= h($_POST['preferred_date'] ?? '') ?>">
+          <!-- Step 3: Service Options -->
+          <div class="wizard-panel" data-step="3" hidden>
+            <h3 style="margin-top:0;">How You Want It Shipped</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Shipping Method</label>
+                <select name="shipping_method" id="shipping_method">
+                  <?php foreach ($shippingMethods as $opt): ?>
+                    <option value="<?= h($opt) ?>" <?= ($_POST['shipping_method'] ?? '') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="form-group" id="land-method-group" style="display:none;">
+                <label>Land Transport Type</label>
+                <select name="land_method" id="land_method">
+                  <?php foreach ($landMethods as $opt): ?>
+                    <option value="<?= h($opt) ?>" <?= ($_POST['land_method'] ?? '') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
             </div>
             <div class="form-group">
-              <label>Preferred Time</label>
-              <select name="preferred_time">
-                <option value="">Any time</option>
-                <option value="Morning (8am–12pm)" <?= ($_POST['preferred_time'] ?? '') === 'Morning (8am–12pm)' ? 'selected' : '' ?>>Morning (8am–12pm)</option>
-                <option value="Afternoon (12pm–4pm)" <?= ($_POST['preferred_time'] ?? '') === 'Afternoon (12pm–4pm)' ? 'selected' : '' ?>>Afternoon (12pm–4pm)</option>
-                <option value="Evening (4pm–8pm)" <?= ($_POST['preferred_time'] ?? '') === 'Evening (4pm–8pm)' ? 'selected' : '' ?>>Evening (4pm–8pm)</option>
+              <label>Service Type</label>
+              <select name="service_type" id="service_type">
+                <?php foreach ($serviceTypes as $opt): ?>
+                  <option value="<?= h($opt) ?>" <?= ($_POST['service_type'] ?? '') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
+                <?php endforeach; ?>
               </select>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Pickup Method</label>
-            <select name="pickup_method">
-              <?php foreach ($pickupMethods as $opt): ?>
-                <option value="<?= h($opt) ?>" <?= ($_POST['pickup_method'] ?? 'Pickup') === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
-              <?php endforeach; ?>
-            </select>
+
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:8px;font-weight:600;">
+                <input type="checkbox" name="insured" id="insured" value="1" style="width:auto;" <?= !empty($_POST['insured']) ? 'checked' : '' ?>>
+                Add shipment insurance
+              </label>
+            </div>
+            <div class="form-group" id="insurance-value-group" style="display:none;">
+              <label>Declared Value (USD)</label>
+              <input type="number" step="0.01" min="0" id="insurance_value" name="insurance_value" value="<?= h($_POST['insurance_value'] ?? '') ?>">
+            </div>
+
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-outline wizard-back">&larr; Back</button>
+              <button type="button" class="btn btn-primary wizard-next">Next: Review &amp; Submit &rarr;</button>
+            </div>
           </div>
 
-          <div class="calculator-box">
-            <div class="calculator-label">Estimated Cost</div>
-            <div class="calculator-amount" id="calc-amount">$0.00</div>
-            <div class="calculator-note">Final pricing is confirmed by our team after review.</div>
+          <!-- Step 4: Review & Submit -->
+          <div class="wizard-panel" data-step="4" hidden>
+            <h3 style="margin-top:0;">Review Your Request</h3>
+            <div class="review-grid" id="review-summary"></div>
+
+            <div class="calculator-box">
+              <div class="calculator-label">Estimated Cost</div>
+              <div class="calculator-amount" id="calc-amount">$0.00</div>
+              <div class="calculator-note">Final pricing is confirmed by our team after review.</div>
+            </div>
+
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-outline wizard-back">&larr; Back</button>
+              <button type="submit" class="btn btn-primary">Submit Shipment Request</button>
+            </div>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">Submit Shipment Request</button>
         </form>
       </div>
 
@@ -266,5 +324,6 @@ include __DIR__ . '/includes/header.php';
   window.SHIPPING_RATES = <?= json_encode($rates) ?>;
 </script>
 <script src="/assets/js/calculator.js"></script>
+<script src="/assets/js/wizard.js"></script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

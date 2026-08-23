@@ -13,11 +13,15 @@
   var amountEl = document.getElementById('calc-amount');
 
   function toggleLandMethod() {
-    landMethodGroup.style.display = shippingMethodSelect.value === 'Land' ? '' : 'none';
+    var isLand = shippingMethodSelect.value === 'Land';
+    landMethodGroup.style.display = isLand ? '' : 'none';
+    var landMethodSelect = document.getElementById('land_method');
+    if (landMethodSelect) landMethodSelect.required = isLand;
   }
 
   function toggleInsurance() {
     insuranceGroup.style.display = insuredCheckbox.checked ? '' : 'none';
+    if (insuranceValueInput) insuranceValueInput.required = insuredCheckbox.checked;
   }
 
   function methodMultiplier(method) {

@@ -8,9 +8,25 @@ require_admin();
 $sections = [
     'home' => ['home_hero_title', 'home_hero_lead', 'stat_countries', 'stat_ontime', 'stat_support', 'stat_delivered'],
     'about' => ['about_title', 'about_lead', 'about_body'],
+    'services' => [
+        'services_title', 'services_lead',
+        'services_card1_title', 'services_card1_desc',
+        'services_card2_title', 'services_card2_desc',
+        'services_card3_title', 'services_card3_desc',
+        'services_include1_title', 'services_include1_desc',
+        'services_include2_title', 'services_include2_desc',
+        'services_include3_title', 'services_include3_desc',
+        'services_include4_title', 'services_include4_desc',
+    ],
+    'request' => ['request_title', 'request_lead'],
     'contact' => ['contact_intro', 'contact_phone', 'contact_email', 'contact_address'],
     'footer' => ['footer_tagline', 'footer_bottom_note'],
     'countries' => ['countries_intro', 'countries_list'],
+];
+
+$tabLabels = [
+    'home' => 'Home', 'about' => 'About', 'services' => 'Services', 'request' => 'Ship Now Page',
+    'contact' => 'Contact', 'footer' => 'Footer', 'countries' => 'Countries',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -46,7 +62,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="content-tabs">
   <?php foreach (array_keys($sections) as $tab): ?>
-    <a href="/admin/content.php?tab=<?= $tab ?>" class="content-tab <?= $activeTab === $tab ? 'active' : '' ?>"><?= ucfirst($tab) ?></a>
+    <a href="/admin/content.php?tab=<?= $tab ?>" class="content-tab <?= $activeTab === $tab ? 'active' : '' ?>"><?= h($tabLabels[$tab] ?? ucfirst($tab)) ?></a>
   <?php endforeach; ?>
 </div>
 
@@ -103,6 +119,78 @@ include __DIR__ . '/includes/admin_header.php';
         <textarea name="about_body" rows="10"><?= h(get_setting('about_body')) ?></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Save About Content</button>
+    </form>
+
+  <?php elseif ($activeTab === 'services'): ?>
+    <form method="post">
+      <input type="hidden" name="section" value="services">
+      <div class="form-group">
+        <label>Page Title</label>
+        <input type="text" name="services_title" value="<?= h(get_setting('services_title', 'Our Services')) ?>">
+      </div>
+      <div class="form-group">
+        <label>Lead Paragraph</label>
+        <textarea name="services_lead" rows="2"><?= h(get_setting('services_lead', 'Flexible shipping options for every kind of package, budget and deadline.')) ?></textarea>
+      </div>
+
+      <h3>Service Tiers</h3>
+      <?php
+      $tierDefaults = [
+          1 => ['Priority', 'Our fastest service for time-critical shipments, with premium handling and priority routing at every hub.'],
+          2 => ['Express', 'Reliable, fast international delivery — ideal for business documents and time-sensitive parcels.'],
+          3 => ['Standard', 'Cost-effective shipping for everyday parcels, with the same live tracking and email alerts.'],
+      ];
+      foreach ($tierDefaults as $i => [$defTitle, $defDesc]):
+      ?>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tier <?= $i ?> Title</label>
+            <input type="text" name="services_card<?= $i ?>_title" value="<?= h(get_setting("services_card{$i}_title", $defTitle)) ?>">
+          </div>
+          <div class="form-group">
+            <label>Tier <?= $i ?> Description</label>
+            <input type="text" name="services_card<?= $i ?>_desc" value="<?= h(get_setting("services_card{$i}_desc", $defDesc)) ?>">
+          </div>
+        </div>
+      <?php endforeach; ?>
+
+      <h3>"Every Plan Includes" Cards</h3>
+      <?php
+      $includeDefaults = [
+          1 => ['Live Map Tracking', 'Free on every shipment, every service tier.'],
+          2 => ['Email Alerts', "Automatic updates sent to your receiver's inbox."],
+          3 => ['Delivery Timeline', 'A timestamped history from pickup to drop-off.'],
+          4 => ['24/7 Support', 'Our team is available around the clock.'],
+      ];
+      foreach ($includeDefaults as $i => [$defTitle, $defDesc]):
+      ?>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Card <?= $i ?> Title</label>
+            <input type="text" name="services_include<?= $i ?>_title" value="<?= h(get_setting("services_include{$i}_title", $defTitle)) ?>">
+          </div>
+          <div class="form-group">
+            <label>Card <?= $i ?> Description</label>
+            <input type="text" name="services_include<?= $i ?>_desc" value="<?= h(get_setting("services_include{$i}_desc", $defDesc)) ?>">
+          </div>
+        </div>
+      <?php endforeach; ?>
+
+      <button type="submit" class="btn btn-primary">Save Services Content</button>
+    </form>
+
+  <?php elseif ($activeTab === 'request'): ?>
+    <form method="post">
+      <input type="hidden" name="section" value="request">
+      <div class="form-group">
+        <label>Page Title</label>
+        <input type="text" name="request_title" value="<?= h(get_setting('request_title', 'Request a Shipment')) ?>">
+      </div>
+      <div class="form-group">
+        <label>Lead Paragraph</label>
+        <textarea name="request_lead" rows="2"><?= h(get_setting('request_lead', "Tell us what you're shipping and when — we'll get back to you with a confirmed quote. Prices below are a live estimate.")) ?></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Ship Now Content</button>
     </form>
 
   <?php elseif ($activeTab === 'contact'): ?>

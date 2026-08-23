@@ -15,6 +15,7 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/settings.php';
 require_admin();
 
 header('Content-Type: application/json');
@@ -37,7 +38,7 @@ curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_TIMEOUT => 8,
     CURLOPT_HTTPHEADER => [
-        'User-Agent: ' . SITE_NAME . 'Tracker/1.0 (' . SITE_URL . ')',
+        'User-Agent: ' . str_replace(' ', '', get_site_name()) . 'Tracker/1.0 (' . get_site_url() . ')',
         'Accept-Language: en',
     ],
 ]);

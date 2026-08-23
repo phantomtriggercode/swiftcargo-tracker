@@ -75,7 +75,7 @@ img { max-width: 100%; display: block; }
   letter-spacing: -0.5px;
 }
 .logo .mark-img { display: block; flex: none; }
-.logo .word-swift { color: var(--brand-red); }
+.logo .word-brand { color: var(--ink); }
 .logo .word-cargo { color: var(--ink); }
 
 .main-nav { display: flex; align-items: center; gap: 20px; }
@@ -141,6 +141,25 @@ img { max-width: 100%; display: block; }
 @media (max-width: 900px) {
   .hero-grid { grid-template-columns: 1fr; }
   .hero-illustration { max-width: 420px; margin: 0 auto; }
+}
+
+.feature-row {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 48px;
+  align-items: center;
+  margin-bottom: 56px;
+}
+.feature-row:last-child { margin-bottom: 0; }
+.feature-row.reverse { grid-template-columns: 1.1fr 0.9fr; }
+.feature-row.reverse img { order: 2; }
+.feature-row img { width: 100%; height: auto; border-radius: var(--radius); }
+.feature-row h3 { font-size: 22px; margin: 0 0 12px; }
+.feature-row p { color: var(--ink-soft); font-size: 15.5px; line-height: 1.6; margin: 0; }
+@media (max-width: 800px) {
+  .feature-row, .feature-row.reverse { grid-template-columns: 1fr; }
+  .feature-row.reverse img { order: 0; }
+  .feature-row { margin-bottom: 40px; }
 }
 
 /* Tracking search card */
@@ -420,6 +439,28 @@ img { max-width: 100%; display: block; }
 }
 @media (max-width: 900px) { .countries-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .countries-grid { grid-template-columns: 1fr; } }
+
+.wizard-steps { display: flex; align-items: flex-start; margin-bottom: 28px; }
+.wizard-step-node { display: flex; flex-direction: column; align-items: center; text-align: center; width: 120px; }
+.wizard-step-node.done, .wizard-step-node.active { cursor: pointer; }
+.wizard-step-circle {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+  border: 2px solid var(--border); background: var(--white); color: var(--muted);
+}
+.wizard-step-node.active .wizard-step-circle { background: var(--brand-red); border-color: var(--brand-red); color: var(--white); }
+.wizard-step-node.done .wizard-step-circle { background: var(--white); border-color: var(--brand-red); color: var(--brand-red); }
+.wizard-step-label { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.wizard-step-node.active .wizard-step-label { color: var(--ink); font-weight: 700; }
+.wizard-step-line { flex: 1; height: 2px; background: var(--border); margin-top: 17px; }
+.wizard-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--border); }
+.review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 4px; }
+@media (max-width: 700px) {
+  .wizard-step-label { display: none; }
+  .wizard-step-node { width: auto; }
+  .review-grid { grid-template-columns: 1fr; }
+}
 
 .calculator-box {
   background: var(--bg-soft);

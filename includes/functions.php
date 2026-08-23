@@ -69,3 +69,19 @@ function redirect(string $path): void
     header('Location: ' . $path);
     exit;
 }
+
+/**
+ * The site's base URL. Uses the SITE_URL constant if it's been set to
+ * something real, otherwise auto-detects from the current request — so
+ * this codebase works under any domain without editing config.php just
+ * to match the URL.
+ */
+function get_site_url(): string
+{
+    if (defined('SITE_URL') && SITE_URL !== '' && !str_contains(SITE_URL, 'localhost')) {
+        return rtrim(SITE_URL, '/');
+    }
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    return $scheme . '://' . $host;
+}

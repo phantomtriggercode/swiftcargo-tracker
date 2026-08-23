@@ -64,3 +64,22 @@ function get_countries_list(): array
     $lines = array_map('trim', explode("\n", $normalized));
     return array_values(array_filter($lines, static fn($l) => $l !== ''));
 }
+
+/**
+ * White-label branding: the site's display name and logo. Both are fully
+ * admin-editable (admin/branding.php) so this codebase isn't tied to any
+ * one brand or domain. Falls back to the SITE_NAME constant (config.php)
+ * when no override has been saved yet, so existing installs keep working
+ * unchanged until an admin edits it.
+ */
+function get_site_name(): string
+{
+    $value = get_setting('site_name', '');
+    return $value !== '' ? $value : (defined('SITE_NAME') ? SITE_NAME : 'Shipping Company');
+}
+
+function get_logo_url(): ?string
+{
+    $path = get_setting('logo_path', '');
+    return $path !== '' ? $path : null;
+}

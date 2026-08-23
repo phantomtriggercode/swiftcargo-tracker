@@ -47,7 +47,7 @@ include __DIR__ . '/includes/header.php';
 <section class="section">
   <div class="container">
     <div class="section-head">
-      <div class="eyebrow">Why SwiftCargo</div>
+      <div class="eyebrow">Why <?= h(get_site_name()) ?></div>
       <h2>Built for peace of mind</h2>
       <p>Every shipment is monitored end-to-end, with automatic alerts so your receiver is never left guessing.</p>
     </div>
@@ -81,6 +81,48 @@ include __DIR__ . '/includes/header.php';
         <div class="icon"><img src="/assets/images/icons/shield.svg" alt="" width="24" height="24"></div>
         <h3>Secure Handling</h3>
         <p>Every parcel is logged, verified and handled by trained staff at each checkpoint.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">How We Operate</div>
+      <h2>Real people, real fleet, real care</h2>
+      <p>From the warehouse floor to your front door, every shipment is handled by trained staff and tracked the whole way.</p>
+    </div>
+
+    <div class="feature-row">
+      <img src="/assets/images/illustrations/warehouse-handler.svg" alt="Warehouse worker carefully handling a package" loading="lazy">
+      <div>
+        <h3>Careful handling at every hub</h3>
+        <p>Every parcel and pallet is scanned, verified, and handled by trained staff the moment it arrives at one of our facilities — logged instantly so your tracking page updates in real time.</p>
+      </div>
+    </div>
+
+    <div class="feature-row reverse">
+      <img src="/assets/images/illustrations/delivery-truck.svg" alt="Delivery truck on the road" loading="lazy">
+      <div>
+        <h3>A fleet built for reliability</h3>
+        <p>Ground transport by van, trailer, or rail, and air and sea freight for long-haul and international shipments — routed for speed without cutting corners.</p>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <img src="/assets/images/illustrations/van-unloading.svg" alt="Worker unloading packages from a delivery van" loading="lazy">
+      <div>
+        <h3>Fast, careful unloading</h3>
+        <p>At every stop, our team unloads and sorts shipments quickly and carefully, keeping your delivery window tight and your package intact.</p>
+      </div>
+    </div>
+
+    <div class="feature-row reverse">
+      <img src="/assets/images/illustrations/doorstep-delivery.svg" alt="Courier handing a package to a customer at their front door" loading="lazy">
+      <div>
+        <h3>Right to your door</h3>
+        <p>The last mile matters most. Our couriers deliver directly to your doorstep, and your receiver gets an email the moment it's dropped off.</p>
       </div>
     </div>
   </div>

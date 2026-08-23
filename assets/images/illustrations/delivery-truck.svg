@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 440" width="600" height="440" role="img" aria-label="Delivery truck on the road">
+  <rect width="600" height="440" rx="28" fill="#fef2f2"/>
+
+  <!-- sky details -->
+  <circle cx="500" cy="90" r="34" fill="#ffcc00" opacity="0.55"/>
+  <g fill="#ffffff" opacity="0.8">
+    <ellipse cx="120" cy="80" rx="42" ry="16"/>
+    <ellipse cx="150" cy="72" rx="30" ry="14"/>
+    <ellipse cx="90" cy="70" rx="26" ry="12"/>
+  </g>
+
+  <!-- road -->
+  <rect x="0" y="360" width="600" height="80" fill="#374151"/>
+  <rect x="0" y="356" width="600" height="6" fill="#4b5563"/>
+  <g stroke="#ffcc00" stroke-width="6" stroke-dasharray="26 22">
+    <line x1="0" y1="398" x2="600" y2="398"/>
+  </g>
+
+  <!-- motion lines -->
+  <g stroke="#d40511" stroke-width="5" stroke-linecap="round" opacity="0.35">
+    <line x1="30" y1="230" x2="90" y2="230"/>
+    <line x1="20" y1="255" x2="70" y2="255"/>
+    <line x1="35" y1="280" x2="80" y2="280"/>
+  </g>
+
+  <!-- truck -->
+  <g>
+    <!-- cargo box -->
+    <rect x="150" y="150" width="270" height="170" rx="10" fill="#d40511"/>
+    <rect x="168" y="168" width="234" height="70" rx="6" fill="#ffffff" opacity="0.12"/>
+    <!-- logo mark on cargo box -->
+    <g transform="translate(255,205)">
+      <rect width="90" height="60" rx="10" fill="#ffffff" opacity="0.95"/>
+      <polygon points="45,12 66,24 45,36 24,24" fill="#ffcc00"/>
+      <polygon points="24,24 45,36 45,52 24,40" fill="#111827" opacity="0.85"/>
+      <polygon points="45,36 66,24 66,40 45,52" fill="#111827" opacity="0.6"/>
+    </g>
+
+    <!-- cab -->
+    <path d="M420 210 h60 a18 18 0 0 1 18 18 v60 a10 10 0 0 1 -10 10 h-68 Z" fill="#111827"/>
+    <path d="M432 222 h34 a10 10 0 0 1 10 10 v20 h-44 Z" fill="#bfe3ff" opacity="0.85"/>
+    <rect x="420" y="270" width="80" height="10" fill="#ffcc00"/>
+
+    <!-- chassis -->
+    <rect x="150" y="312" width="360" height="16" rx="4" fill="#1f2937"/>
+
+    <!-- wheels -->
+    <circle cx="210" cy="336" r="26" fill="#111827"/>
+    <circle cx="210" cy="336" r="11" fill="#9ca3af"/>
+    <circle cx="460" cy="336" r="26" fill="#111827"/>
+    <circle cx="460" cy="336" r="11" fill="#9ca3af"/>
+
+    <!-- headlight -->
+    <rect x="494" y="288" width="10" height="14" rx="3" fill="#ffcc00"/>
+  </g>
+</svg>
