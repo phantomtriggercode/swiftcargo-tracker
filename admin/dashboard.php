@@ -41,21 +41,26 @@ include __DIR__ . '/includes/admin_header.php';
     <?php endif; ?>
     <?php foreach ($shipments as $s): ?>
       <tr>
-        <td><strong><?= h($s['tracking_number']) ?></strong></td>
-        <td><?= h($s['receiver_name']) ?><br><span style="color:var(--muted);font-size:12.5px;"><?= h($s['receiver_email']) ?></span></td>
-        <td style="font-size:13px;"><?= h($s['origin_label']) ?> &rarr; <?= h($s['destination_label']) ?></td>
-        <td><span class="badge <?= status_badge_class($s['status']) ?>"><?= h($s['status']) ?></span></td>
-        <td style="font-size:13px;color:var(--muted);"><?= h(date('M j, g:i A', strtotime($s['updated_at']))) ?></td>
-        <td class="actions">
-          <a class="btn btn-outline btn-sm" href="/admin/add_update.php?id=<?= (int) $s['id'] ?>">Update</a>
-          <a class="btn btn-outline btn-sm" href="/admin/shipment_form.php?id=<?= (int) $s['id'] ?>">Edit</a>
-          <a class="btn btn-outline btn-sm" href="/track.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Track</a>
-          <a class="btn btn-outline btn-sm" href="/documents/waybill.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Waybill</a>
-          <a class="btn btn-outline btn-sm" href="/documents/label.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Label</a>
-          <form method="post" action="/admin/shipment_delete.php" onsubmit="return confirm('Delete shipment <?= h(addslashes($s['tracking_number'])) ?> and its full tracking history? This cannot be undone.');">
-            <input type="hidden" name="id" value="<?= (int) $s['id'] ?>">
-            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-          </form>
+        <td data-label="Tracking #"><strong><?= h($s['tracking_number']) ?></strong></td>
+        <td data-label="Receiver"><?= h($s['receiver_name']) ?><br><span style="color:var(--muted);font-size:12.5px;"><?= h($s['receiver_email']) ?></span></td>
+        <td data-label="Route" style="font-size:13px;"><?= h($s['origin_label']) ?> &rarr; <?= h($s['destination_label']) ?></td>
+        <td data-label="Status"><span class="badge <?= status_badge_class($s['status']) ?>"><?= h($s['status']) ?></span></td>
+        <td data-label="Updated" style="font-size:13px;color:var(--muted);"><?= h(date('M j, g:i A', strtotime($s['updated_at']))) ?></td>
+        <td class="actions" data-label="Actions">
+          <div class="row-actions">
+            <button type="button" class="row-actions-btn" aria-haspopup="true" aria-expanded="false" aria-label="Actions for <?= h($s['tracking_number']) ?>">&#8942;</button>
+            <template class="row-actions-source">
+              <a href="/admin/add_update.php?id=<?= (int) $s['id'] ?>">Update</a>
+              <a href="/admin/shipment_form.php?id=<?= (int) $s['id'] ?>">Edit</a>
+              <a href="/track.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Track</a>
+              <a href="/documents/waybill.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Waybill</a>
+              <a href="/documents/label.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Label</a>
+              <form method="post" action="/admin/shipment_delete.php" onsubmit="return confirm('Delete shipment <?= h(addslashes($s['tracking_number'])) ?> and its full tracking history? This cannot be undone.');">
+                <input type="hidden" name="id" value="<?= (int) $s['id'] ?>">
+                <button type="submit" class="danger">Delete</button>
+              </form>
+            </template>
+          </div>
         </td>
       </tr>
     <?php endforeach; ?>

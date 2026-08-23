@@ -23,24 +23,23 @@
     iconSize: [14, 14],
     iconAnchor: [7, 7]
   });
-  // Current live position — green with an idling pulse ring (see .current-marker-pulse in style.css).
+  // Current live position — blue with an idling pulse ring, like Google Maps'
+  // live location dot (see .current-marker-pulse in style.css).
   var packageIcon = L.divIcon({
     className: '',
-    html: '<div class="current-marker-pulse"></div><div style="position:relative;width:20px;height:20px;border-radius:50%;background:#16a34a;border:3px solid #fff;box-shadow:0 0 10px rgba(22,163,74,0.7);"></div>',
+    html: '<div class="current-marker-pulse"></div><div style="position:relative;width:20px;height:20px;border-radius:50%;background:#4285f4;border:3px solid #fff;box-shadow:0 0 10px rgba(66,133,244,0.7);"></div>',
     iconSize: [20, 20],
     iconAnchor: [10, 10]
   });
-  // Past checkpoints — small numbered stops showing the order the shipment passed through.
-  function historyIcon(n) {
-    return L.divIcon({
-      className: '',
-      html: '<div style="width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #9ca3af;'
-        + 'display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#4b5563;'
-        + 'box-shadow:0 1px 4px rgba(17,24,39,0.3);">' + n + '</div>',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
-    });
-  }
+  // Footprint — a past location the shipment has already left. Every checkpoint
+  // is blue (current) the moment it's reported, then fades to this footprint
+  // color as soon as a newer checkpoint comes in.
+  var footprintIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#fde68a;border:2.5px solid #d97706;box-shadow:0 1px 3px rgba(17,24,39,0.3);"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
+  });
 
   var originMarker = L.marker([data.origin_lat, data.origin_lng], { icon: originIcon })
     .addTo(map).bindPopup('Origin: ' + data.origin_label);
@@ -70,17 +69,16 @@
     historyMarkers.forEach(function (m) { map.removeLayer(m); });
     historyMarkers = [];
 
-    // Every event except the most recent one is "history" — the latest event
-    // is where the shipment is right now, already shown by the green marker.
+    // Every event except the most recent one is a footprint — the latest event
+    // is where the shipment is right now, already shown by the blue marker.
     var past = events.slice(0, Math.max(0, events.length - 1));
     var traveledPoints = [[data.origin_lat, data.origin_lng]];
-    var seq = 1;
 
     past.forEach(function (ev) {
       var onOrigin = sameSpot(ev.lat, ev.lng, data.origin_lat, data.origin_lng);
       var onDest = sameSpot(ev.lat, ev.lng, data.destination_lat, data.destination_lng);
       if (!onOrigin && !onDest) {
-        var marker = L.marker([ev.lat, ev.lng], { icon: historyIcon(seq) })
+        var marker = L.marker([ev.lat, ev.lng], { icon: footprintIcon })
           .addTo(map)
           .bindPopup(
             '<strong>' + escapeHtml(ev.status) + '</strong><br>'
@@ -88,7 +86,6 @@
             + '<span style="color:#6b7280;font-size:12px;">' + escapeHtml(formatDate(ev.event_time)) + '</span>'
           );
         historyMarkers.push(marker);
-        seq++;
       }
       traveledPoints.push([ev.lat, ev.lng]);
     });

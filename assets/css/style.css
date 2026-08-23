@@ -362,13 +362,14 @@ img { max-width: 100%; display: block; }
 .map-legend .swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; }
 .map-legend .swatch-line { width: 16px; height: 0; border-top: 2.5px solid; flex: none; }
 .map-legend .swatch-origin { background: #111827; }
-.map-legend .swatch-history { background: #fff; border: 2px solid #9ca3af; }
-.map-legend .swatch-current { background: #16a34a; }
+.map-legend .swatch-history { background: #fde68a; border: 2px solid #d97706; }
+.map-legend .swatch-current { background: #4285f4; }
 .map-legend .swatch-dest { background: #374151; }
 .map-legend .swatch-line-traveled { border-top-color: #111827; opacity: 0.6; }
 .map-legend .swatch-line-remaining { border-top-style: dashed; border-top-color: #d40511; }
 
-/* Current-position map marker: green, idling pulse ring + a permanent label above it */
+/* Current-position map marker: blue, idling pulse ring (like Google Maps'
+   live location dot) + a permanent label above it. */
 .current-marker-pulse {
   position: absolute;
   top: 50%;
@@ -377,7 +378,7 @@ img { max-width: 100%; display: block; }
   height: 20px;
   margin: -10px 0 0 -10px;
   border-radius: 50%;
-  background: rgba(22, 163, 74, 0.35);
+  background: rgba(66, 133, 244, 0.35);
   animation: current-idle-pulse 2.2s ease-out infinite;
 }
 @keyframes current-idle-pulse {
@@ -386,7 +387,7 @@ img { max-width: 100%; display: block; }
   100% { transform: scale(2.6); opacity: 0; }
 }
 .leaflet-tooltip.current-location-tooltip {
-  background: #16a34a;
+  background: #4285f4;
   color: #ffffff;
   border: none;
   border-radius: 6px;
@@ -396,7 +397,7 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 .leaflet-tooltip.current-location-tooltip::before {
-  border-top-color: #16a34a;
+  border-top-color: #4285f4;
 }
 
 .timeline { border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
@@ -562,16 +563,82 @@ img { max-width: 100%; display: block; }
 .calculator-amount { font-size: 34px; font-weight: 800; color: var(--brand-red); margin: 4px 0; }
 .calculator-note { font-size: 12.5px; color: var(--muted); }
 
-table.data-table { width: 100%; min-width: 640px; border-collapse: collapse; background: var(--white); border-radius: var(--radius); overflow: hidden; }
-table.data-table th, table.data-table td { padding: 12px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-table.data-table th { background: #f9fafb; font-weight: 700; color: var(--ink-soft); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.4px; }
+table.data-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: var(--radius); overflow: hidden; table-layout: fixed; }
+table.data-table th, table.data-table td { padding: 12px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border); overflow-wrap: break-word; }
+table.data-table th { background: #f9fafb; font-weight: 700; color: var(--ink-soft); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
 table.data-table tr:last-child td { border-bottom: none; }
-table.data-table td.actions { display: flex; gap: 8px; flex-wrap: wrap; white-space: normal; }
+table.data-table td.actions { display: flex; }
+table.data-table th:last-child, table.data-table td.actions { width: 90px; }
 .table-responsive table.data-table { border-radius: 0; }
 .table-responsive { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); }
-table.data-table td.actions form { display: contents; }
 .btn-danger { background: transparent; border: 1.5px solid var(--danger); color: var(--danger); }
 .btn-danger:hover { background: var(--danger); color: var(--white); }
+
+/* Per-row actions: a single compact button that opens a small menu, instead
+   of a full row of buttons — keeps every table column visible without
+   forcing horizontal scrolling at normal desktop widths. */
+.row-actions { display: inline-block; }
+.row-actions-btn {
+  background: none; border: 1.5px solid var(--border); border-radius: 6px;
+  width: 32px; height: 32px; font-size: 18px; line-height: 1; cursor: pointer; color: var(--ink-soft);
+}
+.row-actions-btn:hover, .row-actions-btn[aria-expanded="true"] { border-color: var(--ink); color: var(--ink); }
+.row-actions-menu {
+  position: fixed; z-index: 200; min-width: 160px;
+  background: var(--white); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(17,24,39,0.18); overflow: hidden;
+}
+.row-actions-menu a, .row-actions-menu button {
+  display: block; width: 100%; text-align: left; padding: 10px 14px;
+  font-size: 13.5px; font-weight: 600; color: var(--ink); background: none; border: none;
+  border-bottom: 1px solid var(--border); cursor: pointer;
+}
+.row-actions-menu > a:last-child, .row-actions-menu > form:last-child button { border-bottom: none; }
+.row-actions-menu a:hover, .row-actions-menu button:hover { background: var(--bg-soft); }
+.row-actions-menu .danger { color: var(--danger); }
+.row-actions-menu .danger:hover { background: #fee2e2; }
+.row-actions-menu .row-actions-status { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.row-actions-menu .row-actions-status label {
+  display: block; font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px;
+}
+.row-actions-menu .row-actions-status select {
+  width: 100%; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px;
+}
+
+/* Below 680px, data tables become stacked cards instead of a horizontally
+   scrolling table — there's nothing left to scroll sideways on a phone. */
+@media (max-width: 680px) {
+  .table-responsive { overflow-x: visible; box-shadow: none; background: none; }
+  table.data-table { min-width: 0; width: 100%; }
+  table.data-table thead { display: none; }
+  table.data-table, table.data-table tbody, table.data-table tr, table.data-table td {
+    display: block; width: 100%;
+  }
+  table.data-table tr {
+    margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--white); box-shadow: var(--shadow); overflow: hidden;
+  }
+  table.data-table td {
+    white-space: normal; text-align: right; padding: 10px 14px 10px 42%;
+    position: relative; border-bottom: 1px solid var(--border); min-height: 20px;
+  }
+  table.data-table td[data-label]::before {
+    content: attr(data-label);
+    position: absolute; left: 14px; text-align: left;
+    font-weight: 700; font-size: 12px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  table.data-table tr:last-child, table.data-table td:last-child { margin-bottom: 0; }
+  table.data-table td:last-child { border-bottom: none; }
+  table.data-table td.actions {
+    justify-content: flex-end; padding: 34px 14px 10px; text-align: left;
+  }
+  table.data-table td.actions::before {
+    top: 10px;
+  }
+  table.data-table td[colspan] { padding-left: 14px; text-align: center; }
+}
 
 .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--ink); padding: 20px; }
 

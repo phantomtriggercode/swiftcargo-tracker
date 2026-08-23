@@ -53,27 +53,35 @@ include __DIR__ . '/includes/admin_header.php';
     <?php endif; ?>
     <?php foreach ($requests as $r): ?>
       <tr>
-        <td><strong>REQ-<?= str_pad((string) $r['id'], 5, '0', STR_PAD_LEFT) ?></strong><br>
+        <td data-label="Ref"><strong>REQ-<?= str_pad((string) $r['id'], 5, '0', STR_PAD_LEFT) ?></strong><br>
           <span style="color:var(--muted);font-size:12px;"><?= h(date('M j, g:i A', strtotime($r['created_at']))) ?></span>
         </td>
-        <td style="font-size:13px;"><?= h($r['ship_from']) ?> &rarr; <?= h($r['ship_to']) ?></td>
-        <td><?= h($r['full_name']) ?><br><span style="color:var(--muted);font-size:12.5px;"><?= h($r['email']) ?></span></td>
-        <td style="font-size:13px;">
+        <td data-label="From / To" style="font-size:13px;"><?= h($r['ship_from']) ?> &rarr; <?= h($r['ship_to']) ?></td>
+        <td data-label="Contact"><?= h($r['full_name']) ?><br><span style="color:var(--muted);font-size:12.5px;"><?= h($r['email']) ?></span></td>
+        <td data-label="Details" style="font-size:13px;">
           <?= h($r['package_description']) ?><br>
           <span style="color:var(--muted);"><?= h($r['weight_kg']) ?>kg &middot; <?= h($r['packaging_type']) ?> &middot; <?= h($r['shipping_method']) ?><?= $r['land_method'] ? ' (' . h($r['land_method']) . ')' : '' ?> &middot; <?= h($r['service_type']) ?></span>
         </td>
-        <td><?= $r['estimated_cost'] !== null ? '$' . number_format((float) $r['estimated_cost'], 2) : '—' ?></td>
-        <td><span class="status-pill <?= $statusClass($r['status']) ?>"><?= h($r['status']) ?></span></td>
-        <td class="actions">
-          <form method="post" style="display:flex;gap:6px;">
-            <input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
-            <select name="status" onchange="this.form.submit()" class="btn-sm" style="border-radius:6px;border:1.5px solid var(--border);">
-              <?php foreach ($statuses as $s): ?>
-                <option value="<?= $s ?>" <?= $r['status'] === $s ? 'selected' : '' ?>><?= $s ?></option>
-              <?php endforeach; ?>
-            </select>
-          </form>
-          <a class="btn btn-outline btn-sm" href="/admin/shipment_form.php?from_request=<?= (int) $r['id'] ?>">Convert</a>
+        <td data-label="Est. Cost"><?= $r['estimated_cost'] !== null ? '$' . number_format((float) $r['estimated_cost'], 2) : '—' ?></td>
+        <td data-label="Status"><span class="status-pill <?= $statusClass($r['status']) ?>"><?= h($r['status']) ?></span></td>
+        <td class="actions" data-label="Actions">
+          <div class="row-actions">
+            <button type="button" class="row-actions-btn" aria-haspopup="true" aria-expanded="false" aria-label="Actions for request REQ-<?= str_pad((string) $r['id'], 5, '0', STR_PAD_LEFT) ?>">&#8942;</button>
+            <template class="row-actions-source">
+              <div class="row-actions-status">
+                <label>Status</label>
+                <form method="post">
+                  <input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
+                  <select name="status" onchange="this.form.submit()">
+                    <?php foreach ($statuses as $s): ?>
+                      <option value="<?= $s ?>" <?= $r['status'] === $s ? 'selected' : '' ?>><?= $s ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </form>
+              </div>
+              <a href="/admin/shipment_form.php?from_request=<?= (int) $r['id'] ?>">Convert to Shipment</a>
+            </template>
+          </div>
         </td>
       </tr>
     <?php endforeach; ?>

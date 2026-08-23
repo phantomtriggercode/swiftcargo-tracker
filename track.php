@@ -66,7 +66,7 @@ include __DIR__ . '/includes/header.php';
         <div class="map-live-tag"><span class="dot"></span> Live position — auto-refreshes every 15s</div>
         <div class="map-legend">
           <span><span class="swatch swatch-origin"></span> Origin</span>
-          <span><span class="swatch swatch-history"></span> Past checkpoint (numbered)</span>
+          <span><span class="swatch swatch-history"></span> Past location (footprint)</span>
           <span><span class="swatch swatch-current"></span> Current position</span>
           <span><span class="swatch swatch-dest"></span> Destination</span>
           <span><span class="swatch-line swatch-line-traveled"></span> Traveled</span>
