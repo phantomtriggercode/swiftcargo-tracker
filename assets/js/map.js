@@ -1,6 +1,37 @@
 (function () {
   var data = window.SHIPMENT_INIT;
-  if (!data || typeof L === 'undefined') return;
+  if (!data) return;
+
+  // Leaflet is loaded from a public CDN, which can be unreachable for
+  // reasons that have nothing to do with this site: a CDN outage, a
+  // corporate firewall, a privacy/ad blocker, or a country that blocks
+  // that CDN. Without this branch the visitor just got a blank grey box
+  // and no idea why. Every other piece of tracking information on this
+  // page (status, timeline, checkpoints, addresses) is rendered
+  // server-side and is unaffected, so say so instead of failing silently.
+  if (typeof L === 'undefined') {
+    var mapEl = document.getElementById('map');
+    if (mapEl) {
+      mapEl.classList.add('map-unavailable');
+      var msg = document.createElement('div');
+      msg.className = 'map-unavailable-inner';
+      var title = document.createElement('strong');
+      title.textContent = 'The map could not be loaded.';
+      var body = document.createElement('span');
+      body.textContent = 'Your network or browser blocked the map library. '
+        + 'All tracking details and the full status history below are still up to date.';
+      msg.appendChild(title);
+      msg.appendChild(body);
+      mapEl.appendChild(msg);
+    }
+    // Hide the "live position, auto-refreshes" tag — nothing is refreshing.
+    var liveTag = document.querySelector('.map-live-tag');
+    if (liveTag) liveTag.style.display = 'none';
+    var legend = document.querySelector('.map-legend');
+    if (legend) legend.style.display = 'none';
+    return;
+  }
+
   data.events = data.events || [];
 
   var map = L.map('map', { scrollWheelZoom: false });

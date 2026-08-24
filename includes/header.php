@@ -15,6 +15,29 @@ maybe_send_go_live_alert();
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
 <?= palette_style_tag() ?>
+<script>
+  /* Opts this page in to the scroll-reveal animations by adding .js-anim,
+     which is what lets style.css hide [data-reveal] sections until they
+     scroll into view. Inline and in <head> on purpose: it has to run
+     before first paint, or hidden sections would flash visible first.
+
+     The timer is the safety net. If assets/js/reveal.js never gets to run
+     — blocked by an extension, 404 after a bad upload, a future CSP change
+     — nothing would ever add .is-visible and those sections would stay
+     invisible forever. reveal.js stamps data-reveal-ready on <html> as
+     soon as it starts; if that hasn't happened shortly after load, the
+     class comes back off and every section simply renders normally,
+     animations skipped. Readable content always wins over the effect. */
+  (function () {
+    var d = document.documentElement;
+    d.className += (d.className ? ' ' : '') + 'js-anim';
+    window.setTimeout(function () {
+      if (!d.hasAttribute('data-reveal-ready')) {
+        d.className = d.className.replace(/(^|\s)js-anim(\s|$)/, '$1$2');
+      }
+    }, 2000);
+  })();
+</script>
 </head>
 <body>
 

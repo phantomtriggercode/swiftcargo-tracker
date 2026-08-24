@@ -132,12 +132,46 @@ Using Hostinger's **File Manager** (or FTP):
 
 ### 4. Configure the app
 1. In `config/`, duplicate `config.sample.php` as `config.php`.
-2. Fill in your real MySQL credentials from step 2. That's the only thing
-   that *must* be set here — everything else (SMTP, site name, logo, page
-   content) is configured from `/admin` after you log in (see below), and
-   `SITE_URL` auto-detects your domain if you leave it as-is.
+2. Fill in your real MySQL credentials from step 2.
+3. Set `SITE_URL` to your live domain — `https://yourdomain.com`, with no
+   trailing slash. See **Pointing the site at a domain** below for why this
+   matters and what breaks if you skip it.
+
+Everything else (SMTP, site name, logo, page content, colors, templates) is
+configured from `/admin` after you log in — no other file needs editing.
 
 `config/config.php` is git-ignored on purpose — never commit real credentials.
+
+### Pointing the site at a domain
+
+**`SITE_URL` in `config/config.php` is the only place the site's own web
+address is configured.** Nothing else in the codebase hardcodes a domain, so
+moving to a new domain later means changing that one line and nothing else.
+
+It's used for every absolute link that leaves the site:
+
+- the "track your shipment" link in status-update emails
+- password-reset links in admin recovery emails
+- the "track at ..." line printed on the waybill PDF
+- the URLs listed in `sitemap.php` for search engines
+
+Leaving it blank makes the site auto-detect its address from each incoming
+request, which is fine for a quick throwaway test deploy. **Don't leave it
+blank in production.** The detected address comes from the request's own
+`Host` header, which the visitor's browser controls — someone can forge it,
+request a password reset for your admin email, and have the reset link in
+*your* inbox point at *their* server with a valid token attached. Setting
+`SITE_URL` explicitly makes that impossible, because the constant always
+wins over anything in the request.
+
+Whatever you do, don't leave a *stale* domain in there: a `SITE_URL` still
+pointing at an old address is worse than a blank one, because every tracking
+link you email to customers will quietly lead to a dead site.
+
+After changing it, the fastest way to confirm it took effect is to open
+`https://yourdomain.com/sitemap.php` — every URL listed there is built from
+`SITE_URL`, so if the sitemap shows the right domain, so will your emails
+and PDFs.
 
 ### 5. Log in to the admin panel
 Visit `https://your-temp-domain/admin/login.php`.
@@ -641,6 +675,66 @@ controls) so "print" and "save as PDF" both just work, from any device.
 The barcode is a genuine Code 39 barcode (verifiable with any barcode
 scanner/app) rendered by a barcode encoder hand-written for this project in
 `includes/barcode.php` — not a third-party barcode API.
+
+## Devices and browsers
+
+**Layout** was verified in a real Chromium engine at nine viewport sizes —
+320px (small Android), 360px (Galaxy S20), 375px (iPhone SE), 393px
+(iPhone 14 Pro), 430px (iPhone 14 Pro Max), 768px (iPad Mini), 1024px
+(iPad Pro), 1366px (laptop) and 1920px (desktop) — across every public
+page and every admin page, checking for horizontal overflow, elements
+escaping the viewport, and unreadably small text. All clean. Wide content
+that genuinely can't shrink (data tables, the barcode) scrolls inside its
+own container rather than pushing the page sideways.
+
+**Touch** interactions are verified too, not just layout: the mobile menu,
+the admin sidebar, the multi-step booking wizard, and the row action menus
+were each driven with real emulated taps on an iPhone-profile browser.
+Tap targets on mobile are at least 32px tall.
+
+**Browser support floor** is roughly **Chrome/Edge 90+, Firefox 81+, and
+Safari 16+ (iOS 16+)** — that's a 2022-and-newer baseline covering
+effectively all traffic today. The JavaScript is deliberately plain ES5
+(`var`, `function`, no arrow functions, no template literals), so nothing
+needs transpiling; the floor comes from CSS, mainly `overflow-x: clip`,
+plus `aspect-ratio` and flexbox `gap`. On an older browser those rules are
+simply ignored — the page still renders and works, it just loses a little
+polish. Nothing is behind a feature that silently breaks the layout.
+
+**If a script gets blocked.** Ad blockers, corporate firewalls, privacy
+extensions, country-level CDN blocks and plain old outages are all facts of
+life, so the site is built to degrade rather than break:
+
+- **The homepage never depends on JavaScript to be readable.** Sections
+  animate in as you scroll, but that hiding is opt-in via a class that
+  JavaScript itself adds, and a failsafe timer removes it again if the
+  animation script doesn't start within two seconds. With JavaScript
+  disabled entirely, or the script blocked, every section renders normally
+  with no animation. (Verified in all three states.)
+- **The tracking map degrades with an explanation.** Leaflet is the one
+  third-party file the site loads (from `cdn.jsdelivr.net`). If it can't
+  be reached, the map area now says so plainly and points out that the
+  full status history below is still current — instead of leaving a silent
+  grey rectangle. Every other detail on that page is rendered server-side
+  and is unaffected.
+- **Nothing else is third-party at all.** No analytics, no ad scripts, no
+  webfonts, no jQuery, no tracking pixels. Emails go over plain SMTP and
+  PDFs are generated on your own server, so there's no external service
+  that can disappear and take a feature with it.
+
+**Optionally removing the last CDN dependency.** If you'd rather the map
+never depend on an outside host, self-host Leaflet:
+
+1. Download `leaflet.js` and `leaflet.css` (plus the `images/` folder next
+   to the CSS) from [leafletjs.com/download.html](https://leafletjs.com/download.html).
+2. Put them in `assets/vendor/leaflet/`.
+3. In `track.php`, change the two `cdn.jsdelivr.net` URLs to your local
+   paths.
+4. In `config/db.php`, drop `https://cdn.jsdelivr.net` from the
+   `script-src` and `style-src` parts of the Content-Security-Policy.
+
+After that the site loads nothing from any external host, and the map works
+on locked-down networks too.
 
 ## Production-readiness polish
 

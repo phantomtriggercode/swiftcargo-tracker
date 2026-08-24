@@ -191,18 +191,38 @@ function ensure_session_started(): void
 }
 
 /**
- * The site's base URL. Uses the SITE_URL constant if it's been set to
- * something real, otherwise auto-detects from the current request — so
- * this codebase works under any domain without editing config.php just
- * to match the URL.
+ * The site's base URL, used to build absolute links in emails (tracking
+ * links, password-reset links), the waybill PDF footer, and sitemap.xml.
+ *
+ * SITE_URL in config/config.php is the single place to set this. When it's
+ * set, it always wins — that is the recommended production setup, and the
+ * ONLY configuration that's safe against Host-header spoofing (see below).
+ *
+ * When SITE_URL is blank (or still pointing at localhost), the URL is
+ * auto-detected from the incoming request so the site works out of the box
+ * on any domain. That convenience has a real caveat: the host comes from
+ * the request's own Host header, which the client controls. An attacker
+ * can send `Host: evil.example` to /admin/forgot_password.php with a real
+ * admin's email address, and the reset email that admin receives would
+ * carry a link pointing at the attacker's domain with a valid token
+ * attached — classic password-reset poisoning. Setting SITE_URL closes
+ * that off completely, which is why the deploy docs insist on it.
+ *
+ * Either way the host is sanitized to characters actually legal in a
+ * hostname, so a malformed header can never inject extra URL structure
+ * (a path, a second host, CR/LF) into a link that gets emailed out.
  */
 function get_site_url(): string
 {
     if (defined('SITE_URL') && SITE_URL !== '' && !str_contains(SITE_URL, 'localhost')) {
         return rtrim(SITE_URL, '/');
     }
+
     $scheme = is_https() ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $rawHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    // Letters, digits, dot, hyphen and an optional :port — nothing else.
+    $host = preg_match('/^[A-Za-z0-9.\-]+(:[0-9]{1,5})?$/', $rawHost) ? $rawHost : 'localhost';
+
     return $scheme . '://' . $host;
 }
 

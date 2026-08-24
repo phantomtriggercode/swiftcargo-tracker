@@ -6,6 +6,14 @@
  * script only ever toggles the one class.
  */
 (function () {
+  // Signals to the failsafe timer in includes/header.php that this file
+  // actually loaded and ran, so it leaves the .js-anim class in place. Set
+  // first thing, ahead of every early return below — if this file is ever
+  // blocked or fails to load, the flag never appears, that timer strips
+  // .js-anim, and the page renders fully visible with no animation rather
+  // than leaving whole sections stuck invisible.
+  document.documentElement.setAttribute('data-reveal-ready', '1');
+
   var targets = document.querySelectorAll('[data-reveal]');
   if (!targets.length) return;
 
