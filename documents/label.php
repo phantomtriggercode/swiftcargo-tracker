@@ -40,6 +40,13 @@ $barcode = barcode_data_uri($shipment['tracking_number'], 2, 60);
 $isExpress = $shipment['service_type'] === 'Express';
 $methodLabel = h($shipment['shipping_method']) . ($shipment['land_method'] ? ' / ' . h($shipment['land_method']) : '');
 
+// Colors follow the active site theme (see includes/theme.php) so this
+// PDF matches whatever's live at /admin/themes.php instead of staying
+// hardcoded to one brand's colors.
+$theme = get_active_theme();
+$primary = h($theme['color_primary']);
+$ink = h($theme['color_ink']);
+
 ob_start();
 ?>
 <!DOCTYPE html>
@@ -48,7 +55,7 @@ ob_start();
 <meta charset="UTF-8">
 <style>
   @page { margin: 14pt; }
-  body { font-family: 'DejaVu Sans', sans-serif; font-size: 10px; color: #111827; margin: 0; padding: 0; }
+  body { font-family: 'DejaVu Sans', sans-serif; font-size: 10px; color: <?= $ink ?>; margin: 0; padding: 0; }
 
   .top-row table { width: 100%; border-collapse: collapse; }
   .brand-cell { font-size: 13pt; font-weight: bold; vertical-align: middle; }
@@ -57,7 +64,7 @@ ob_start();
     font-size: 12pt; font-weight: bold; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5pt;
   }
 
-  .divider { border-top: 2pt solid #111827; margin: 8pt 0; }
+  .divider { border-top: 2pt solid <?= $ink ?>; margin: 8pt 0; }
   .divider-thin { border-top: 1pt solid #d1d5db; margin: 8pt 0; }
 
   .section-label { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.6pt; color: #6b7280; font-weight: bold; margin-bottom: 3pt; }
@@ -73,7 +80,7 @@ ob_start();
   .meta-table .v { font-weight: bold; font-size: 10pt; }
 
   .insured-stamp {
-    display: inline-block; border: 1.5pt solid #d40511; color: #d40511;
+    display: inline-block; border: 1.5pt solid <?= $primary ?>; color: <?= $primary ?>;
     font-size: 8pt; font-weight: bold; padding: 3pt 8pt; border-radius: 3pt;
     text-transform: uppercase; letter-spacing: 0.5pt; margin-top: 6pt;
   }
@@ -94,7 +101,7 @@ ob_start();
             <?= h($siteName) ?>
           </td>
           <td style="text-align:right;">
-            <span class="service-badge" style="background:<?= $isExpress ? '#d40511' : '#374151' ?>;">
+            <span class="service-badge" style="background:<?= $isExpress ? $primary : '#374151' ?>;">
               <?= h($shipment['service_type']) ?>
             </span>
           </td>

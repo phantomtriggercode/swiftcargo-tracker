@@ -21,11 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $supportEmail = get_setting('contact_email');
         $siteName = get_site_name();
 
-        $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#111827;">'
+        $theme = get_active_theme();
+        $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . h($theme['color_ink']) . ';">'
             . '<p><strong>New message from the ' . h($siteName) . ' contact form</strong></p>'
             . '<p><strong>Name:</strong> ' . h($name) . '<br>'
             . '<strong>Email:</strong> ' . h($email) . '</p>'
-            . '<p style="white-space:pre-wrap;border-left:3px solid #d40511;padding-left:12px;">' . h($message) . '</p>'
+            . '<p style="white-space:pre-wrap;border-left:3px solid ' . h($theme['color_primary']) . ';padding-left:12px;">' . h($message) . '</p>'
             . '</div>';
         $altBody = "New message from the {$siteName} contact form\n\nName: {$name}\nEmail: {$email}\n\n{$message}";
 

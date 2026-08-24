@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/settings.php';
+require_once __DIR__ . '/includes/mailer.php';
 
 ensure_session_started();
 
@@ -95,6 +96,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $referenceId = (int) db()->lastInsertId();
         $submitted = true;
+
+        // Best-effort: the request is already saved either way, and staff
+        // can always see it at /admin/requests.php — a failed email here
+        // (unconfigured SMTP, etc.) shouldn't block the confirmation page.
+        $refCode = 'REQ-' . str_pad((string) $referenceId, 5, '0', STR_PAD_LEFT);
+        $siteName = get_site_name();
+        $theme = get_active_theme();
+        $ink = h($theme['color_ink']);
+        $primary = h($theme['color_primary']);
+
+        send_smtp_mail(
+            $email,
+            $fullName,
+            $siteName . ' — Shipment request ' . $refCode . ' received',
+            '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . $ink . ';">'
+                . '<p>Hi ' . h($fullName) . ',</p>'
+                . '<p>Thanks for requesting a shipment with ' . h($siteName) . '. We\'ve received your request '
+                . '<strong>' . h($refCode) . '</strong> and a member of our team will follow up shortly to confirm details and pricing.</p>'
+                . '<p><strong>Estimated cost:</strong> <span style="color:' . $primary . ';font-weight:bold;">$' . number_format($finalEstimate, 2) . '</span> (subject to confirmation)</p>'
+                . '<p><strong>From:</strong> ' . h($shipFrom) . '<br><strong>To:</strong> ' . h($shipTo) . '<br><strong>Package:</strong> ' . h($packageDescription) . '</p>'
+                . '<p style="color:#6b7280;font-size:12.5px;">If you didn\'t request this, you can ignore this email.</p>'
+                . '</div>',
+            "Hi {$fullName},\n\nThanks for requesting a shipment with {$siteName}. We've received your request {$refCode} and will follow up shortly.\n\nEstimated cost: \${$finalEstimate} (subject to confirmation)\nFrom: {$shipFrom}\nTo: {$shipTo}\nPackage: {$packageDescription}\n"
+        );
+
+        $notifyEmail = get_setting('contact_email', '');
+        if (filter_var($notifyEmail, FILTER_VALIDATE_EMAIL)) {
+            send_smtp_mail(
+                $notifyEmail,
+                $siteName,
+                'New shipment request ' . $refCode . ' — ' . $fullName,
+                '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . $ink . ';">'
+                    . '<p><strong>New shipment request ' . h($refCode) . '</strong></p>'
+                    . '<p><strong>From:</strong> ' . h($fullName) . ' &lt;' . h($email) . '&gt;' . ($phone ? ' · ' . h($phone) : '') . '</p>'
+                    . '<p><strong>Route:</strong> ' . h($shipFrom) . ' &rarr; ' . h($shipTo) . '</p>'
+                    . '<p><strong>Package:</strong> ' . h($packageDescription) . ' (' . h((string) $weightKg) . ' kg, ' . h($packagingType) . ')</p>'
+                    . '<p><strong>Estimated cost:</strong> $' . number_format($finalEstimate, 2) . '</p>'
+                    . '<p><a href="' . h(get_site_url()) . '/admin/requests.php" style="color:' . $primary . ';">View in admin panel</a></p>'
+                    . '</div>',
+                "New shipment request {$refCode}\n\nFrom: {$fullName} <{$email}>\nRoute: {$shipFrom} -> {$shipTo}\nPackage: {$packageDescription} ({$weightKg} kg, {$packagingType})\nEstimated cost: \${$finalEstimate}\n\nView in admin panel: " . get_site_url() . "/admin/requests.php\n",
+                $email,
+                $fullName
+            );
+        }
     }
 }
 

@@ -45,6 +45,15 @@ $insuranceLabel = $shipment['insured']
 $estDelivery = $shipment['estimated_delivery'] ? date('F j, Y', strtotime($shipment['estimated_delivery'])) : 'TBD';
 $createdDate = date('F j, Y', strtotime($shipment['created_at']));
 
+// Colors follow the active site theme (see includes/theme.php) so this
+// PDF matches whatever's live at /admin/themes.php instead of staying
+// hardcoded to one brand's colors.
+$theme = get_active_theme();
+$primary = h($theme['color_primary']);
+$accent = h($theme['color_accent']);
+$ink = h($theme['color_ink']);
+$border = h($theme['color_border']);
+
 ob_start();
 ?>
 <!DOCTYPE html>
@@ -53,38 +62,38 @@ ob_start();
 <meta charset="UTF-8">
 <style>
   @page { margin: 28px 34px; }
-  body { font-family: 'DejaVu Sans', sans-serif; font-size: 12px; color: #111827; }
+  body { font-family: 'DejaVu Sans', sans-serif; font-size: 12px; color: <?= $ink ?>; }
   .header-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
   .header-table td { vertical-align: middle; }
-  .brand { font-size: 20px; font-weight: bold; color: #111827; }
+  .brand { font-size: 20px; font-weight: bold; color: <?= $ink ?>; }
   .doc-title { text-align: right; }
-  .doc-title .t1 { font-size: 20px; font-weight: bold; color: #d40511; letter-spacing: 1px; }
+  .doc-title .t1 { font-size: 20px; font-weight: bold; color: <?= $primary ?>; letter-spacing: 1px; }
   .doc-title .t2 { font-size: 11px; color: #6b7280; }
-  .tn-bar { background: #111827; color: #ffffff; padding: 10px 16px; border-radius: 4px; margin-bottom: 14px; }
+  .tn-bar { background: <?= $ink ?>; color: #ffffff; padding: 10px 16px; border-radius: 4px; margin-bottom: 14px; }
   .tn-bar table { width: 100%; }
   .tn-bar .tn-value { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
   .tn-bar .tn-label { font-size: 9px; color: #d1d5db; text-transform: uppercase; letter-spacing: 0.5px; }
-  .status-chip { display: inline; background: #ffcc00; color: #111827; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; }
+  .status-chip { display: inline; background: <?= $accent ?>; color: <?= $ink ?>; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; }
 
   .addr-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-  .addr-table td { width: 50%; vertical-align: top; padding: 10px 14px; border: 1px solid #e5e7eb; }
+  .addr-table td { width: 50%; vertical-align: top; padding: 10px 14px; border: 1px solid <?= $border ?>; }
   .addr-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.6px; color: #6b7280; font-weight: bold; margin-bottom: 4px; }
   .addr-name { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
   .addr-line { font-size: 11.5px; color: #374151; }
 
   .details-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-  .details-table th, .details-table td { border: 1px solid #e5e7eb; padding: 7px 10px; font-size: 11px; text-align: left; }
+  .details-table th, .details-table td { border: 1px solid <?= $border ?>; padding: 7px 10px; font-size: 11px; text-align: left; }
   .details-table th { background: #f9fafb; color: #6b7280; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; width: 33%; }
 
   .route-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-  .route-table td { width: 50%; padding: 10px 14px; border: 1px solid #e5e7eb; }
-  .route-dot { color: #d40511; font-weight: bold; }
+  .route-table td { width: 50%; padding: 10px 14px; border: 1px solid <?= $border ?>; }
+  .route-dot { color: <?= $primary ?>; font-weight: bold; }
 
   .barcode-block { text-align: center; margin: 18px 0 10px; }
   .barcode-block img { height: 55px; }
   .barcode-block .tn-text { font-size: 13px; letter-spacing: 3px; font-weight: bold; margin-top: 4px; }
 
-  .footer-note { margin-top: 16px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 9px; color: #9ca3af; }
+  .footer-note { margin-top: 16px; padding-top: 10px; border-top: 1px solid <?= $border ?>; font-size: 9px; color: #9ca3af; }
 </style>
 </head>
 <body>

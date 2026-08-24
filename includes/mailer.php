@@ -98,35 +98,47 @@ function render_tracking_email_html(array $shipment, array $event): string
     $receiver = h($shipment['receiver_name']);
     $site = h(get_site_name());
 
+    // Colors follow the active site theme (see includes/theme.php) so
+    // emails match whatever's live at /admin/themes.php instead of
+    // staying hardcoded to one brand's colors.
+    $theme = get_active_theme();
+    $primary = h($theme['color_primary']);
+    $accent = h($theme['color_accent']);
+    $ink = h($theme['color_ink']);
+    $muted = h($theme['color_muted']);
+    $bgSoft = h($theme['color_bg_soft']);
+    $white = h($theme['color_white']);
+    $border = h($theme['color_border']);
+
     return <<<HTML
-    <div style="font-family:Arial,Helvetica,sans-serif;background:#f4f5f7;padding:24px;">
-      <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
-        <div style="background:#d40511;padding:20px 24px;">
-          <span style="color:#ffcc00;font-size:22px;font-weight:bold;letter-spacing:1px;">{$site}</span>
+    <div style="font-family:Arial,Helvetica,sans-serif;background:{$bgSoft};padding:24px;">
+      <div style="max-width:560px;margin:0 auto;background:{$white};border-radius:8px;overflow:hidden;border:1px solid {$border};">
+        <div style="background:{$primary};padding:20px 24px;">
+          <span style="color:{$accent};font-size:22px;font-weight:bold;letter-spacing:1px;">{$site}</span>
         </div>
         <div style="padding:24px;">
-          <p style="margin:0 0 12px;color:#111827;">Hi {$receiver},</p>
-          <p style="margin:0 0 20px;color:#111827;">There's a new update on your shipment.</p>
+          <p style="margin:0 0 12px;color:{$ink};">Hi {$receiver},</p>
+          <p style="margin:0 0 20px;color:{$ink};">There's a new update on your shipment.</p>
           <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
             <tr>
-              <td style="padding:8px 0;color:#6b7280;">Tracking number</td>
-              <td style="padding:8px 0;color:#111827;font-weight:bold;text-align:right;">{$tn}</td>
+              <td style="padding:8px 0;color:{$muted};">Tracking number</td>
+              <td style="padding:8px 0;color:{$ink};font-weight:bold;text-align:right;">{$tn}</td>
             </tr>
             <tr>
-              <td style="padding:8px 0;color:#6b7280;">Status</td>
-              <td style="padding:8px 0;color:#d40511;font-weight:bold;text-align:right;">{$status}</td>
+              <td style="padding:8px 0;color:{$muted};">Status</td>
+              <td style="padding:8px 0;color:{$primary};font-weight:bold;text-align:right;">{$status}</td>
             </tr>
             <tr>
-              <td style="padding:8px 0;color:#6b7280;">Location</td>
-              <td style="padding:8px 0;color:#111827;text-align:right;">{$location}</td>
+              <td style="padding:8px 0;color:{$muted};">Location</td>
+              <td style="padding:8px 0;color:{$ink};text-align:right;">{$location}</td>
             </tr>
           </table>
           {$noteHtml}
           <div style="text-align:center;margin-top:12px;">
-            <a href="{$trackUrl}" style="display:inline-block;background:#ffcc00;color:#111827;font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">Track my package</a>
+            <a href="{$trackUrl}" style="display:inline-block;background:{$accent};color:{$ink};font-weight:bold;padding:12px 28px;border-radius:6px;text-decoration:none;">Track my package</a>
           </div>
         </div>
-        <div style="background:#f4f5f7;padding:16px 24px;color:#9ca3af;font-size:12px;">
+        <div style="background:{$bgSoft};padding:16px 24px;color:#9ca3af;font-size:12px;">
           You're receiving this because this email is registered as the receiver for shipment {$tn}.
         </div>
       </div>

@@ -501,6 +501,29 @@ The barcode is a genuine Code 39 barcode (verifiable with any barcode
 scanner/app) rendered by a barcode encoder hand-written for this project in
 `includes/barcode.php` — not a third-party barcode API.
 
+## Production-readiness polish
+
+- **`/404.php`** — a branded not-found page (same header/footer/theme as the
+  rest of the site) instead of the host's generic error page, wired up via
+  `ErrorDocument 404 /404.php` in the root `.htaccess`.
+- **`/robots.txt` and `/sitemap.php`** — search engines are pointed at the
+  public pages and kept out of `/admin/`, `/api/`, `/documents/`, `/config/`,
+  `/includes/`, and `/sql/`. The sitemap is a `.php` file (not a static
+  `.xml`) so its URLs always match whatever domain this is deployed under.
+- **Shipment request emails**: submitting `/request-shipment.php` now sends
+  the customer a confirmation email (reference number + estimate) and
+  notifies your `contact_email` (set under Site Content) of the new lead —
+  previously a request just sat in `/admin/requests.php` with nothing
+  telling you it arrived. Both are best-effort: if SMTP isn't configured yet,
+  the request still saves and the visitor still sees their confirmation
+  page — only the emails are skipped.
+- **Every email and PDF now follows the active theme's colors**
+  (`/admin/themes.php`) instead of being hardcoded to the original
+  DHL-style red/yellow. Tracking-update emails, password-reset emails, the
+  contact-form notification, and the waybill/label PDFs all pull from
+  `get_active_theme()` — switch themes and everything customers and staff
+  see matches, not just the website.
+
 ## Security notes
 
 - `config/config.php`, `sql/`, `vendor/`, and `includes/` all have `.htaccess`

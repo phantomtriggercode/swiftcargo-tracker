@@ -30,9 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($token !== null) {
             $resetUrl = get_site_url() . '/admin/reset_password.php?token=' . $token;
             $siteName = get_site_name();
-            $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#111827;">'
+            $theme = get_active_theme();
+            $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . h($theme['color_ink']) . ';">'
                 . '<p>We received a request to reset the password for the ' . h($siteName) . ' admin account tied to this email.</p>'
-                . '<p><a href="' . h($resetUrl) . '" style="display:inline-block;background:#d40511;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">Reset Password</a></p>'
+                . '<p><a href="' . h($resetUrl) . '" style="display:inline-block;background:' . h($theme['color_primary']) . ';color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">Reset Password</a></p>'
                 . '<p style="color:#6b7280;font-size:12.5px;">This link expires in 1 hour. If you didn\'t request this, you can ignore this email — your password won\'t change.</p>'
                 . '</div>';
             $altBody = "Reset your {$siteName} admin password: {$resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can ignore this email.";
