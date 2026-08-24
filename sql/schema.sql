@@ -20,13 +20,17 @@ CREATE TABLE IF NOT EXISTS admins (
   reset_token VARCHAR(64) NULL,
   reset_token_expires DATETIME NULL,
   full_name VARCHAR(150) NOT NULL,
+  is_super_admin TINYINT(1) NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Default admin login: username = admin / password = ChangeMe123!
 -- (hash generated with PHP password_hash — change this password immediately after first login)
-INSERT INTO admins (username, password_hash, full_name) VALUES
-('admin', '$2y$12$HYDffKZi7ppAiampmKCVU.Fm8Fk/S4.vKv.dvwoUYPRyvoXs.l9G.', 'Site Administrator')
+-- This first account is the super admin — it can create/suspend/delete
+-- any other admin account from /admin/admins.php.
+INSERT INTO admins (username, password_hash, full_name, is_super_admin, is_active) VALUES
+('admin', '$2y$12$HYDffKZi7ppAiampmKCVU.Fm8Fk/S4.vKv.dvwoUYPRyvoXs.l9G.', 'Site Administrator', 1, 1)
 ON DUPLICATE KEY UPDATE username = username;
 
 -- ---------------------------------------------------------------

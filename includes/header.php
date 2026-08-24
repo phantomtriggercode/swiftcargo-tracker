@@ -3,6 +3,7 @@
  * Shared public site header. Expects $activeNav to be set (optional) by the caller.
  */
 $activeNav = $activeNav ?? '';
+maybe_send_go_live_alert();
 ?>
 <!DOCTYPE html>
 <html lang="en">

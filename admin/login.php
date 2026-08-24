@@ -8,7 +8,7 @@ if (admin_logged_in()) {
     redirect('/admin/dashboard.php');
 }
 
-$error = null;
+$error = flash_get('error');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');

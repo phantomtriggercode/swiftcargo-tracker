@@ -240,6 +240,40 @@ If you already deployed an earlier version of this project:
    `reset_token`, and `reset_token_expires` columns to `admins`. Until you
    run this, the site still works fine — you just won't have the new
    My Profile page, email login, or "Forgot password?" yet.
+6. **Admin roles (super admin / regular admin):** import
+   `sql/migrations/004_admin_roles.sql` once to add `is_super_admin` and
+   `is_active` to `admins`. This migration promotes every existing admin
+   account to super admin (so nobody's locked out by running it) — visit
+   `/admin/admins.php` afterward to demote accounts that shouldn't have
+   full access, or create new regular-admin accounts for staff.
+
+## Admin accounts, roles, and login
+
+There are two kinds of admin account:
+
+- **Regular admin** — full access to shipments, requests, content, images,
+  rates, and their own profile. Can't see or manage other admin accounts.
+- **Super admin** — everything a regular admin can do, plus `/admin/admins.php`
+  (only visible to super admins): create new admin accounts, promote/demote
+  super admin status, suspend or reactivate an account, send someone a
+  password reset link, or delete an account. The system always keeps at
+  least one active super admin — you can't suspend, demote, or delete the
+  last one (including yourself), so the site can never end up with no one
+  able to manage staff access.
+
+Every admin can log in with either their **username or email**, change
+their password from **My Profile**, and use **"Forgot password?"** on the
+login page to reset it by email (requires an email to be set on the account
+first — add one under My Profile).
+
+### Go-live alert (optional)
+
+Under **Branding**, you can set a "Go-Live Alert" email. The first time the
+site is visited on a given domain, it sends that address a one-time email
+confirming the site is live there — useful if you deploy this codebase
+somewhere new and want to know the moment it's reachable. It's entirely
+opt-in (blank by default), tracked in a plain settings row, and fires once
+per domain, not on every visit.
 
 ## Managing site content
 

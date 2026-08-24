@@ -5,6 +5,7 @@
  */
 require_once __DIR__ . '/../../includes/settings.php';
 $activeAdminNav = $activeAdminNav ?? '';
+$__navAdmin = current_admin();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,6 +51,9 @@ $activeAdminNav = $activeAdminNav ?? '';
       <a href="/admin/branding.php" class="<?= $activeAdminNav === 'branding' ? 'active' : '' ?>">Branding</a>
       <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>
       <a href="/admin/profile.php" class="<?= $activeAdminNav === 'profile' ? 'active' : '' ?>">My Profile</a>
+      <?php if ($__navAdmin && $__navAdmin['is_super_admin']): ?>
+        <a href="/admin/admins.php" class="<?= $activeAdminNav === 'admins' ? 'active' : '' ?>">Admin Accounts</a>
+      <?php endif; ?>
       <a href="/track.php" target="_blank">View Public Site &#8599;</a>
       <a href="/admin/logout.php">Logout</a>
     </nav>

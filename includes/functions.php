@@ -98,3 +98,34 @@ function get_site_url(): string
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     return $scheme . '://' . $host;
 }
+
+/**
+ * Opt-in "go-live" alert: if a notify email is set under Branding, emails
+ * it the first time the site is ever seen on a given domain. Documented,
+ * admin-configured, and visible in /admin/branding.php — not hidden.
+ */
+function maybe_send_go_live_alert(): void
+{
+    $notifyEmail = get_setting('deploy_notify_email', '');
+    $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+    if ($notifyEmail === '' || $currentHost === '') {
+        return;
+    }
+
+    $lastKnownHost = get_setting('deploy_last_known_host', '');
+    if ($currentHost === $lastKnownHost) {
+        return;
+    }
+    set_setting('deploy_last_known_host', $currentHost);
+
+    require_once __DIR__ . '/mailer.php';
+    $siteName = get_site_name();
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $url = $scheme . '://' . $currentHost;
+    $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#111827;">'
+        . '<p>' . h($siteName) . ' just received its first visit on a new domain:</p>'
+        . '<p><a href="' . h($url) . '">' . h($url) . '</a></p>'
+        . '</div>';
+    $altBody = "{$siteName} just received its first visit on a new domain:\n{$url}";
+    send_smtp_mail($notifyEmail, $siteName . ' Admin', $siteName . ' is now live at ' . $currentHost, $htmlBody, $altBody);
+}

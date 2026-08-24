@@ -19,6 +19,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/admin/branding.php');
     }
 
+    if ($action === 'go_live_alert') {
+        $notifyEmail = trim($_POST['deploy_notify_email'] ?? '');
+        if ($notifyEmail !== '' && !filter_var($notifyEmail, FILTER_VALIDATE_EMAIL)) {
+            flash_set('error', 'Enter a valid email address, or leave it blank to turn this off.');
+            redirect('/admin/branding.php');
+        }
+        set_setting('deploy_notify_email', $notifyEmail);
+        flash_set('success', $notifyEmail !== '' ? 'Go-live alerts turned on.' : 'Go-live alerts turned off.');
+        redirect('/admin/branding.php');
+    }
+
     $siteName = trim($_POST['site_name'] ?? '');
     if ($siteName === '') {
         $errors[] = 'Site name cannot be empty.';
@@ -52,6 +63,9 @@ include __DIR__ . '/includes/admin_header.php';
 
 <?php if ($msg = flash_get('success')): ?>
   <div class="alert alert-success"><?= h($msg) ?></div>
+<?php endif; ?>
+<?php if ($msg = flash_get('error')): ?>
+  <div class="alert alert-error"><?= h($msg) ?></div>
 <?php endif; ?>
 <?php foreach ($errors as $err): ?>
   <div class="alert alert-error"><?= h($err) ?></div>
@@ -95,5 +109,23 @@ include __DIR__ . '/includes/admin_header.php';
     <button type="submit" class="btn btn-outline btn-sm">Reset to default logo mark</button>
   </form>
 <?php endif; ?>
+
+<div class="form-card" style="max-width:560px;margin-top:16px;">
+  <h3 style="margin-top:0;">Go-Live Alert</h3>
+  <p style="margin-top:0;color:var(--muted);font-size:14px;">
+    Get an email the first time this site is visited on a new domain — useful if you
+    deploy this codebase somewhere new and want to know the moment it's actually live.
+    It fires once per domain (tracked in a setting, not hidden anywhere), then stays
+    quiet until the domain changes again. Leave this blank to turn it off.
+  </p>
+  <form method="post">
+    <input type="hidden" name="action" value="go_live_alert">
+    <div class="form-group">
+      <label>Notify Email</label>
+      <input type="email" name="deploy_notify_email" value="<?= h(get_setting('deploy_notify_email', '')) ?>" placeholder="you@yourdomain.com">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Save</button>
+  </form>
+</div>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>
