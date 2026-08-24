@@ -19,11 +19,14 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 /**
- * True if an email address's domain is one of the handful reserved by
- * RFC 2606 for documentation/testing (.test, .example, .invalid,
- * .localhost) — these never resolve in real DNS, so any real SMTP server
- * will reject a message claiming to be from one. config.sample.php's
- * SMTP_FROM placeholder (tracking@swiftcargo.test) is exactly this.
+ * True if an email address's domain is one reserved by RFC 2606 for
+ * documentation/testing — the .test/.example/.invalid/.localhost TLDs
+ * (which never resolve in real DNS, so any real SMTP server will reject a
+ * message claiming to be from one — config.sample.php's SMTP_FROM
+ * placeholder, tracking@swiftcargo.test, is exactly this) plus the three
+ * "example" second-level domains the same RFC reserves under .com/.net/.org
+ * (these do resolve, since IANA parks them, but are just as much a
+ * placeholder that was never meant to send real mail).
  */
 function is_reserved_test_domain(string $email): bool
 {
@@ -32,6 +35,10 @@ function is_reserved_test_domain(string $email): bool
         return false;
     }
     $domain = strtolower(substr($email, $at + 1));
+    $reservedExact = ['example.com', 'example.net', 'example.org'];
+    if (in_array($domain, $reservedExact, true)) {
+        return true;
+    }
     foreach (['.test', '.example', '.invalid', '.localhost'] as $suffix) {
         if ($domain === ltrim($suffix, '.') || str_ends_with($domain, $suffix)) {
             return true;

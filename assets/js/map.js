@@ -41,14 +41,20 @@
     iconAnchor: [7, 7]
   });
 
+  // Leaflet renders a string passed to bindPopup/bindTooltip/setTooltipContent
+  // as raw HTML, not text — every value below can be admin-entered free text
+  // (origin/destination/location labels), so each one is escaped before
+  // Leaflet ever sees it. Skipping this on any of them would be a stored-XSS
+  // hole reachable by any admin account against every visitor to this
+  // shipment's public tracking page.
   var originMarker = L.marker([data.origin_lat, data.origin_lng], { icon: originIcon })
-    .addTo(map).bindPopup('Origin: ' + data.origin_label);
+    .addTo(map).bindPopup('Origin: ' + escapeHtml(data.origin_label));
   var destMarker = L.marker([data.destination_lat, data.destination_lng], { icon: destIcon })
-    .addTo(map).bindPopup('Destination: ' + data.destination_label);
+    .addTo(map).bindPopup('Destination: ' + escapeHtml(data.destination_label));
   var currentMarker = L.marker([data.current_lat, data.current_lng], { icon: packageIcon })
     .addTo(map)
-    .bindPopup('Current position — ' + data.status)
-    .bindTooltip(data.current_location_label || data.status, {
+    .bindPopup('Current position — ' + escapeHtml(data.status))
+    .bindTooltip(escapeHtml(data.current_location_label || data.status), {
       permanent: true,
       direction: 'top',
       offset: [0, -14],
@@ -124,7 +130,7 @@
 
         if (s.current_location_label && s.current_location_label !== data.current_location_label) {
           data.current_location_label = s.current_location_label;
-          currentMarker.setTooltipContent(s.current_location_label);
+          currentMarker.setTooltipContent(escapeHtml(s.current_location_label));
         }
 
         if (res.events) {

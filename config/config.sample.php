@@ -16,11 +16,22 @@ define('DB_PASS', 'CHANGE_ME');
 // will NOT reach a real inbox — view it at https://ethereal.email/messages
 // using the same login. Swap these for real SMTP (e.g. your Hostinger
 // mailbox, smtp.hostinger.com) when you go live.
+//
+// IMPORTANT — SMTP_FROM below is a placeholder on a fake, non-existent
+// domain (.test is reserved by RFC 2606 and never resolves in real DNS).
+// It works fine with Ethereal for local testing, but if you go live with
+// it unchanged, every real SMTP server will reject every email with
+// "Sender address rejected: Domain not found". Change it to a real email
+// address on a domain you actually own before deploying for real use.
+// Also note: once anything on this page has ever been saved via
+// /admin/smtp_settings.php, THAT saved value — not this file — is what's
+// actually used; edit it there instead, or use that page's "Reset to
+// config.php defaults" button first if you want this file to take effect.
 define('SMTP_HOST', 'smtp.ethereal.email');
 define('SMTP_PORT', 587);
 define('SMTP_USER', 'your-ethereal-username@ethereal.email');
 define('SMTP_PASS', 'your-ethereal-password');
-define('SMTP_FROM', 'tracking@swiftcargo.test');
+define('SMTP_FROM', 'tracking@swiftcargo.test'); // CHANGE to a real address on a real domain before going live
 define('SMTP_FROM_NAME', 'SwiftCargo Tracking');
 define('SMTP_SECURE', 'tls'); // 'tls' for port 587, 'ssl' for port 465
 

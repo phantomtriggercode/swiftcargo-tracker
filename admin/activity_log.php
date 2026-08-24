@@ -7,29 +7,34 @@ require_super_admin();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    if ($action === 'delete') {
-        $id = (int) ($_POST['id'] ?? 0);
-        $stmt = db()->prepare('SELECT * FROM admin_activity_log WHERE id = ?');
-        $stmt->execute([$id]);
-        $target = $stmt->fetch();
-        if ($target) {
-            $del = db()->prepare('DELETE FROM admin_activity_log WHERE id = ?');
-            $del->execute([$id]);
-            // Deleting an audit entry is itself worth a trace — logged after
-            // the delete so this new row is the one that survives it.
-            log_admin_activity('Deleted activity log entry', $target['action'] . ' — ' . $target['admin_name'] . ', ' . $target['created_at']);
-            flash_set('success', 'Entry deleted.');
-        } else {
-            flash_set('error', 'Entry not found.');
+    try {
+        if ($action === 'delete') {
+            $id = (int) ($_POST['id'] ?? 0);
+            $stmt = db()->prepare('SELECT * FROM admin_activity_log WHERE id = ?');
+            $stmt->execute([$id]);
+            $target = $stmt->fetch();
+            if ($target) {
+                $del = db()->prepare('DELETE FROM admin_activity_log WHERE id = ?');
+                $del->execute([$id]);
+                // Deleting an audit entry is itself worth a trace — logged
+                // after the delete so this new row is the one that survives it.
+                log_admin_activity('Deleted activity log entry', $target['action'] . ' — ' . $target['admin_name'] . ', ' . $target['created_at']);
+                flash_set('success', 'Entry deleted.');
+            } else {
+                flash_set('error', 'Entry not found.');
+            }
+        } elseif ($action === 'clear_all') {
+            $count = (int) db()->query('SELECT COUNT(*) FROM admin_activity_log')->fetchColumn();
+            db()->exec('DELETE FROM admin_activity_log');
+            log_admin_activity('Cleared entire activity log', $count . ' ' . ($count === 1 ? 'entry' : 'entries') . ' removed');
+            flash_set('success', 'Activity log cleared.');
         }
-        redirect('/admin/activity_log.php');
-    } elseif ($action === 'clear_all') {
-        $count = (int) db()->query('SELECT COUNT(*) FROM admin_activity_log')->fetchColumn();
-        db()->exec('DELETE FROM admin_activity_log');
-        log_admin_activity('Cleared entire activity log', $count . ' ' . ($count === 1 ? 'entry' : 'entries') . ' removed');
-        flash_set('success', 'Activity log cleared.');
-        redirect('/admin/activity_log.php');
+    } catch (PDOException $e) {
+        // Table not migrated yet — same fail-open rationale as the SELECT
+        // below, just for the write side too.
+        flash_set('error', 'The activity log table is not set up yet.');
     }
+    redirect('/admin/activity_log.php');
 }
 
 $entries = [];
