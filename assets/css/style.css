@@ -886,3 +886,36 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
+
+/* System Health page (admin/health.php) — a plain-English install check. */
+.health-summary { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }
+.health-pill {
+  font-size: 12.5px; font-weight: 700; padding: 6px 12px;
+  border-radius: 999px; border: 1px solid var(--border); background: var(--bg-soft);
+}
+.health-pill-ok { color: var(--ok); border-color: var(--ok); }
+.health-pill-warn { color: var(--warn); border-color: var(--warn); }
+.health-pill-fail { color: var(--danger); border-color: var(--danger); }
+
+.health-list { display: flex; flex-direction: column; gap: 10px; max-width: 860px; }
+.health-item {
+  border: 1px solid var(--border); border-left-width: 4px;
+  border-radius: var(--radius); background: var(--white); padding: 14px 16px;
+}
+.health-item-ok { border-left-color: var(--ok); }
+.health-item-warn { border-left-color: var(--warn); }
+.health-item-fail { border-left-color: var(--danger); }
+.health-item-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.health-item-head strong { font-size: 14.5px; color: var(--ink); }
+.health-badge {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.6px;
+  padding: 3px 8px; border-radius: 4px; color: #fff; flex-shrink: 0;
+}
+.health-badge-ok { background: var(--ok); }
+.health-badge-warn { background: var(--warn); }
+.health-badge-fail { background: var(--danger); }
+.health-item-detail { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; }
+.health-item-fix {
+  margin-top: 8px; padding: 9px 11px; background: var(--bg-soft);
+  border-radius: var(--radius); font-size: 13px; color: var(--ink-soft); line-height: 1.55;
+}

@@ -443,6 +443,35 @@ map library's CDN and OpenStreetMap's map tiles). That's a genuinely
 solid baseline for a small PHP site — not a guarantee nothing can ever
 go wrong.
 
+## System Health check
+
+**System Health** (super admin only, `/admin/health.php`) is a plain-English
+"is this installed correctly?" page. It changes nothing — it only looks and
+reports — and every item that isn't OK says exactly what to do about it in
+non-technical language.
+
+Open it right after moving the site to a new server, and any time something
+looks wrong. It checks:
+
+- **The live map files** are present and complete — including the `images/`
+  subfolder that file managers most often skip on upload. If the map ever
+  stops appearing, this is the first thing to look at.
+- **PHP version and extensions** (`gd` for barcodes, `curl` for the address
+  lookup, `openssl` for email, and so on), naming what each one is for.
+- **The database** connects and has all ten tables the site expects,
+  flagging by name any that a missed migration left behind.
+- **An active colour palette and template** exist.
+- **The uploads folder** exists and can be written to.
+- **`SITE_URL`** is set, and actually matches the address you're viewing —
+  this catches a stale domain left over from a previous host, which would
+  otherwise send every customer a tracking link to a dead site.
+- **Email** is configured, and that the "from" address isn't a placeholder
+  domain that real mail servers reject.
+- **No admin is still using the default installation password.**
+- **HTTPS** is in use.
+- **The `.htaccess` files** protecting `config/`, `includes/`, `sql/` and
+  `vendor/` all uploaded — these start with a dot and are easy to miss.
+
 ## Admin activity log
 
 **Activity Log** (super admin only, `/admin/activity_log.php`) shows the
