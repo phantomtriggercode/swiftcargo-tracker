@@ -2,24 +2,34 @@
   var data = window.SHIPMENT_INIT;
   if (!data) return;
 
-  // Leaflet is loaded from a public CDN, which can be unreachable for
-  // reasons that have nothing to do with this site: a CDN outage, a
-  // corporate firewall, a privacy/ad blocker, or a country that blocks
-  // that CDN. Without this branch the visitor just got a blank grey box
-  // and no idea why. Every other piece of tracking information on this
-  // page (status, timeline, checkpoints, addresses) is rendered
-  // server-side and is unaffected, so say so instead of failing silently.
-  if (typeof L === 'undefined') {
+  /* ------------------------------------------------------------------
+     The live map is the most important thing on this page, so this file
+     is written so that no single failure can take it down silently.
+     Three layers of protection, in order of how likely each is:
+
+       1. Bad coordinate data (an admin typo, a legacy row) is repaired
+          or discarded here rather than being handed to Leaflet, which
+          would otherwise throw and kill the whole map.
+       2. Tile images failing (OpenStreetMap outage, blocked host, rate
+          limit) is handled by the tile layer itself — the map still
+          loads, pans and zooms, and the route/markers still draw over a
+          plain background.
+       3. Anything genuinely unexpected is caught and turned into a
+          readable message instead of a blank grey box, with the
+          server-rendered status timeline below still intact.
+     ------------------------------------------------------------------ */
+
+  function showMapMessage(titleText, bodyText) {
     var mapEl = document.getElementById('map');
     if (mapEl) {
       mapEl.classList.add('map-unavailable');
+      mapEl.innerHTML = '';
       var msg = document.createElement('div');
       msg.className = 'map-unavailable-inner';
       var title = document.createElement('strong');
-      title.textContent = 'The map could not be loaded.';
+      title.textContent = titleText;
       var body = document.createElement('span');
-      body.textContent = 'Your network or browser blocked the map library. '
-        + 'All tracking details and the full status history below are still up to date.';
+      body.textContent = bodyText;
       msg.appendChild(title);
       msg.appendChild(body);
       mapEl.appendChild(msg);
@@ -29,18 +39,100 @@
     if (liveTag) liveTag.style.display = 'none';
     var legend = document.querySelector('.map-legend');
     if (legend) legend.style.display = 'none';
+  }
+
+  // Leaflet is served from this site (assets/vendor/leaflet/), not a CDN,
+  // so this should never happen — but if the file is ever missing after a
+  // partial upload, say so rather than leaving an unexplained empty box.
+  if (typeof L === 'undefined') {
+    showMapMessage(
+      'The map could not be loaded.',
+      'The map library did not load. All tracking details and the full status history below are still up to date.'
+    );
     return;
+  }
+
+  /**
+   * Coordinates arrive from the database, where an admin typed them in.
+   * A typo ("34" pasted into longitude as "-1182437"), a missing value,
+   * or anything non-numeric would otherwise reach Leaflet and throw an
+   * "Invalid LatLng" error that kills the entire map. Latitude is also
+   * clamped to ±85 rather than ±90: the Web Mercator projection every
+   * tile map uses goes to infinity at the poles, and a value past that
+   * band can wedge the view. Returns null when a point is unusable, and
+   * every caller below is written to cope with null.
+   */
+  function safePoint(lat, lng) {
+    var la = parseFloat(lat);
+    var ln = parseFloat(lng);
+    if (!isFinite(la) || !isFinite(ln)) return null;
+    if (la > 85) la = 85; else if (la < -85) la = -85;
+    if (ln > 180) ln = 180; else if (ln < -180) ln = -180;
+    return [la, ln];
   }
 
   data.events = data.events || [];
 
-  var map = L.map('map', { scrollWheelZoom: false });
+  var originPt = safePoint(data.origin_lat, data.origin_lng);
+  var destPt = safePoint(data.destination_lat, data.destination_lng);
+  var currentPt = safePoint(data.current_lat, data.current_lng);
+
+  // Fall back along the chain rather than giving up: a shipment can
+  // always be drawn somewhere as long as one usable coordinate exists.
+  if (!currentPt) currentPt = originPt || destPt;
+  if (!originPt) originPt = currentPt;
+  if (!destPt) destPt = currentPt;
+
+  if (!originPt || !destPt || !currentPt) {
+    showMapMessage(
+      'Map location not available for this shipment.',
+      'No valid coordinates have been recorded yet. The status history below is still up to date.'
+    );
+    return;
+  }
+
+  var map;
+  try {
+    map = L.map('map', { scrollWheelZoom: false });
+  } catch (e) {
+    showMapMessage(
+      'The map could not be displayed.',
+      'Something went wrong loading the map on your device. All tracking details and the full status history below are still up to date.'
+    );
+    return;
+  }
 
   // OpenStreetMap tiles — free, no API key or account required.
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // errorTileUrl is a transparent 1px PNG: if a tile can't be fetched
+  // (OSM outage, blocked host, rate limiting, patchy mobile signal) the
+  // map still works — it just shows a clean background under the route
+  // and markers instead of Leaflet's broken-image placeholders.
+  var tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+    attribution: '&copy; OpenStreetMap contributors',
+    errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+    crossOrigin: true
+  });
+
+  // If tiles are failing consistently, tell the visitor why the map looks
+  // plain — the position and route are still accurate, which is the part
+  // that actually matters for tracking a parcel.
+  var tileErrors = 0;
+  tiles.on('tileerror', function () {
+    tileErrors++;
+    if (tileErrors === 8) {
+      var note = document.querySelector('.map-tile-note');
+      if (!note) {
+        note = document.createElement('div');
+        note.className = 'map-tile-note';
+        note.textContent = 'Map imagery is unavailable right now, so the background is blank — '
+          + 'the route and live position shown are still accurate.';
+        var mapEl = document.getElementById('map');
+        if (mapEl && mapEl.parentNode) mapEl.parentNode.insertBefore(note, mapEl.nextSibling);
+      }
+    }
+  });
+  tiles.addTo(map);
 
   var originIcon = L.divIcon({
     className: '',
@@ -78,11 +170,11 @@
   // Leaflet ever sees it. Skipping this on any of them would be a stored-XSS
   // hole reachable by any admin account against every visitor to this
   // shipment's public tracking page.
-  var originMarker = L.marker([data.origin_lat, data.origin_lng], { icon: originIcon })
+  var originMarker = L.marker(originPt, { icon: originIcon })
     .addTo(map).bindPopup('Origin: ' + escapeHtml(data.origin_label));
-  var destMarker = L.marker([data.destination_lat, data.destination_lng], { icon: destIcon })
+  var destMarker = L.marker(destPt, { icon: destIcon })
     .addTo(map).bindPopup('Destination: ' + escapeHtml(data.destination_label));
-  var currentMarker = L.marker([data.current_lat, data.current_lng], { icon: packageIcon })
+  var currentMarker = L.marker(currentPt, { icon: packageIcon })
     .addTo(map)
     .bindPopup('Current position — ' + escapeHtml(data.status))
     .bindTooltip(escapeHtml(data.current_location_label || data.status), {
@@ -109,13 +201,17 @@
     // Every event except the most recent one is a footprint — the latest event
     // is where the shipment is right now, already shown by the blue marker.
     var past = events.slice(0, Math.max(0, events.length - 1));
-    var traveledPoints = [[data.origin_lat, data.origin_lng]];
+    var traveledPoints = [originPt];
 
     past.forEach(function (ev) {
-      var onOrigin = sameSpot(ev.lat, ev.lng, data.origin_lat, data.origin_lng);
-      var onDest = sameSpot(ev.lat, ev.lng, data.destination_lat, data.destination_lng);
+      // A checkpoint with unusable coordinates is skipped rather than
+      // allowed to break the route line for the whole shipment.
+      var pt = safePoint(ev.lat, ev.lng);
+      if (!pt) return;
+      var onOrigin = sameSpot(pt[0], pt[1], originPt[0], originPt[1]);
+      var onDest = sameSpot(pt[0], pt[1], destPt[0], destPt[1]);
       if (!onOrigin && !onDest) {
-        var marker = L.marker([ev.lat, ev.lng], { icon: footprintIcon })
+        var marker = L.marker(pt, { icon: footprintIcon })
           .addTo(map)
           .bindPopup(
             '<strong>' + escapeHtml(ev.status) + '</strong><br>'
@@ -124,39 +220,49 @@
           );
         historyMarkers.push(marker);
       }
-      traveledPoints.push([ev.lat, ev.lng]);
+      traveledPoints.push(pt);
     });
 
-    traveledPoints.push([data.current_lat, data.current_lng]);
+    traveledPoints.push(currentPt);
     traveledLine.setLatLngs(traveledPoints);
-    remainingLine.setLatLngs([[data.current_lat, data.current_lng], [data.destination_lat, data.destination_lng]]);
+    remainingLine.setLatLngs([currentPt, destPt]);
   }
 
   renderHistory(data.events);
 
   function fitAll() {
-    var points = [
-      [data.origin_lat, data.origin_lng],
-      [data.destination_lat, data.destination_lng],
-      [data.current_lat, data.current_lng]
-    ];
-    data.events.forEach(function (ev) { points.push([ev.lat, ev.lng]); });
-    map.fitBounds(L.latLngBounds(points), { padding: [40, 40] });
+    var points = [originPt, destPt, currentPt];
+    data.events.forEach(function (ev) {
+      var pt = safePoint(ev.lat, ev.lng);
+      if (pt) points.push(pt);
+    });
+    try {
+      map.fitBounds(L.latLngBounds(points), { padding: [40, 40] });
+    } catch (e) {
+      // Degenerate bounds (every point identical, for a shipment that
+      // hasn't moved yet) — just centre on the current position.
+      map.setView(currentPt, 6);
+    }
   }
   fitAll();
 
   // Poll our own JSON endpoint (api/track.php) for live updates — no third-party API involved.
+  // Everything in here is wrapped so a bad response, a dropped connection,
+  // or one malformed coordinate can never break the already-working map;
+  // worst case an update is skipped and the next poll tries again.
   function poll() {
     fetch('/api/track.php?tn=' + encodeURIComponent(data.tracking_number))
       .then(function (r) { return r.json(); })
       .then(function (res) {
-        if (!res.ok) return;
+        if (!res || !res.ok || !res.shipment) return;
         var s = res.shipment;
 
-        if (s.current_lat !== data.current_lat || s.current_lng !== data.current_lng) {
-          data.current_lat = s.current_lat;
-          data.current_lng = s.current_lng;
-          currentMarker.setLatLng([s.current_lat, s.current_lng]);
+        var newPt = safePoint(s.current_lat, s.current_lng);
+        if (newPt && (newPt[0] !== currentPt[0] || newPt[1] !== currentPt[1])) {
+          currentPt = newPt;
+          data.current_lat = newPt[0];
+          data.current_lng = newPt[1];
+          currentMarker.setLatLng(newPt);
         }
 
         if (s.current_location_label && s.current_location_label !== data.current_location_label) {
@@ -164,18 +270,18 @@
           currentMarker.setTooltipContent(escapeHtml(s.current_location_label));
         }
 
-        if (res.events) {
+        if (res.events && res.events.length) {
           data.events = res.events;
         }
         renderHistory(data.events);
 
         var badge = document.getElementById('status-badge');
-        if (badge && badge.textContent !== s.status) {
+        if (badge && s.status && badge.textContent !== s.status) {
           badge.textContent = s.status;
         }
 
         var timelineEl = document.getElementById('timeline');
-        if (timelineEl && res.events.length) {
+        if (timelineEl && res.events && res.events.length) {
           rebuildTimeline(timelineEl, res.events);
         }
       })

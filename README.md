@@ -60,10 +60,10 @@ No paid/keyed third-party APIs are used anywhere:
 - **PDF documents**: [Dompdf](https://github.com/dompdf/dompdf) renders the
   waybill/label HTML to a PDF entirely on your server — no cloud PDF/print API.
 
-The only "endpoint" the JS calls is your own server, and the only external network
-calls the PHP backend makes are (a) loading Leaflet's JS/CSS from its CDN and map
-tiles from OpenStreetMap — both free, keyless, static assets — and (b) an SMTP
-connection to send email.
+The only "endpoint" the JS calls is your own server. Leaflet itself is served
+from your own site too (`assets/vendor/leaflet/`), so the only external network
+calls anything makes are (a) map tile images from OpenStreetMap — free, keyless,
+and the map still works without them — and (b) an SMTP connection to send email.
 
 ## Tech stack
 
@@ -71,7 +71,7 @@ connection to send email.
 - MySQL / MariaDB
 - [PHPMailer](https://github.com/PHPMailer/PHPMailer) and [Dompdf](https://github.com/dompdf/dompdf)
   (vendored via Composer, included in this repo's `vendor/` folder — no Composer needed on the server)
-- [Leaflet.js](https://leafletjs.com) + OpenStreetMap tiles (loaded from CDN, no build step)
+- [Leaflet.js](https://leafletjs.com) (vendored in `assets/vendor/leaflet/`, no CDN, no build step) + OpenStreetMap tiles
 - PHP's GD extension (for barcode rendering — enabled by default on Hostinger)
 
 ## Project structure
@@ -701,6 +701,45 @@ plus `aspect-ratio` and flexbox `gap`. On an older browser those rules are
 simply ignored — the page still renders and works, it just loses a little
 polish. Nothing is behind a feature that silently breaks the layout.
 
+### Keeping the live map working
+
+The live map is the core of the product, so it's the most defended part of
+the codebase. Nothing outside your own server is required for it to load:
+
+- **Leaflet (the map library) is served from your own site**, from
+  `assets/vendor/leaflet/` — not a CDN. A CDN outage, a corporate
+  firewall, an ad blocker, or a country blocking that CDN can no longer
+  take the map down. (The Content-Security-Policy no longer lists any
+  external script or style host at all.)
+- **Map tiles are the only outside request left**, from OpenStreetMap. If
+  they fail — outage, blocked host, rate limit, patchy mobile signal — the
+  map still loads, pans and zooms, and still draws the route, the
+  checkpoints and the live position. Only the background imagery is
+  missing, and a short note under the map explains that the position shown
+  is still accurate.
+- **Bad coordinates can't break it.** Latitude/longitude are range-checked
+  when an admin saves a shipment or a tracking update, so a typo (a
+  longitude pasted without its decimal point, say) is rejected with a
+  plain-English message instead of being stored. The map *also* re-checks
+  every coordinate independently before use, so even a bad row saved some
+  other way is clamped or skipped rather than breaking the map — worth
+  knowing that an out-of-range value silently puts a marker in the wrong
+  place, while a non-numeric one would otherwise throw an error that kills
+  the whole map.
+- **Every remaining failure explains itself.** If the map genuinely can't
+  be shown, the map area says so and points out that the full status
+  history below is still current — instead of a blank grey box. That
+  message is produced three independent ways (inside the map script, by an
+  inline safety net on the page itself that can't be blocked, and by a
+  `<noscript>` block), so there is no single file whose failure leaves the
+  visitor with no explanation.
+
+All of the above is verified by driving a real browser with each failure
+forced: tiles blocked, the library blocked, the map script blocked, the
+live-updates endpoint blocked, JavaScript switched off entirely, and
+shipments with deliberately corrupt coordinates. In every case the page
+stays usable and the status timeline stays complete.
+
 **If a script gets blocked.** Ad blockers, corporate firewalls, privacy
 extensions, country-level CDN blocks and plain old outages are all facts of
 life, so the site is built to degrade rather than break:
@@ -711,30 +750,19 @@ life, so the site is built to degrade rather than break:
   animation script doesn't start within two seconds. With JavaScript
   disabled entirely, or the script blocked, every section renders normally
   with no animation. (Verified in all three states.)
-- **The tracking map degrades with an explanation.** Leaflet is the one
-  third-party file the site loads (from `cdn.jsdelivr.net`). If it can't
-  be reached, the map area now says so plainly and points out that the
-  full status history below is still current — instead of leaving a silent
-  grey rectangle. Every other detail on that page is rendered server-side
-  and is unaffected.
 - **Nothing else is third-party at all.** No analytics, no ad scripts, no
   webfonts, no jQuery, no tracking pixels. Emails go over plain SMTP and
   PDFs are generated on your own server, so there's no external service
   that can disappear and take a feature with it.
 
-**Optionally removing the last CDN dependency.** If you'd rather the map
-never depend on an outside host, self-host Leaflet:
-
-1. Download `leaflet.js` and `leaflet.css` (plus the `images/` folder next
-   to the CSS) from [leafletjs.com/download.html](https://leafletjs.com/download.html).
-2. Put them in `assets/vendor/leaflet/`.
-3. In `track.php`, change the two `cdn.jsdelivr.net` URLs to your local
-   paths.
-4. In `config/db.php`, drop `https://cdn.jsdelivr.net` from the
-   `script-src` and `style-src` parts of the Content-Security-Policy.
-
-After that the site loads nothing from any external host, and the map works
-on locked-down networks too.
+**No CDN to remove — it's already done.** Leaflet used to load from
+`cdn.jsdelivr.net`; it is now vendored in `assets/vendor/leaflet/` (v1.9.4,
+the official distribution, with its LICENSE alongside). Nothing on the site
+loads from an external host any more except OpenStreetMap tile images, and
+the map degrades gracefully without those. To update Leaflet later, replace
+the files in that folder with a newer release from
+[leafletjs.com/download.html](https://leafletjs.com/download.html) — keep
+the `images/` folder next to the CSS, since the CSS references it.
 
 ## Production-readiness polish
 

@@ -97,6 +97,27 @@ function get_courier(?int $id): ?array
     return $stmt->fetch() ?: null;
 }
 
+/**
+ * True if $value is a usable latitude (-90..90) / longitude (-180..180).
+ *
+ * Coordinates are the one piece of admin-entered data the live map cannot
+ * survive being wrong: a typo like a longitude pasted without its decimal
+ * point ("-1182437" instead of "-118.2437") would otherwise be stored
+ * happily by MySQL and then break the map for that shipment. Validated on
+ * the way in, on every form that accepts coordinates, so bad values never
+ * reach the database. assets/js/map.js independently guards against bad
+ * values too, so older rows saved before this check still can't break it.
+ */
+function is_valid_latitude(string $value): bool
+{
+    return is_numeric($value) && (float) $value >= -90 && (float) $value <= 90;
+}
+
+function is_valid_longitude(string $value): bool
+{
+    return is_numeric($value) && (float) $value >= -180 && (float) $value <= 180;
+}
+
 function status_badge_class(string $status): string
 {
     return match ($status) {

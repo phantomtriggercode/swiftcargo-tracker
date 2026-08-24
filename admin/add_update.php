@@ -27,8 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!in_array($status, $statuses, true)) $errors[] = 'Please choose a valid status.';
     if ($locationLabel === '') $errors[] = 'Location label is required.';
-    if ($lat === '' || !is_numeric($lat)) $errors[] = 'A valid latitude is required.';
-    if ($lng === '' || !is_numeric($lng)) $errors[] = 'A valid longitude is required.';
+    // Range-checked, not just "is it a number" — an out-of-range coordinate
+    // saves fine but would break the live map for this shipment.
+    if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90 — use "Find on map" to fill it in automatically.';
+    if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180 — use "Find on map" to fill it in automatically.';
 
     if (!$errors) {
         // Staff left the note blank — fall back to that status's editable
@@ -119,6 +121,11 @@ include __DIR__ . '/includes/admin_header.php';
         <input type="text" id="lng" name="lng" placeholder="e.g. -104.9903" required>
       </div>
     </div>
+    <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
+      "Find on map" fills these in for you. If it's ever unavailable, type them
+      by hand instead — open <strong>Google Maps</strong>, right-click the spot,
+      and click the numbers at the top of the menu to copy them.
+    </p>
     <div class="form-group">
       <label>Note (optional)</label>
       <textarea name="note" rows="3" placeholder="e.g. Departed regional hub, en route to next facility."></textarea>

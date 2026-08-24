@@ -20,15 +20,25 @@ if (!headers_sent()) {
     }
     // 'unsafe-inline' is required for script-src/style-src because this
     // codebase uses inline <script> blocks (menu toggles, admin widgets)
-    // and inline style="" attributes throughout, plus the theme system's
+    // and inline style="" attributes throughout, plus the palette system's
     // injected <style> tag — a stricter policy would break the site. Even
-    // with that, this still blocks loading scripts/styles/frames/images
-    // from any origin other than the ones explicitly listed below.
+    // with that, this still blocks loading scripts/styles/frames from any
+    // origin other than this one.
+    //
+    // No external script/style host is listed any more: Leaflet (the map
+    // library) is served from assets/vendor/leaflet/ rather than a CDN, so
+    // the map keeps working on networks that block third-party hosts.
+    //
+    // img-src still allows the OpenStreetMap tile servers, because map
+    // tiles are images fetched from them at runtime — that's the one
+    // outside host the map still talks to. If tiles are ever unreachable
+    // the map itself still loads, pans and zooms, and shows the route and
+    // markers over a plain background (see assets/js/map.js).
     header(
         "Content-Security-Policy: default-src 'self'; " .
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
-        "img-src 'self' data: https://*.tile.openstreetmap.org; " .
+        "script-src 'self' 'unsafe-inline'; " .
+        "style-src 'self' 'unsafe-inline'; " .
+        "img-src 'self' data: https://*.tile.openstreetmap.org https://tile.openstreetmap.org; " .
         "font-src 'self' data:; " .
         "connect-src 'self'; " .
         "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"

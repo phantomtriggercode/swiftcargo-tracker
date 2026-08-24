@@ -22,7 +22,11 @@ $pageTitle = 'Track Shipment';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<!-- Leaflet is served from this site, not a CDN. The live map is the most
+     important thing on the page, so it must not depend on a third-party
+     host that can be blocked by a firewall or ad blocker, blocked in a
+     whole country, or simply have an outage. See assets/vendor/leaflet/. -->
+<link rel="stylesheet" href="<?= h(asset_url('/assets/vendor/leaflet/leaflet.css')) ?>">
 
 <section class="track-hero">
   <div class="container">
@@ -62,7 +66,15 @@ include __DIR__ . '/includes/header.php';
 
     <div class="tracking-layout">
       <div>
-        <div id="map"></div>
+        <div id="map">
+          <noscript>
+            <div class="map-unavailable-inner" style="padding:28px 22px;text-align:center;">
+              <strong>The live map needs JavaScript.</strong>
+              <span>Turn JavaScript on to see the map. The full status history and every
+              shipment detail below are already shown and up to date without it.</span>
+            </div>
+          </noscript>
+        </div>
         <div class="map-live-tag"><span class="dot"></span> Live position — auto-refreshes every 15s</div>
         <div class="map-legend">
           <span><span class="swatch swatch-origin"></span> Origin</span>
@@ -146,7 +158,7 @@ include __DIR__ . '/includes/header.php';
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="<?= h(asset_url('/assets/vendor/leaflet/leaflet.js')) ?>"></script>
     <script>
       window.SHIPMENT_INIT = <?= json_encode([
           'tracking_number' => $shipment['tracking_number'],
@@ -174,6 +186,39 @@ include __DIR__ . '/includes/header.php';
       ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     </script>
     <script src="<?= h(asset_url('/assets/js/map.js')) ?>"></script>
+    <script>
+      /* Last-resort safety net for the live map, deliberately inline so it
+         cannot itself be blocked or fail to download. map.js handles every
+         failure it can see, but it can't report a problem if map.js is the
+         thing that never loaded (bad upload, aggressive blocker). A few
+         seconds after load, if the map area is still empty and no message
+         has been shown, explain it rather than leaving a blank grey box —
+         and drop the "auto-refreshes" line, since nothing is refreshing. */
+      (function () {
+        window.setTimeout(function () {
+          var el = document.getElementById('map');
+          if (!el) return;
+          if (el.querySelector('.leaflet-map-pane') || el.querySelector('.map-unavailable-inner')) return;
+
+          el.className += ' map-unavailable';
+          var box = document.createElement('div');
+          box.className = 'map-unavailable-inner';
+          var t = document.createElement('strong');
+          t.textContent = 'The map could not be loaded.';
+          var b = document.createElement('span');
+          b.textContent = 'Something on this network or browser stopped it from loading. '
+            + 'All tracking details and the full status history below are still up to date.';
+          box.appendChild(t);
+          box.appendChild(b);
+          el.appendChild(box);
+
+          var tag = document.querySelector('.map-live-tag');
+          if (tag) tag.style.display = 'none';
+          var legend = document.querySelector('.map-legend');
+          if (legend) legend.style.display = 'none';
+        }, 5000);
+      })();
+    </script>
 
   <?php else: ?>
     <div class="alert alert-info">Enter a tracking number above to see live status and map location.</div>

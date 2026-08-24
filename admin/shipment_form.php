@@ -69,13 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!in_array($packagingType, $packagingTypes, true)) $errors[] = 'Please choose a valid packaging type.';
     if ($originLabel === '' || $originLat === '' || $originLng === '') {
         $errors[] = 'Origin (label + coordinates) is required.';
-    } elseif (!is_numeric($originLat) || !is_numeric($originLng)) {
-        $errors[] = 'Origin coordinates must be valid numbers — use "Find on map" to look them up.';
+    } elseif (!is_valid_latitude((string) $originLat) || !is_valid_longitude((string) $originLng)) {
+        $errors[] = 'Origin coordinates look wrong — latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
     }
     if ($destinationLabel === '' || $destinationLat === '' || $destinationLng === '') {
         $errors[] = 'Destination (label + coordinates) is required.';
-    } elseif (!is_numeric($destinationLat) || !is_numeric($destinationLng)) {
-        $errors[] = 'Destination coordinates must be valid numbers — use "Find on map" to look them up.';
+    } elseif (!is_valid_latitude((string) $destinationLat) || !is_valid_longitude((string) $destinationLng)) {
+        $errors[] = 'Destination coordinates look wrong — latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
     }
     if (!in_array($serviceType, $serviceTypes, true)) $errors[] = 'Invalid service type.';
     if (!in_array($shippingMethod, $shippingMethods, true)) $errors[] = 'Invalid shipping method.';
@@ -426,10 +426,12 @@ include __DIR__ . '/includes/admin_header.php';
     </div>
 
     <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
-      Click "Find on map" to auto-fill coordinates from the address above, or type
-      coordinates manually — look them up at
-      <a href="https://www.latlong.net" target="_blank" style="color:var(--brand-red);">latlong.net</a>
-      if a lookup doesn't find a precise match.
+      Click "Find on map" to auto-fill coordinates from the address above.
+      If the lookup is ever unavailable or can't find a precise match, you can
+      always type the coordinates in by hand and everything works exactly the
+      same: open <strong>Google Maps</strong>, right-click the spot, and click
+      the numbers at the top of the menu to copy them — paste the first into
+      Latitude and the second into Longitude.
     </p>
 
     <button type="submit" class="btn btn-primary btn-block"><?= $shipment ? 'Save Changes' : 'Create Shipment' ?></button>
