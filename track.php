@@ -165,7 +165,7 @@ include __DIR__ . '/includes/header.php';
           }, $events),
       ]) ?>;
     </script>
-    <script src="/assets/js/map.js"></script>
+    <script src="<?= h(asset_url('/assets/js/map.js')) ?>"></script>
 
   <?php else: ?>
     <div class="alert alert-info">Enter a tracking number above to see live status and map location.</div>

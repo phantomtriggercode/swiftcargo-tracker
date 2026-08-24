@@ -12,7 +12,7 @@ $activeNav = $activeNav ?? '';
 <title><?= isset($pageTitle) ? h($pageTitle) . ' — ' . h(get_site_name()) : h(get_site_name()) . ' | Global Shipping & Tracking' ?></title>
 <meta name="description" content="Track your shipment live on the map and get instant email alerts on every status update.">
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
 </head>
 <body>
 

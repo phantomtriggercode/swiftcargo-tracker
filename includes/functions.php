@@ -8,6 +8,19 @@ function h(?string $value): string
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Appends a cache-busting ?v= query string (the file's last-modified time)
+ * to a local /assets/... URL, so browsers and any intermediate cache fetch
+ * a fresh copy the moment a CSS/JS file changes on the server — instead of
+ * silently keeping an old cached version after a deploy.
+ */
+function asset_url(string $path): string
+{
+    $file = dirname(__DIR__) . '/' . ltrim($path, '/');
+    $version = is_file($file) ? filemtime($file) : time();
+    return $path . '?v=' . $version;
+}
+
 function generate_tracking_number(): string
 {
     // e.g. SC7482913KE — SC prefix + 7 random digits + 2 random letters

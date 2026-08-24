@@ -122,7 +122,7 @@ include __DIR__ . '/includes/admin_header.php';
   </form>
 </div>
 
-<script src="/assets/js/geocode.js"></script>
+<script src="<?= h(asset_url('/assets/js/geocode.js')) ?>"></script>
 <script>
   attachGeocodeLookup('location_label', 'lat', 'lng', 'location-lookup-btn', 'location-geocode-status');
 </script>

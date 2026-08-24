@@ -323,7 +323,7 @@ include __DIR__ . '/includes/header.php';
 <script>
   window.SHIPPING_RATES = <?= json_encode($rates) ?>;
 </script>
-<script src="/assets/js/calculator.js"></script>
-<script src="/assets/js/wizard.js"></script>
+<script src="<?= h(asset_url('/assets/js/calculator.js')) ?>"></script>
+<script src="<?= h(asset_url('/assets/js/wizard.js')) ?>"></script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

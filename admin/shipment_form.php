@@ -318,7 +318,7 @@ include __DIR__ . '/includes/admin_header.php';
   </form>
 </div>
 
-<script src="/assets/js/geocode.js"></script>
+<script src="<?= h(asset_url('/assets/js/geocode.js')) ?>"></script>
 <script>
   attachGeocodeLookup('origin_label', 'origin_lat', 'origin_lng', 'origin-lookup-btn', 'origin-geocode-status');
   attachGeocodeLookup('destination_label', 'destination_lat', 'destination_lng', 'destination-lookup-btn', 'destination-geocode-status');
