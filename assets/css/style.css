@@ -17,14 +17,17 @@
 
 * { box-sizing: border-box; }
 
-html { overflow-x: hidden; }
+/* overflow-x: clip (not hidden) — hidden forces overflow-y to auto per the
+   CSS spec, which breaks position:sticky on the header. clip blocks the
+   same horizontal scroll/drag without that side effect. */
+html { overflow-x: clip; }
 body {
   margin: 0;
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--ink);
   background: var(--white);
   line-height: 1.5;
-  overflow-x: hidden;
+  overflow-x: clip;
   width: 100%;
 }
 
