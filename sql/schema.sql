@@ -1,10 +1,24 @@
--- SwiftCargo Tracker database schema
--- Import this file via Hostinger's phpMyAdmin (or `mysql -u user -p dbname < schema.sql`)
+-- SwiftCargo Tracker database schema — single-file, complete, up to date.
+-- This one file creates every table the current codebase needs (admins,
+-- couriers, shipments, tracking_events, settings, color_palettes,
+-- templates, shipment_requests, login_attempts, admin_activity_log) with
+-- every column and default the app currently reads, plus starter/seed
+-- data (a default admin login, 8 carriers, 11 color palettes, 6 design
+-- templates, all site copy, and calculator rates). It supersedes every
+-- individual file under sql/migrations/ — those exist only for upgrading
+-- an *existing* live database in place without losing its data; if you
+-- are starting from an empty database (a fresh install, or a live site
+-- you've intentionally dropped and are reimporting from scratch), import
+-- ONLY this file and skip the migrations folder entirely.
 --
--- NOTE: if you already imported an earlier version of this file on a live
--- site, do NOT re-import this one — it will not touch your existing data,
--- but the safe way to pick up the new fields/tables is to run the migration
--- file instead: sql/migrations/002_expand_features.sql
+-- Import this file via Hostinger's phpMyAdmin (or `mysql -u user -p dbname < schema.sql`).
+--
+-- NOTE: if you already have a live database with real shipments/admins in
+-- it, do NOT import this file — CREATE TABLE IF NOT EXISTS means it won't
+-- overwrite your data, but INSERT IGNORE / ON DUPLICATE KEY seed rows can
+-- still reintroduce old default content or the original demo admin
+-- password. Use the specific migration file for whatever you're adding
+-- instead, in numeric order.
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;

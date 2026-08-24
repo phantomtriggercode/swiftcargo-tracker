@@ -10,10 +10,18 @@ function get_setting(string $key, string $default = ''): string
     static $cache = [];
 
     if (!array_key_exists($key, $cache)) {
-        $stmt = db()->prepare('SELECT setting_value FROM settings WHERE setting_key = ?');
-        $stmt->execute([$key]);
-        $row = $stmt->fetch();
-        $cache[$key] = $row ? $row['setting_value'] : null;
+        // Falls back to $default on any DB error (e.g. the settings table
+        // doesn't exist yet — schema.sql not imported) instead of a fatal
+        // error, since this runs on nearly every page load. Same
+        // reasoning as includes/design.php's get_active_palette().
+        try {
+            $stmt = db()->prepare('SELECT setting_value FROM settings WHERE setting_key = ?');
+            $stmt->execute([$key]);
+            $row = $stmt->fetch();
+            $cache[$key] = $row ? $row['setting_value'] : null;
+        } catch (PDOException $e) {
+            $cache[$key] = null;
+        }
     }
 
     return $cache[$key] ?? $default;

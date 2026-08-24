@@ -64,10 +64,18 @@ function get_active_palette(): array
         return $palette;
     }
 
-    $row = db()->query('SELECT * FROM color_palettes WHERE is_active = 1 LIMIT 1')->fetch();
+    // Defensive fallback — matches the site's original hardcoded colors.
+    // Used whenever the query can't return a real row: the table doesn't
+    // exist yet (new code deployed before migration 011 was run — this is
+    // what a site-wide white screen right after an update almost always
+    // means), or every palette somehow got deleted. This runs on every
+    // public and admin page load, so it must never throw.
+    try {
+        $row = db()->query('SELECT * FROM color_palettes WHERE is_active = 1 LIMIT 1')->fetch();
+    } catch (PDOException $e) {
+        $row = null;
+    }
     if (!$row) {
-        // Defensive fallback (migration not run yet, or every palette
-        // somehow deleted) — matches the site's original hardcoded colors.
         $row = [
             'color_primary' => '#d40511', 'color_primary_dark' => '#a80410', 'color_accent' => '#ffcc00',
             'color_ink' => '#111827', 'color_ink_soft' => '#4b5563', 'color_muted' => '#6b7280',
@@ -156,7 +164,13 @@ function get_active_template(): array
         return $template;
     }
 
-    $row = db()->query('SELECT * FROM templates WHERE is_active = 1 LIMIT 1')->fetch();
+    // Same rationale as get_active_palette()'s fallback above — must never
+    // throw, since this also runs on every page load.
+    try {
+        $row = db()->query('SELECT * FROM templates WHERE is_active = 1 LIMIT 1')->fetch();
+    } catch (PDOException $e) {
+        $row = null;
+    }
     if (!$row) {
         $row = ['layout_key' => 'classic', 'animation_key' => 'fade', 'logo_path' => null];
     }
