@@ -23,7 +23,7 @@ maybe_send_go_live_alert();
     <div>Customer Service: <a href="tel:<?= h(preg_replace('/[^0-9+]/', '', get_setting('contact_phone', '+18005550199'))) ?>"><?= h(get_setting('contact_phone', '+1 (800) 555-0199')) ?></a></div>
     <div class="topbar-links">
       <a href="/contact.php">Support</a>
-      <a href="/admin/login.php">Staff Login</a>
+      <a href="/admin/login.php">Login</a>
     </div>
   </div>
 </div>

@@ -19,6 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newPassword = (string) ($_POST['new_password'] ?? '');
     $confirm = (string) ($_POST['new_password_confirm'] ?? '');
 
+    if (!csrf_verify((string) ($_POST['csrf_token'] ?? ''))) {
+        $errors[] = 'Your session expired — please reload the page and try again.';
+    }
     if (strlen($newPassword) < 8) {
         $errors[] = 'New password must be at least 8 characters.';
     }
@@ -64,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endforeach; ?>
 
     <form method="post">
+      <?= csrf_field() ?>
       <div class="form-group">
         <label for="new_password">New Password</label>
         <input type="password" id="new_password" name="new_password" minlength="8" required autofocus autocomplete="new-password">

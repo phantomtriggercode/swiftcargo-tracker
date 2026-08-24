@@ -267,6 +267,59 @@ If you already deployed an earlier version of this project:
     color; this darkens those two presets' primary colors slightly so
     button text stays readable. Only touches those two rows — any theme
     you've already customized is untouched.
+11. **Login security:** import `sql/migrations/009_login_security.sql` once
+    to add the `login_attempts` table used for rate-limiting/lockout on
+    the login form (see **Login security** below). The login page works
+    fine before you run this too — it just skips rate-limiting until the
+    table exists, rather than breaking.
+
+## Login security
+
+The login form (`/admin/login.php`) is hardened against bots and brute
+force with a few layers, all self-hosted — nothing to sign up for, no API
+key, no third-party service:
+
+- **A math challenge** ("what is 4 + 7?") — trivial for a human, but stops
+  the large volume of unsophisticated bots that just fill in a form and
+  submit without solving anything.
+- **A honeypot field**, invisible to real visitors (off-screen and
+  `aria-hidden`), that only a bot filling every field in a scraped form
+  would fill in. Tripping it is treated exactly like a wrong password —
+  it never reveals that a trap exists.
+- **Rate limiting with a temporary lockout**: after 6 failed attempts on
+  one account, or 10 from one IP address, within 15 minutes, further
+  attempts are blocked (even with the correct password) until the window
+  passes. A successful login clears the count for that account and IP.
+- **CSRF tokens** on the login form and every other auth-related form
+  (forgot password, reset password, forced password change).
+
+**On "reCAPTCHA" specifically:** a real Google reCAPTCHA (or hCaptcha,
+Cloudflare Turnstile, etc.) needs a site key and secret key that only the
+site owner can generate, tied to their own account and domain via that
+provider's console — there's no way to create or embed one on your behalf
+without you doing that signup step yourself, and I'm not going to wire the
+site to my own keys. If you'd rather have a real reCAPTCHA later, get a
+free key pair from
+[google.com/recaptcha/admin](https://www.google.com/recaptcha/admin) and
+it's a small change to swap it in; until/unless you want that, the
+math-challenge + honeypot + rate-limiting combination above requires
+nothing from you and stops the same class of automated abuse.
+
+**On "impossible to hack":** no realistic claim can promise that — for
+any software, ever. What's actually in place: every database query uses
+parameterized statements (no SQL injection surface), all output is
+HTML-escaped (no XSS from stored data), passwords are hashed with
+bcrypt via PHP's `password_hash()` (never stored or logged in plain
+text), session cookies are `HttpOnly` + `SameSite=Lax` (+ `Secure` on
+HTTPS), file uploads are validated by content and extension with
+randomized filenames, and site-wide security headers are sent on every
+response (`X-Content-Type-Options`, `X-Frame-Options`,
+`Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` on
+HTTPS, and a `Content-Security-Policy` restricting scripts/styles/images
+to this site plus the two external hosts it actually uses — the Leaflet
+map library's CDN and OpenStreetMap's map tiles). That's a genuinely
+solid baseline for a small PHP site — not a guarantee nothing can ever
+go wrong.
 
 ## Admin accounts, roles, and login
 

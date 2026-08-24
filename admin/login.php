@@ -9,6 +9,7 @@ if (admin_logged_in()) {
 }
 
 $error = flash_get('error');
+$ip = client_ip();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -16,19 +17,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // password manager on a phone very often carries an invisible trailing
     // newline or space along with it, which would otherwise fail silently.
     $password = trim((string) ($_POST['password'] ?? ''));
+    $honeypot = (string) ($_POST['website'] ?? '');
+    $captchaAnswer = (string) ($_POST['captcha_answer'] ?? '');
+    $csrfOk = csrf_verify((string) ($_POST['csrf_token'] ?? ''));
 
-    if (attempt_admin_login($username, $password)) {
-        redirect('/admin/dashboard.php');
+    $rateLimitMsg = login_rate_limit_check($ip, $username);
+
+    if ($rateLimitMsg !== null) {
+        $error = $rateLimitMsg;
+    } elseif (!$csrfOk) {
+        $error = 'Your session expired — please try again.';
+    } elseif (honeypot_tripped($honeypot)) {
+        // A real visitor never sees or fills this field — only a bot
+        // filling every input does. Treat it exactly like a wrong
+        // password: no hint that a trap was sprung.
+        record_login_attempt($ip, $username, false);
+        $error = 'Invalid username or password.';
+    } elseif (!verify_captcha($captchaAnswer)) {
+        record_login_attempt($ip, $username, false);
+        $error = 'Incorrect answer to the security question below — please try again.';
+    } else {
+        $loginOk = attempt_admin_login($username, $password);
+        record_login_attempt($ip, $username, $loginOk);
+        if ($loginOk) {
+            redirect('/admin/dashboard.php');
+        }
+        $error = 'Invalid username or password.';
     }
-    $error = 'Invalid username or password.';
 }
+
+$captcha = new_captcha_challenge();
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme-style="<?= h(active_theme_style_key()) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Staff Login | <?= h(get_site_name()) ?></title>
+<title>Login | <?= h(get_site_name()) ?></title>
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
 <?= theme_style_tag() ?>
@@ -44,13 +69,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <?php endif; ?>
       <span><?= h(get_site_name()) ?></span>
     </a>
-    <h3 style="text-align:center;margin:0 0 20px;">Staff Login</h3>
+    <h3 style="text-align:center;margin:0 0 20px;">Login</h3>
 
     <?php if ($error): ?>
       <div class="alert alert-error"><?= h($error) ?></div>
     <?php endif; ?>
 
     <form method="post">
+      <?= csrf_field() ?>
+      <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+        <label for="website">Website</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" value="">
+      </div>
       <div class="form-group">
         <label for="username">Username or Email</label>
         <input type="text" id="username" name="username" value="<?= h($_POST['username'] ?? '') ?>" required autofocus
@@ -59,6 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <label for="captcha_answer">Security check: what is <?= (int) $captcha['a'] ?> + <?= (int) $captcha['b'] ?>?</label>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="captcha_answer" name="captcha_answer" required autocomplete="off">
       </div>
       <button type="submit" class="btn btn-primary btn-block">Log In</button>
     </form>

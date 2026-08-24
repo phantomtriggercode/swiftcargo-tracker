@@ -11,15 +11,21 @@ if (admin_logged_in()) {
 
 $errors = [];
 $submitted = false;
+$ip = client_ip();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if (!csrf_verify((string) ($_POST['csrf_token'] ?? ''))) {
+        $errors[] = 'Your session expired — please try again.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Enter a valid email address.';
+    } elseif (login_rate_limit_check($ip, 'reset:' . strtolower($email)) !== null) {
+        $errors[] = 'Too many requests. Please wait a while and try again.';
     }
 
     if (!$errors) {
+        record_login_attempt($ip, 'reset:' . strtolower($email), false);
         $token = create_password_reset($email);
         if ($token !== null) {
             $resetUrl = get_site_url() . '/admin/reset_password.php?token=' . $token;
@@ -79,6 +85,7 @@ $pageTitle = 'Forgot Password';
         <div class="alert alert-error"><?= h($err) ?></div>
       <?php endforeach; ?>
       <form method="post">
+        <?= csrf_field() ?>
         <div class="form-group">
           <label for="email">Email Address</label>
           <input type="email" id="email" name="email" value="<?= h($_POST['email'] ?? '') ?>" required autofocus>

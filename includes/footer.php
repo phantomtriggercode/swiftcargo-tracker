@@ -29,7 +29,7 @@
           <li><a href="/track.php">Track a Shipment</a></li>
           <li><a href="/request-shipment.php">Request a Shipment</a></li>
           <li><a href="/contact.php">Help Center</a></li>
-          <li><a href="/admin/login.php">Staff Login</a></li>
+          <li><a href="/admin/login.php">Login</a></li>
         </ul>
       </div>
       <div>

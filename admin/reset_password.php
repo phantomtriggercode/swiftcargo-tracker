@@ -18,6 +18,9 @@ if ($admin && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = (string) ($_POST['password'] ?? '');
     $confirm = (string) ($_POST['password_confirm'] ?? '');
 
+    if (!csrf_verify((string) ($_POST['csrf_token'] ?? ''))) {
+        $errors[] = 'Your session expired — please reload the page and try again.';
+    }
     if (strlen($password) < 8) {
         $errors[] = 'Password must be at least 8 characters.';
     }
@@ -80,6 +83,7 @@ $pageTitle = 'Reset Password';
         <div class="alert alert-error"><?= h($err) ?></div>
       <?php endforeach; ?>
       <form method="post">
+        <?= csrf_field() ?>
         <input type="hidden" name="token" value="<?= h($token) ?>">
         <div class="form-group">
           <label for="password">New Password</label>
