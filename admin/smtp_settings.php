@@ -25,7 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($host === '') $errors[] = 'SMTP host is required.';
         if (!ctype_digit($port)) $errors[] = 'Port must be a number.';
         if ($user === '') $errors[] = 'SMTP username is required.';
-        if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) $errors[] = 'A valid "from" email is required.';
+        if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'A valid "from" email is required.';
+        } elseif (is_reserved_test_domain($fromEmail)) {
+            // .test/.example/.invalid/.localhost are reserved by RFC 2606
+            // and never resolve in real DNS — any real SMTP server will
+            // reject mail claiming to be from one ("Sender address
+            // rejected: Domain not found"), every single time. Catching
+            // it here stops the placeholder from config.sample.php ever
+            // getting saved as a real site's live "from" address.
+            $errors[] = 'The "from" email uses a reserved test domain (like .test, .example, .invalid, or .localhost) that no real mail server will accept. Use an email address on a real domain you control — ideally one that matches where this site is hosted.';
+        }
         if (!in_array($secure, ['tls', 'ssl'], true)) $errors[] = 'Invalid encryption type.';
 
         if (!$errors) {
@@ -43,6 +53,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('success', 'Email settings saved.');
             redirect('/admin/smtp_settings.php');
         }
+    } elseif ($action === 'reset_to_config') {
+        // Clears the saved-in-the-database override so smtp_config() falls
+        // back to the SMTP_* constants in config/config.php again — the
+        // only way to make a config.php edit take effect once anything has
+        // ever been saved here, since a saved value always wins otherwise.
+        foreach ($fields as $key) {
+            db()->prepare('DELETE FROM settings WHERE setting_key = ?')->execute([$key]);
+        }
+        log_admin_activity('Reset SMTP settings to config.php defaults');
+        flash_set('success', 'Cleared — now using whatever is in config/config.php.');
+        redirect('/admin/smtp_settings.php');
     } elseif ($action === 'test') {
         $testEmail = trim($_POST['test_email'] ?? '');
         if (!filter_var($testEmail, FILTER_VALIDATE_EMAIL)) {
@@ -93,6 +114,13 @@ include __DIR__ . '/includes/admin_header.php';
     inbox for development. No third-party email API is used — this connects
     directly to the mailbox over standard SMTP.
   </p>
+  <p style="color:var(--muted);font-size:13px;">
+    Once you save anything here, it's stored in the database and always
+    takes priority over <code>config/config.php</code> — editing that file
+    afterward won't change what's actually used for sending mail. If you'd
+    rather manage SMTP from <code>config.php</code> instead, use
+    "Reset to config.php defaults" below to clear the saved override.
+  </p>
 
   <form method="post">
     <?= csrf_field() ?>
@@ -126,6 +154,11 @@ include __DIR__ . '/includes/admin_header.php';
       <div class="form-group">
         <label>"From" Email</label>
         <input type="text" name="smtp_from_email" value="<?= h($cfg['from_email']) ?>" placeholder="e.g. tracking@yourdomain.com" required>
+        <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+          Must be on a real domain you control — most mail servers reject a
+          "from" address on a domain that doesn't exist (this is what
+          "Sender address rejected: Domain not found" means).
+        </span>
       </div>
       <div class="form-group">
         <label>"From" Name</label>
@@ -135,6 +168,12 @@ include __DIR__ . '/includes/admin_header.php';
     <button type="submit" class="btn btn-primary btn-block">Save Email Settings</button>
   </form>
 </div>
+
+<form method="post" style="max-width:560px;margin-top:14px;" onsubmit="return confirm('Clear the saved email settings and go back to whatever is in config/config.php? Do this only if you want config.php — not this page — to control SMTP.');">
+  <?= csrf_field() ?>
+  <input type="hidden" name="action" value="reset_to_config">
+  <button type="submit" class="btn btn-outline btn-sm">Reset to config.php defaults</button>
+</form>
 
 <div class="form-card" style="max-width:560px;margin-top:16px;">
   <h3 style="margin-top:0;">Send a Test Email</h3>

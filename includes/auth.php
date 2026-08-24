@@ -46,8 +46,14 @@ function require_admin_base(): void
     // centrally, so every admin page that calls require_admin() or
     // require_super_admin() is covered automatically — no per-page code.
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_verify($_POST['csrf_token'] ?? '')) {
-        flash_set('error', 'Your form session expired. Please try again.');
-        redirect('/admin/dashboard.php');
+        flash_set('error', 'Your form session expired and this save did not go through — please try again.');
+        // Back to the page the form actually lives on (e.g.
+        // admin_edit.php?id=5, smtp_settings.php), not always the
+        // dashboard — otherwise a failed save on some other page looks
+        // like it silently did nothing instead of clearly failing.
+        // REQUEST_URI (not SCRIPT_NAME) so query params like ?id=5 survive.
+        $current = $_SERVER['REQUEST_URI'] ?? '/admin/dashboard.php';
+        redirect($current);
     }
 
     // Re-check on every request (not just at login) so a suspended admin's

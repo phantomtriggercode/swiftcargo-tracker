@@ -18,6 +18,28 @@ require_once __DIR__ . '/settings.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
+/**
+ * True if an email address's domain is one of the handful reserved by
+ * RFC 2606 for documentation/testing (.test, .example, .invalid,
+ * .localhost) — these never resolve in real DNS, so any real SMTP server
+ * will reject a message claiming to be from one. config.sample.php's
+ * SMTP_FROM placeholder (tracking@swiftcargo.test) is exactly this.
+ */
+function is_reserved_test_domain(string $email): bool
+{
+    $at = strrpos($email, '@');
+    if ($at === false) {
+        return false;
+    }
+    $domain = strtolower(substr($email, $at + 1));
+    foreach (['.test', '.example', '.invalid', '.localhost'] as $suffix) {
+        if ($domain === ltrim($suffix, '.') || str_ends_with($domain, $suffix)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function smtp_config(): array
 {
     return [
