@@ -68,6 +68,18 @@ function get_all_themes(): array
     return db()->query('SELECT * FROM themes ORDER BY is_active DESC, name ASC')->fetchAll();
 }
 
+/**
+ * The small, fixed set of themes a regular (non-super-admin) account is
+ * allowed to switch between at /admin/my_theme.php — activate only, no
+ * editing or deleting. Super admins choose which themes carry this flag
+ * from /admin/themes.php; by default it's the two "Classic Red" /
+ * "Classic Green" presets.
+ */
+function get_admin_selectable_themes(): array
+{
+    return db()->query('SELECT * FROM themes WHERE is_admin_selectable = 1 ORDER BY name ASC')->fetchAll();
+}
+
 function get_theme(int $id): ?array
 {
     $stmt = db()->prepare('SELECT * FROM themes WHERE id = ?');

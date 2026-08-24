@@ -53,6 +53,9 @@ $__navAdmin = current_admin();
       <a href="/admin/branding.php" class="<?= $activeAdminNav === 'branding' ? 'active' : '' ?>">Branding</a>
       <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>
       <a href="/admin/profile.php" class="<?= $activeAdminNav === 'profile' ? 'active' : '' ?>">My Profile</a>
+      <?php if ($__navAdmin && !$__navAdmin['is_super_admin']): ?>
+        <a href="/admin/my_theme.php" class="<?= $activeAdminNav === 'my_theme' ? 'active' : '' ?>">Site Color</a>
+      <?php endif; ?>
       <?php if ($__navAdmin && $__navAdmin['is_super_admin']): ?>
         <a href="/admin/themes.php" class="<?= $activeAdminNav === 'themes' ? 'active' : '' ?>">Themes</a>
         <a href="/admin/admins.php" class="<?= $activeAdminNav === 'admins' ? 'active' : '' ?>">Admin Accounts</a>

@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email'] ?? '');
         $password = (string) ($_POST['password'] ?? '');
         $makeSuperAdmin = !empty($_POST['is_super_admin']);
+        $forceChange = !empty($_POST['force_change']);
 
         if ($fullName === '') $errors[] = 'Full name is required.';
         if ($username === '') $errors[] = 'Username is required.';
@@ -34,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$errors) {
-            $stmt = db()->prepare('INSERT INTO admins (username, email, password_hash, full_name, is_super_admin, is_active) VALUES (?, ?, ?, ?, ?, 1)');
-            $stmt->execute([$username, $email !== '' ? $email : null, password_hash($password, PASSWORD_DEFAULT), $fullName, $makeSuperAdmin ? 1 : 0]);
+            $stmt = db()->prepare('INSERT INTO admins (username, email, password_hash, full_name, is_super_admin, is_active, must_change_password) VALUES (?, ?, ?, ?, ?, 1, ?)');
+            $stmt->execute([$username, $email !== '' ? $email : null, password_hash($password, PASSWORD_DEFAULT), $fullName, $makeSuperAdmin ? 1 : 0, $forceChange ? 1 : 0]);
             flash_set('success', 'Admin account created.');
             redirect('/admin/admins.php');
         }
@@ -152,6 +153,7 @@ include __DIR__ . '/includes/admin_header.php';
           <div class="row-actions">
             <button type="button" class="row-actions-btn" aria-haspopup="true" aria-expanded="false" aria-label="Actions for <?= h($a['username']) ?>">&#8942;</button>
             <template class="row-actions-source">
+              <a href="/admin/admin_edit.php?id=<?= (int) $a['id'] ?>">Edit Details</a>
               <form method="post">
                 <input type="hidden" name="action" value="toggle_super">
                 <input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
@@ -211,6 +213,12 @@ include __DIR__ . '/includes/admin_header.php';
       <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
         Super admins can manage every other admin account, including this one. Regular admins can't see this page at all.
       </span>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:600;">
+        <input type="checkbox" name="force_change" value="1" style="width:auto;" checked>
+        Require a password change at first login
+      </label>
     </div>
     <button type="submit" class="btn btn-primary btn-block">Create Admin</button>
   </form>

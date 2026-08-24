@@ -256,25 +256,61 @@ If you already deployed an earlier version of this project:
    `themes` table. It seeds 10 preset themes and activates "Classic Red" —
    the site's original look — so this migration causes no visible change
    until a super admin picks something else at `/admin/themes.php`.
+9. **Regular-admin color picker + forced password change:** import
+   `sql/migrations/007_admin_theme_picker_and_forced_password.sql` once. It
+   adds an `is_admin_selectable` flag to `themes` (flagging "Classic Red"
+   and a new "Classic Green" preset it seeds) and a `must_change_password`
+   flag to `admins`. No visible change until you use the new controls.
+10. **Theme contrast fix:** import `sql/migrations/008_theme_contrast_fix.sql`
+    once. Two preset themes ("Sunset Orange", "Teal Logistics") had button
+    text that fell just short of WCAG AA contrast against their primary
+    color; this darkens those two presets' primary colors slightly so
+    button text stays readable. Only touches those two rows — any theme
+    you've already customized is untouched.
 
 ## Admin accounts, roles, and login
+
+There is exactly **one login page** (`/admin/login.php`) for every admin,
+regardless of role — there's no separate URL or link for a more privileged
+account. After a correct username/email + password, the system looks up
+that account's role from the database and takes it from there: a regular
+admin lands on the normal dashboard, a super admin additionally gets the
+extra nav items below. Nothing about *how* you log in ever differs by role.
 
 There are two kinds of admin account:
 
 - **Regular admin** — full access to shipments, requests, content, images,
-  rates, and their own profile. Can't see or manage other admin accounts.
+  rates, a **Site Color** picker (see below), and their own profile. Can't
+  see or manage other admin accounts, and — deliberately — nothing in
+  their own screens mentions that a super-admin role exists at all; it's
+  documented here for whoever manages the site, not surfaced in the
+  day-to-day staff UI.
 - **Super admin** — everything a regular admin can do, plus `/admin/admins.php`
-  (only visible to super admins): create new admin accounts, promote/demote
-  super admin status, suspend or reactivate an account, send someone a
-  password reset link, or delete an account. The system always keeps at
-  least one active super admin — you can't suspend, demote, or delete the
-  last one (including yourself), so the site can never end up with no one
-  able to manage staff access.
+  (only visible to super admins): create new admin accounts, edit any
+  admin's name/username/email, set a new password for them directly,
+  require a password change at their next login, promote/demote super
+  admin status, suspend or reactivate an account, send someone a password
+  reset link, or delete an account. The system always keeps at least one
+  active super admin — you can't suspend, demote, or delete the last one
+  (including yourself), so the site can never end up with no one able to
+  manage staff access. Also the only role that can reach `/admin/themes.php`
+  (all 10+ themes, full color editing, delete).
 
 Every admin can log in with either their **username or email**, change
 their password from **My Profile**, and use **"Forgot password?"** on the
 login page to reset it by email (requires an email to be set on the account
 first — add one under My Profile).
+
+### Forced password change
+
+A super admin can require any admin to set a new password at their next
+login — either as a one-off toggle from **Admin Accounts**, or bundled with
+setting them a temporary password directly. The affected admin sees a
+plain "set a new password to continue" screen right after logging in
+(automatically — not a separate link) and can't reach anything else until
+they do; the screen never attributes the requirement to a super admin or
+mentions the role at all, consistent with regular admins having no
+visibility into that role's existence.
 
 ### Go-live alert (optional)
 
@@ -330,6 +366,26 @@ different clients: pick a theme, and everything reflects it immediately.
 Regular (non-super-admin) accounts can't see or reach `/admin/themes.php`
 or `/admin/theme_edit.php` at all — attempting to visit either redirects
 back to the dashboard with a permission error.
+
+**Contrast:** every preset ships verified against WCAG AA contrast ratios
+(body text ≥4.5:1 on both the page and soft backgrounds, button text
+≥4.5:1 on its button color) so no default combination makes text hard to
+read — two presets that fell short at launch were corrected in migration
+`008_theme_contrast_fix.sql`. Editing a theme's colors shows a live warning
+(not a block — it's still your choice) if a chosen pair would fail that
+same check, so a custom color combination doesn't silently make text
+invisible.
+
+### Site Color (regular admins)
+
+Regular admins get a **Site Color** page — not called "Themes" — limited to
+switching between exactly two options: **Classic Red** and **Classic
+Green**. It's activate-only: no color editing, no delete, and no way to
+reach any other theme. A super admin decides which themes carry this
+"admin-selectable" flag (`is_admin_selectable` on the `themes` table); by
+default it's those same two. Activating either changes the live site
+color the same way a super admin's activation does — it's the same shared
+`is_active` theme, just reached through a narrower door.
 
 ## Managing site content
 

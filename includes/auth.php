@@ -10,7 +10,13 @@ function admin_logged_in(): bool
     return !empty($_SESSION['admin_id']);
 }
 
-function require_admin(): void
+/**
+ * Login + active-account check, without the forced-password-change
+ * redirect below. Used by require_admin() itself and by
+ * force_password_change.php, which can't call require_admin() directly —
+ * that would redirect the page back to itself in a loop.
+ */
+function require_admin_base(): void
 {
     if (!admin_logged_in()) {
         redirect('/admin/login.php');
@@ -27,6 +33,21 @@ function require_admin(): void
         unset($_SESSION['admin_id'], $_SESSION['admin_name']);
         flash_set('error', 'This account has been suspended.');
         redirect('/admin/login.php');
+    }
+}
+
+function require_admin(): void
+{
+    require_admin_base();
+
+    $stmt = db()->prepare('SELECT must_change_password FROM admins WHERE id = ?');
+    $stmt->execute([$_SESSION['admin_id']]);
+    if ((int) $stmt->fetchColumn() === 1) {
+        $current = $_SERVER['SCRIPT_NAME'] ?? '';
+        $exempt = str_ends_with($current, '/admin/force_password_change.php') || str_ends_with($current, '/admin/logout.php');
+        if (!$exempt) {
+            redirect('/admin/force_password_change.php');
+        }
     }
 }
 
@@ -67,7 +88,7 @@ function current_admin(): ?array
     if (!admin_logged_in()) {
         return null;
     }
-    $stmt = db()->prepare('SELECT id, username, email, full_name, is_super_admin, is_active FROM admins WHERE id = ? LIMIT 1');
+    $stmt = db()->prepare('SELECT id, username, email, full_name, is_super_admin, is_active, must_change_password FROM admins WHERE id = ? LIMIT 1');
     $stmt->execute([$_SESSION['admin_id']]);
     return $stmt->fetch() ?: null;
 }
@@ -75,8 +96,18 @@ function current_admin(): ?array
 function set_admin_password(int $adminId, string $newPassword): void
 {
     $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-    $stmt = db()->prepare('UPDATE admins SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?');
+    // Setting a password (self-service, a mailed reset link, or a super
+    // admin setting one directly) always satisfies any pending forced
+    // change — admin_edit.php re-sets the flag afterward if it wants the
+    // new password itself to be temporary.
+    $stmt = db()->prepare('UPDATE admins SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL, must_change_password = 0 WHERE id = ?');
     $stmt->execute([$hash, $adminId]);
+}
+
+function set_must_change_password(int $adminId, bool $mustChange): void
+{
+    $stmt = db()->prepare('UPDATE admins SET must_change_password = ? WHERE id = ?');
+    $stmt->execute([$mustChange ? 1 : 0, $adminId]);
 }
 
 /**
