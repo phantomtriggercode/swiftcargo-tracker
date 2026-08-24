@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = create_password_reset($target['email']);
             $resetUrl = get_site_url() . '/admin/reset_password.php?token=' . $token;
             $siteName = get_site_name();
-            $theme = get_active_theme();
+            $theme = get_active_palette();
             $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . h($theme['color_ink']) . ';">'
                 . '<p>An admin reset your ' . h($siteName) . ' password. Use the link below to set a new one.</p>'
                 . '<p><a href="' . h($resetUrl) . '" style="display:inline-block;background:' . h($theme['color_primary']) . ';color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">Reset Password</a></p>'

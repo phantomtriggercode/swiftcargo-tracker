@@ -14,16 +14,18 @@
   --radius: 10px;
   --shadow: 0 4px 16px rgba(17, 24, 39, 0.08);
 
-  /* Structural theme-style tokens (see html[data-theme-style="..."]
-     overrides near the bottom of this file) — color tokens above come
-     from the active row in the `themes` table via theme_style_tag(),
-     these come from that same row's style_key. */
+  /* Structural template tokens (see html[data-template="..."] overrides
+     near the bottom of this file) — color tokens above come from the
+     active row in `color_palettes` via palette_style_tag(); these come
+     from the active row in `templates`, independently. */
   --font-heading: inherit;
   --btn-text-transform: none;
   --btn-letter-spacing: normal;
   --header-bg: var(--white);
   --header-ink: var(--ink);
   --header-link: var(--ink-soft);
+  --hero-bg: transparent;
+  --hero-decoration: none;
 }
 
 * { box-sizing: border-box; }
@@ -719,48 +721,119 @@ table.data-table th:last-child, table.data-table td.actions { width: 90px; }
 }
 
 /* ---------------------------------------------------------------
-   Theme styles — structural design variants selected by the active
-   theme's style_key (html[data-theme-style="..."], set by
-   active_theme_style_key() in includes/theme.php). Colors themselves
-   come from theme_style_tag()'s :root override, injected separately —
-   these tokens are what make two themes with different style_keys
-   feel like different templates, not just different palettes.
-   Managed only by super admins at /admin/themes.php.
+   Templates — structural design variants selected by the active row
+   in `templates` (html[data-template="..."] / [data-animation="..."],
+   set by active_template_layout_key()/active_template_animation_key()
+   in includes/design.php). Colors are entirely separate, coming from
+   the active color palette's palette_style_tag() — a template never
+   changes colors, and a palette never changes any of this. Managed
+   only by super admins at /admin/templates.php.
    --------------------------------------------------------------- */
-html[data-theme-style="modern"] {
+
+/* Homepage sections admins can reorder per template — see the
+   .home-sections wrapper in index.php. Order values below are the
+   original/default sequence; templates override specific ones. */
+.home-sections { display: flex; flex-direction: column; }
+.home-sec-stats    { order: 1; }
+.home-sec-features { order: 2; }
+.home-sec-operate  { order: 3; }
+.home-sec-steps    { order: 4; }
+.home-sec-gallery  { order: 5; }
+
+/* Scroll-reveal (assets/js/reveal.js toggles .is-visible; how that
+   transition looks is entirely up to the active template below). */
+[data-reveal] { opacity: 1; transform: none; }
+html[data-animation="fade"] [data-reveal] { opacity: 0; transition: opacity 0.6s ease; }
+html[data-animation="fade"] [data-reveal].is-visible { opacity: 1; }
+html[data-animation="fade-up"] [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+html[data-animation="fade-up"] [data-reveal].is-visible { opacity: 1; transform: translateY(0); }
+html[data-animation="scale-in"] [data-reveal] { opacity: 0; transform: scale(0.92); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+html[data-animation="scale-in"] [data-reveal].is-visible { opacity: 1; transform: scale(1); }
+html[data-animation="slide-in"] [data-reveal] { opacity: 0; transform: translateX(-28px); transition: opacity 0.6s ease, transform 0.6s ease; }
+html[data-animation="slide-in"] [data-reveal].is-visible { opacity: 1; transform: translateX(0); }
+
+html[data-template="modern"] {
   --radius: 16px;
   --shadow: 0 10px 30px rgba(17, 24, 39, 0.14);
 }
-html[data-theme-style="minimal"] {
+html[data-template="modern"] .hero {
+  background: radial-gradient(ellipse at top right, var(--brand-red-dark) 0%, var(--brand-red) 55%, var(--brand-red) 100%);
+}
+html[data-template="modern"] .hero::after {
+  content: ""; position: absolute; right: -80px; bottom: -120px; width: 320px; height: 320px;
+  border-radius: 50%; background: rgba(255,255,255,0.08); pointer-events: none;
+}
+html[data-template="modern"] .home-sec-gallery { order: 2; }
+html[data-template="modern"] .home-sec-features { order: 3; }
+html[data-template="modern"] .card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+html[data-template="modern"] .card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+
+html[data-template="minimal"] {
   --radius: 4px;
   --shadow: none;
 }
-html[data-theme-style="minimal"] .table-responsive,
-html[data-theme-style="minimal"] .form-card,
-html[data-theme-style="minimal"] .timeline {
+html[data-template="minimal"] .table-responsive,
+html[data-template="minimal"] .form-card,
+html[data-template="minimal"] .timeline {
   box-shadow: none;
   border: 1px solid var(--border);
 }
-html[data-theme-style="bold"] {
+html[data-template="minimal"] .hero {
+  background: var(--ink);
+}
+html[data-template="minimal"] .hero p.lead { color: #d1d5db; }
+
+html[data-template="bold"] {
   --radius: 8px;
   --shadow: 0 14px 34px rgba(17, 24, 39, 0.22);
   --btn-text-transform: uppercase;
   --btn-letter-spacing: 0.5px;
 }
-html[data-theme-style="corporate"] {
+html[data-template="bold"] .hero {
+  background: linear-gradient(115deg, var(--brand-red) 0%, var(--brand-red-dark) 60%, var(--ink) 130%);
+  clip-path: polygon(0 0, 100% 0, 100% 92%, 0 100%);
+  padding-bottom: 120px;
+}
+html[data-template="bold"] .home-sec-steps { order: 1; }
+html[data-template="bold"] .home-sec-stats { order: 2; }
+html[data-template="bold"] .home-sec-features { order: 3; }
+html[data-template="bold"] .card:hover { transform: scale(1.03); transition: transform 0.2s ease; }
+
+html[data-template="corporate"] {
   --radius: 6px;
   --shadow: 0 6px 20px rgba(17, 24, 39, 0.10);
   --font-heading: Georgia, "Times New Roman", Times, serif;
 }
-html[data-theme-style="dark-header"] {
+html[data-template="corporate"] .hero {
+  background: var(--brand-red-dark);
+  border-bottom: 4px solid var(--brand-yellow);
+}
+html[data-template="corporate"] .home-sec-operate { order: 5; }
+html[data-template="corporate"] .home-sec-gallery { order: 3; }
+
+html[data-template="dark-header"] {
   --header-bg: var(--ink);
   --header-ink: #ffffff;
   --header-link: #d1d5db;
 }
-html[data-theme-style="dark-header"] .main-nav a:hover,
-html[data-theme-style="dark-header"] .main-nav a.active {
+html[data-template="dark-header"] .main-nav a:hover,
+html[data-template="dark-header"] .main-nav a.active {
   color: var(--brand-yellow);
   border-bottom-color: var(--brand-yellow);
 }
-html[data-theme-style="dark-header"] .nav-menu-btn { border-color: rgba(255,255,255,0.35); }
-html[data-theme-style="dark-header"] .nav-menu-btn:hover { border-color: #ffffff; }
+html[data-template="dark-header"] .nav-menu-btn { border-color: rgba(255,255,255,0.35); }
+html[data-template="dark-header"] .nav-menu-btn:hover { border-color: #ffffff; }
+html[data-template="dark-header"] .hero {
+  background: linear-gradient(180deg, var(--ink) 0%, #1f2937 100%);
+}
+html[data-template="dark-header"] .hero::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.08) 1.5px, transparent 1.5px);
+  background-size: 22px 22px; pointer-events: none;
+}
+html[data-template="dark-header"] .home-sec-stats { order: 5; }
+html[data-template="dark-header"] .home-sec-gallery { order: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+}

@@ -78,10 +78,19 @@ function get_site_name(): string
     return $value !== '' ? $value : (defined('SITE_NAME') ? SITE_NAME : 'Shipping Company');
 }
 
+/**
+ * A custom uploaded logo (set at /admin/branding.php) always wins. With
+ * none uploaded, falls back to the active template's own default logo
+ * mark (see includes/design.php) — so switching templates can change the
+ * logo too, without the admin having to upload anything.
+ */
 function get_logo_url(): ?string
 {
     $path = get_setting('logo_path', '');
-    return $path !== '' ? $path : null;
+    if ($path !== '') {
+        return $path;
+    }
+    return active_template_logo_url();
 }
 
 /**

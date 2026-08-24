@@ -317,6 +317,19 @@ If you already deployed an earlier version of this project:
     `payment_amount_paid` to `shipments` (every existing shipment defaults
     to "Full Payment" with no price set) and seeds the 10 status message
     settings with sensible defaults, editable at **Status Messages**.
+13. **Colors split from Templates:** import
+    `sql/migrations/011_split_templates_and_colors.sql` once. This splits
+    the old combined `themes` table into two independent things: a
+    `color_palettes` table (just the 12 colors, managed at
+    `/admin/themes.php`, now labeled **Colors**) and a `templates` table
+    (structural design — homepage section order, hero treatment, scroll
+    animations, and a default logo — managed at the new
+    `/admin/templates.php`, **super admin only**). Every existing theme's
+    colors become a color palette, and whichever of the 6 structural
+    styles matched your active theme becomes the active template — so this
+    migration causes no visible change the moment you run it. The old
+    `themes` table is renamed to `themes_legacy_backup` (not dropped); safe
+    to drop yourself later once you've confirmed everything looks right.
 
 ## Login security
 
@@ -392,7 +405,9 @@ There are two kinds of admin account:
   active super admin — you can't suspend, demote, or delete the last one
   (including yourself), so the site can never end up with no one able to
   manage staff access. Also the only role that can reach `/admin/themes.php`
-  (all 10+ themes, full color editing, delete).
+  (all 11 color palettes, full color editing, delete) and
+  `/admin/templates.php` (all 6 design templates, full layout/animation/
+  logo editing, delete).
 
 Every admin can log in with either their **username or email**, change
 their password from **My Profile**, and use **"Forgot password?"** on the
@@ -434,56 +449,84 @@ shipment (default: `SC` prefix, no suffix — e.g. `SC7482913KE`). Changing it
 only affects shipments created afterward; existing tracking numbers never
 change.
 
-### Site themes (super admin only)
+### Colors and Templates (super admin only)
 
-**Themes** (visible only to super admins) controls the color scheme and
-design style of the *entire* site — every public page, the staff login and
-password-reset screens, and the rest of the admin panel — with no code
-editing required. This is meant for running the same codebase for
-different clients: pick a theme, and everything reflects it immediately.
+Site-wide look is controlled by **two completely independent choices**,
+each with its own admin page and its own database table. Activating a
+color never touches the design, and activating a template never touches
+color — they're separate on purpose, so you can mix any color with any
+design.
 
-- **10 preset themes** ship out of the box, each pairing a color palette
-  with one of 6 structural design styles (Classic, Modern, Minimal, Bold,
-  Corporate, Dark Header) that change more than just color — corner
-  radius, shadow depth, button styling, heading typography, and (for Dark
-  Header) a dark navigation bar. "Classic Red" — the site's original
-  look — is the one active by default.
-- **Activate** any theme to make it live site-wide instantly.
-- **Edit Colors** on any theme (preset or custom) to change its 12
-  colors individually via color pickers, and its design style via a
-  dropdown. Editing the *active* theme's colors applies immediately.
-- **Duplicate** a theme to start a custom variant from an existing one's
-  colors, without touching the original.
-- **Delete** a theme permanently — presets included. There is no undo.
-  Deletion is always a manual, explicit action (a confirm dialog on a
-  button click) and is only ever blocked in two cases: you can't delete
-  the currently active theme (activate a different one first), and you
-  can't delete the last remaining theme. Nothing is ever deleted
-  automatically.
+#### Colors (`/admin/themes.php`)
 
-Regular (non-super-admin) accounts can't see or reach `/admin/themes.php`
-or `/admin/theme_edit.php` at all — attempting to visit either redirects
-back to the dashboard with a permission error.
+Controls the 12-color palette used on every public page, the staff login
+and password-reset screens, and the rest of the admin panel.
+
+- **11 preset palettes** ship out of the box (Classic Red, Classic Green,
+  Ocean Blue, Emerald Freight, Sunset Orange, Royal Purple, Midnight Navy,
+  Charcoal Mono, Teal Logistics, Crimson Express, Amber Cargo). "Classic
+  Red" — the site's original look — is active by default.
+- **Activate** any palette to make it live site-wide instantly — colors
+  only, layout is untouched.
+- **Edit Colors** on any palette (preset or custom) to change its 12
+  colors individually via color pickers. Editing the *active* palette
+  applies immediately.
+- **Duplicate** a palette to start a custom variant from an existing
+  one's colors, without touching the original.
+- **Delete** a palette permanently — presets included. There is no undo.
+  Blocked only for the active palette (activate a different one first)
+  and the last remaining palette.
 
 **Contrast:** every preset ships verified against WCAG AA contrast ratios
 (body text ≥4.5:1 on both the page and soft backgrounds, button text
-≥4.5:1 on its button color) so no default combination makes text hard to
-read — two presets that fell short at launch were corrected in migration
-`008_theme_contrast_fix.sql`. Editing a theme's colors shows a live warning
-(not a block — it's still your choice) if a chosen pair would fail that
-same check, so a custom color combination doesn't silently make text
-invisible.
+≥4.5:1 on its button color). Editing a palette's colors shows a live
+warning (not a block — it's still your choice) if a chosen pair would
+fail that same check, so a custom color combination doesn't silently make
+text invisible.
+
+#### Templates (`/admin/templates.php`)
+
+Controls the *structural design* — everything colors don't touch: which
+order the homepage sections appear in, the hero section's background
+treatment, corner radius and shadow depth, heading typography, scroll-in
+animations as you scroll down the homepage, and the site's own default
+logo mark.
+
+- **6 preset templates** ship out of the box — Classic, Modern, Minimal,
+  Bold, Corporate, and Dark Header — each with a genuinely different
+  homepage layout (sections reordered, not just recolored), its own hero
+  treatment (gradients, an angled clip-path edge, a dot-pattern overlay,
+  or a flat block color depending on the template), and its own scroll
+  animation style (fade, fade-up, scale-in, slide-in, or none). "Classic"
+  is active by default.
+- **Activate** any template to make it live site-wide instantly — design
+  only, colors are untouched.
+- **Edit** a template to rename it, change its layout, change its scroll
+  animation, or upload a custom logo for it (falls back to that
+  template's built-in logo mark if you never upload one — a **Branding**
+  logo upload always wins over either).
+- **Duplicate** a template to start a custom variant from an existing
+  one's settings.
+- **Delete** a template permanently — presets included. Blocked only for
+  the active template and the last remaining template.
+
+Both pages are visible only to super admins — regular (non-super-admin)
+accounts can't see or reach `/admin/themes.php`, `/admin/theme_edit.php`,
+`/admin/templates.php`, or `/admin/template_edit.php` at all; attempting
+to visit any of them redirects back to the dashboard with a permission
+error.
 
 ### Site Color (regular admins)
 
-Regular admins get a **Site Color** page — not called "Themes" — limited to
-switching between exactly two options: **Classic Red** and **Classic
-Green**. It's activate-only: no color editing, no delete, and no way to
-reach any other theme. A super admin decides which themes carry this
-"admin-selectable" flag (`is_admin_selectable` on the `themes` table); by
-default it's those same two. Activating either changes the live site
-color the same way a super admin's activation does — it's the same shared
-`is_active` theme, just reached through a narrower door.
+Regular admins get a **Site Color** page — not called "Colors" — limited
+to switching between exactly two color palettes: **Classic Red** and
+**Classic Green**. It's activate-only: no color editing, no delete, no
+template access, and no way to reach any other palette. A super admin
+decides which palettes carry this "admin-selectable" flag
+(`is_admin_selectable` on the `color_palettes` table); by default it's
+those same two. Activating either changes the live site color the same
+way a super admin's activation does — it's the same shared `is_active`
+palette, just reached through a narrower door.
 
 ## Managing site content
 
@@ -562,11 +605,11 @@ scanner/app) rendered by a barcode encoder hand-written for this project in
   telling you it arrived. Both are best-effort: if SMTP isn't configured yet,
   the request still saves and the visitor still sees their confirmation
   page — only the emails are skipped.
-- **Every email and PDF now follows the active theme's colors**
+- **Every email and PDF now follows the active color palette**
   (`/admin/themes.php`) instead of being hardcoded to the original
   DHL-style red/yellow. Tracking-update emails, password-reset emails, the
   contact-form notification, and the waybill/label PDFs all pull from
-  `get_active_theme()` — switch themes and everything customers and staff
+  `get_active_palette()` — switch colors and everything customers and staff
   see matches, not just the website.
 
 ## Security notes

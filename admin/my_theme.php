@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
 require_admin();
 
-$selectable = get_admin_selectable_themes();
+$selectable = get_admin_selectable_palettes();
 $selectableIds = array_column($selectable, 'id');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -15,10 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'activate') {
         if (!in_array($targetId, $selectableIds, true)) {
             flash_set('error', 'That color option is not available.');
-        } elseif (activate_theme($targetId)) {
+        } elseif (activate_palette($targetId)) {
             flash_set('success', 'Site color updated.');
         } else {
-            flash_set('error', 'Theme not found.');
+            flash_set('error', 'Color palette not found.');
         }
         redirect('/admin/my_theme.php');
     }

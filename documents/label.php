@@ -43,7 +43,7 @@ $methodLabel = h($shipment['shipping_method']) . ($shipment['land_method'] ? ' /
 // Colors follow the active site theme (see includes/theme.php) so this
 // PDF matches whatever's live at /admin/themes.php instead of staying
 // hardcoded to one brand's colors.
-$theme = get_active_theme();
+$theme = get_active_palette();
 $primary = h($theme['color_primary']);
 $ink = h($theme['color_ink']);
 

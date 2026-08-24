@@ -32,7 +32,9 @@ include __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<section class="stats-strip">
+<div class="home-sections">
+
+<section class="stats-strip home-sec-stats" data-reveal>
   <div class="container">
     <div class="grid-4">
       <div><div class="stat-num"><?= h(get_setting('stat_countries', '195+')) ?></div><div class="stat-label">Countries &amp; territories served</div></div>
@@ -43,7 +45,7 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
-<section class="section">
+<section class="section home-sec-features" data-reveal>
   <div class="container">
     <div class="section-head">
       <div class="eyebrow"><?= h(get_setting('home_features_eyebrow', 'Why ' . get_site_name())) ?></div>
@@ -85,7 +87,7 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
-<section class="section">
+<section class="section home-sec-operate" data-reveal>
   <div class="container">
     <div class="section-head">
       <div class="eyebrow"><?= h(get_setting('home_operate_eyebrow', 'How We Operate')) ?></div>
@@ -127,7 +129,7 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
-<section class="section section-soft">
+<section class="section section-soft home-sec-steps" data-reveal>
   <div class="container">
     <div class="section-head">
       <div class="eyebrow"><?= h(get_setting('home_steps_eyebrow', 'How it works')) ?></div>
@@ -153,7 +155,7 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
-<section class="section">
+<section class="section home-sec-gallery" data-reveal>
   <div class="container">
     <div class="section-head">
       <div class="eyebrow"><?= h(get_setting('home_gallery_eyebrow', 'In Action')) ?></div>
@@ -168,5 +170,7 @@ include __DIR__ . '/includes/header.php';
     </div>
   </div>
 </section>
+
+</div><!-- /.home-sections -->
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

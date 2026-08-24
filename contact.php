@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $supportEmail = get_setting('contact_email');
         $siteName = get_site_name();
 
-        $theme = get_active_theme();
+        $theme = get_active_palette();
         $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . h($theme['color_ink']) . ';">'
             . '<p><strong>New message from the ' . h($siteName) . ' contact form</strong></p>'
             . '<p><strong>Name:</strong> ' . h($name) . '<br>'

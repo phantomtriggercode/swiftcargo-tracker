@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Logo">
+  <polygon points="24,3 43,13.5 43,34.5 24,45 5,34.5 5,13.5" fill="#1e3a8a"/>
+  <path d="M24 14 C29 14 33 18 33 23 C33 29 24 37 24 37 C24 37 15 29 15 23 C15 18 19 14 24 14 Z" fill="#60a5fa"/>
+  <circle cx="24" cy="23" r="4" fill="#1e293b"/>
+</svg>

@@ -96,7 +96,7 @@ function send_tracking_update_email(array $shipment, array $event): array
 function send_insurance_status_email(array $shipment, bool $nowInsured, float $insuranceValue): array
 {
     $site = get_site_name();
-    $theme = get_active_theme();
+    $theme = get_active_palette();
     $ink = h($theme['color_ink']);
     $primary = h($theme['color_primary']);
     $tn = h($shipment['tracking_number']);
@@ -140,7 +140,7 @@ function render_tracking_email_html(array $shipment, array $event): string
     // Colors follow the active site theme (see includes/theme.php) so
     // emails match whatever's live at /admin/themes.php instead of
     // staying hardcoded to one brand's colors.
-    $theme = get_active_theme();
+    $theme = get_active_palette();
     $primary = h($theme['color_primary']);
     $accent = h($theme['color_accent']);
     $ink = h($theme['color_ink']);

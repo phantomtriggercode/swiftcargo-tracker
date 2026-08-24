@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // (unconfigured SMTP, etc.) shouldn't block the confirmation page.
         $refCode = 'REQ-' . str_pad((string) $referenceId, 5, '0', STR_PAD_LEFT);
         $siteName = get_site_name();
-        $theme = get_active_theme();
+        $theme = get_active_palette();
         $ink = h($theme['color_ink']);
         $primary = h($theme['color_primary']);
 

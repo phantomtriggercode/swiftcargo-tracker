@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($token !== null) {
             $resetUrl = get_site_url() . '/admin/reset_password.php?token=' . $token;
             $siteName = get_site_name();
-            $theme = get_active_theme();
+            $theme = get_active_palette();
             $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . h($theme['color_ink']) . ';">'
                 . '<p>We received a request to reset the password for the ' . h($siteName) . ' admin account tied to this email.</p>'
                 . '<p><a href="' . h($resetUrl) . '" style="display:inline-block;background:' . h($theme['color_primary']) . ';color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">Reset Password</a></p>'
@@ -48,14 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $pageTitle = 'Forgot Password';
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme-style="<?= h(active_theme_style_key()) ?>">
+<html lang="en" data-template="<?= h(active_template_layout_key()) ?>" data-animation="<?= h(active_template_animation_key()) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Forgot Password | <?= h(get_site_name()) ?></title>
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
-<?= theme_style_tag() ?>
+<?= palette_style_tag() ?>
 </head>
 <body>
 <div class="login-page">

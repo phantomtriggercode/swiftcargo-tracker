@@ -6,7 +6,7 @@ $activeNav = $activeNav ?? '';
 maybe_send_go_live_alert();
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme-style="<?= h(active_theme_style_key()) ?>">
+<html lang="en" data-template="<?= h(active_template_layout_key()) ?>" data-animation="<?= h(active_template_animation_key()) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@ maybe_send_go_live_alert();
 <meta name="description" content="Track your shipment live on the map and get instant email alerts on every status update.">
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
-<?= theme_style_tag() ?>
+<?= palette_style_tag() ?>
 </head>
 <body>
 

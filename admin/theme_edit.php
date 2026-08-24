@@ -6,9 +6,9 @@ require_once __DIR__ . '/../includes/settings.php';
 require_super_admin();
 
 $id = (int) ($_GET['id'] ?? 0);
-$theme = get_theme($id);
-if (!$theme) {
-    flash_set('error', 'Theme not found.');
+$palette = get_palette($id);
+if (!$palette) {
+    flash_set('error', 'Color palette not found.');
     redirect('/admin/themes.php');
 }
 
@@ -17,16 +17,12 @@ $hexPattern = '/^#[0-9a-fA-F]{6}$/';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
-    $styleKey = $_POST['style_key'] ?? 'classic';
     if ($name === '') {
-        $errors[] = 'Theme name is required.';
-    }
-    if (!array_key_exists($styleKey, THEME_STYLE_KEYS)) {
-        $errors[] = 'Please choose a valid design style.';
+        $errors[] = 'Palette name is required.';
     }
 
     $colorValues = [];
-    foreach (THEME_COLOR_FIELDS as $column => $meta) {
+    foreach (PALETTE_COLOR_FIELDS as $column => $meta) {
         $value = trim($_POST[$column] ?? '');
         if (!preg_match($hexPattern, $value)) {
             $errors[] = $meta['label'] . ' must be a valid hex color (e.g. #d40511).';
@@ -36,25 +32,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $columns = array_keys(THEME_COLOR_FIELDS);
+        $columns = array_keys(PALETTE_COLOR_FIELDS);
         $setClause = implode(', ', array_map(fn($c) => "$c = ?", $columns));
-        $stmt = db()->prepare("UPDATE themes SET name = ?, style_key = ?, $setClause WHERE id = ?");
-        $stmt->execute(array_merge([$name, $styleKey], array_map(fn($c) => $colorValues[$c], $columns), [$id]));
-        flash_set('success', 'Theme colors updated.' . ($theme['is_active'] ? ' Changes are live site-wide.' : ''));
+        $stmt = db()->prepare("UPDATE color_palettes SET name = ?, $setClause WHERE id = ?");
+        $stmt->execute(array_merge([$name], array_map(fn($c) => $colorValues[$c], $columns), [$id]));
+        flash_set('success', 'Colors updated.' . ($palette['is_active'] ? ' Changes are live site-wide.' : ''));
         redirect('/admin/theme_edit.php?id=' . $id);
     }
     // Re-fetch so the form below reflects the failed submission, not stale DB values.
-    $theme = array_merge($theme, ['name' => $name, 'style_key' => $styleKey], $colorValues);
+    $palette = array_merge($palette, ['name' => $name], $colorValues);
 }
 
 $activeAdminNav = 'themes';
-$pageTitle = 'Edit Theme';
+$pageTitle = 'Edit Colors';
 include __DIR__ . '/includes/admin_header.php';
 ?>
 
 <div class="admin-topbar">
-  <h1>Edit Theme: <?= h($theme['name']) ?></h1>
-  <a href="/admin/themes.php" class="btn btn-outline btn-sm">&larr; All Themes</a>
+  <h1>Edit Colors: <?= h($palette['name']) ?></h1>
+  <a href="/admin/themes.php" class="btn btn-outline btn-sm">&larr; All Colors</a>
 </div>
 
 <?php if ($msg = flash_get('success')): ?>
@@ -66,31 +62,21 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="form-card" style="max-width:640px;">
   <form method="post">
-    <div class="form-row">
-      <div class="form-group">
-        <label>Theme Name</label>
-        <input type="text" name="name" value="<?= h($theme['name']) ?>" required>
-      </div>
-      <div class="form-group">
-        <label>Design Style</label>
-        <select name="style_key">
-          <?php foreach (THEME_STYLE_KEYS as $key => $label): ?>
-            <option value="<?= h($key) ?>" <?= $theme['style_key'] === $key ? 'selected' : '' ?>><?= h($label) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
+    <div class="form-group">
+      <label>Palette Name</label>
+      <input type="text" name="name" value="<?= h($palette['name']) ?>" required>
     </div>
 
     <h3>Colors</h3>
     <div id="contrast-warnings"></div>
     <div class="theme-color-fields">
-      <?php foreach (THEME_COLOR_FIELDS as $column => $meta): ?>
+      <?php foreach (PALETTE_COLOR_FIELDS as $column => $meta): ?>
         <div class="theme-color-field">
           <label for="<?= $column ?>_picker"><?= h($meta['label']) ?></label>
           <div class="theme-color-input">
-            <input type="color" id="<?= $column ?>_picker" data-pairs-with="<?= $column ?>" value="<?= h($theme[$column]) ?>">
+            <input type="color" id="<?= $column ?>_picker" data-pairs-with="<?= $column ?>" value="<?= h($palette[$column]) ?>">
             <input type="text" id="<?= $column ?>" name="<?= $column ?>" data-pairs-with="<?= $column ?>_picker"
-              value="<?= h($theme[$column]) ?>" pattern="^#[0-9a-fA-F]{6}$" maxlength="7" required>
+              value="<?= h($palette[$column]) ?>" pattern="^#[0-9a-fA-F]{6}$" maxlength="7" required>
           </div>
         </div>
       <?php endforeach; ?>
@@ -113,7 +99,7 @@ include __DIR__ . '/includes/admin_header.php';
 
   // Live WCAG contrast check — warns (never blocks) when a chosen pair of
   // colors would make text hard or impossible to read, per the same
-  // ratios verified against every preset theme.
+  // ratios verified against every preset palette.
   function hexToRgb(hex) {
     var n = parseInt(hex.replace('#', ''), 16);
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];

@@ -46,5 +46,6 @@
     </div>
   </div>
 </footer>
+<script src="<?= h(asset_url('/assets/js/reveal.js')) ?>" defer></script>
 </body>
 </html>
