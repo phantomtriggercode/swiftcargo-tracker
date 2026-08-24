@@ -26,7 +26,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($rateLimitMsg !== null) {
         $error = $rateLimitMsg;
     } elseif (!$csrfOk) {
-        $error = 'Your session expired — please try again.';
+        // Two very different problems both land here, and telling them apart
+        // matters: an empty session means the browser never sent the session
+        // cookie back at all (cookies blocked, or the cookie was rejected),
+        // whereas a session that exists but holds a different token is the
+        // ordinary "this form sat open too long" case.
+        $error = empty($_SESSION['csrf_token'])
+            ? 'Your browser did not keep the login session. This usually means cookies are '
+              . 'blocked for this site, or you are on an http:// address while the site is '
+              . 'secured with https:// — open the site at its https:// address and try again.'
+            : 'This login form was open too long — please try again.';
     } elseif (honeypot_tripped($honeypot)) {
         // A real visitor never sees or fills this field — only a bot
         // filling every input does. Treat it exactly like a wrong

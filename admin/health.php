@@ -215,6 +215,32 @@ check(
         . 'Without it, admin passwords travel over the network unencrypted.'
 );
 
+// Login/session cookie sanity. A mismatch here is what makes a correct
+// password come back as "your session expired" — usually only on phones,
+// because desktop users tend to arrive via an https:// bookmark.
+$forwardedProto = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+$serverPort = (int) ($_SERVER['SERVER_PORT'] ?? 0);
+$cookieSecure = is_https_for_cookie();
+if ($forwardedProto === 'https' && !is_https_for_cookie()) {
+    check(
+        'Login sessions',
+        'warn',
+        'Your host reports this request as HTTPS, but it arrived on port ' . $serverPort . ', which is the plain HTTP port. '
+        . 'The session cookie is deliberately being sent without the "Secure" flag so that logins keep working.',
+        'Nothing is broken — this is the safe fallback. To get the extra hardening back, make the site always '
+        . 'use https:// (turn on "Force HTTPS" in your hosting control panel), then re-check this page.'
+    );
+} elseif (!is_https() && !$cookieSecure) {
+    check(
+        'Login sessions',
+        'warn',
+        'The site is being used over plain HTTP, so the login cookie cannot be marked "Secure".',
+        'Turn on the free SSL certificate and "Force HTTPS" in your hosting control panel, then use the https:// address.'
+    );
+} else {
+    check('Login sessions', 'ok', 'The session cookie is correctly marked Secure, HttpOnly and SameSite=Lax — logins will work and stay protected.');
+}
+
 $protectedDirs = ['config', 'includes', 'sql', 'vendor'];
 $missingHtaccess = [];
 foreach ($protectedDirs as $dir) {

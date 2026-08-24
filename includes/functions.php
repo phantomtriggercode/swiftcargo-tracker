@@ -190,6 +190,49 @@ function is_https(): bool
 }
 
 /**
+ * Stricter cousin of is_https(), used only to decide whether the session
+ * cookie gets the `Secure` flag. Getting this wrong doesn't degrade the
+ * site — it locks people out of it, so it errs on the side of working.
+ *
+ * The `Secure` flag tells the browser "only ever send this cookie over
+ * HTTPS". If we set it on a response the browser received over plain
+ * HTTP, the browser doesn't just ignore the flag — it refuses to store
+ * the cookie at all. No cookie means no session, no session means the
+ * CSRF token from the login form has nothing to match against, and the
+ * user is told "your session expired" no matter how correct their
+ * password is.
+ *
+ * That is not hypothetical: several hosts (Hostinger and Cloudflare among
+ * them) send `X-Forwarded-Proto: https` on *every* request once SSL is
+ * enabled, including ones the visitor genuinely made over http://. Trust
+ * that header alone and the login page becomes unusable for anyone who
+ * reaches the site by typing the bare domain — which is most people on a
+ * phone, while desktop users click an https:// bookmark and never notice.
+ *
+ * So the forwarded header is only believed when the port agrees with it.
+ * When the two disagree, the cookie simply goes out without `Secure`: it
+ * still works, and repeat visitors are protected anyway by the
+ * Strict-Transport-Security header sent on every HTTPS response, which
+ * stops the browser using http:// for this domain at all.
+ */
+function is_https_for_cookie(): bool
+{
+    // TLS terminated by the web server itself — unambiguous, always trust.
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        return true;
+    }
+
+    $forwarded = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+    if ($forwarded !== 'https') {
+        return false;
+    }
+
+    // Behind a TLS-terminating proxy. Believe it only if the port backs it up.
+    $port = (int) ($_SERVER['SERVER_PORT'] ?? 0);
+    return $port === 443 || $port === 0;
+}
+
+/**
  * Starts the PHP session with explicit cookie params (mainly SameSite=Lax
  * + Secure-when-HTTPS) instead of PHP's bare defaults. Safari/iOS is
  * stricter about cookie attributes than most desktop browsers, and a
@@ -203,7 +246,12 @@ function ensure_session_started(): void
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
-            'secure' => is_https(),
+            // Deliberately is_https_for_cookie(), not is_https() — see the
+            // long note on that function. Marking this Secure on a request
+            // the browser made over plain HTTP makes the browser discard
+            // the cookie entirely, which presents as "your session expired"
+            // on a perfectly correct login.
+            'secure' => is_https_for_cookie(),
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
