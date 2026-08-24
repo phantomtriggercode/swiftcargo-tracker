@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$errors) {
             $stmt = db()->prepare('INSERT INTO admins (username, email, password_hash, full_name, is_super_admin, is_active, must_change_password) VALUES (?, ?, ?, ?, ?, 1, ?)');
             $stmt->execute([$username, $email !== '' ? $email : null, password_hash($password, PASSWORD_DEFAULT), $fullName, $makeSuperAdmin ? 1 : 0, $forceChange ? 1 : 0]);
+            log_admin_activity('Created admin account', $username . ($makeSuperAdmin ? ' (super admin)' : ''));
             flash_set('success', 'Admin account created.');
             redirect('/admin/admins.php');
         }
@@ -51,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt = db()->prepare('UPDATE admins SET is_active = ? WHERE id = ?');
             $stmt->execute([$target['is_active'] ? 0 : 1, $targetId]);
+            log_admin_activity($target['is_active'] ? 'Suspended admin account' : 'Reactivated admin account', $target['username']);
             flash_set('success', $target['is_active'] ? 'Admin suspended.' : 'Admin reactivated.');
         }
         redirect('/admin/admins.php');
@@ -63,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt = db()->prepare('UPDATE admins SET is_super_admin = ? WHERE id = ?');
             $stmt->execute([$target['is_super_admin'] ? 0 : 1, $targetId]);
+            log_admin_activity($target['is_super_admin'] ? 'Removed super admin access' : 'Promoted to super admin', $target['username']);
             flash_set('success', $target['is_super_admin'] ? 'Super admin access removed.' : 'Admin promoted to super admin.');
         }
         redirect('/admin/admins.php');
@@ -77,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt = db()->prepare('DELETE FROM admins WHERE id = ?');
             $stmt->execute([$targetId]);
+            log_admin_activity('Deleted admin account', $target['username']);
             flash_set('success', 'Admin account deleted.');
         }
         redirect('/admin/admins.php');
@@ -96,6 +100,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 . '</div>';
             $altBody = "Reset your {$siteName} admin password: {$resetUrl}\n\nThis link expires in 1 hour.";
             $result = send_smtp_mail($target['email'], $target['full_name'], 'Reset your ' . $siteName . ' admin password', $htmlBody, $altBody);
+            if ($result['ok']) {
+                log_admin_activity('Sent password reset link', $target['username']);
+            }
             flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Reset link sent to ' . $target['email'] . '.' : 'Could not send email: ' . $result['error']);
         }
         redirect('/admin/admins.php');
@@ -156,21 +163,25 @@ include __DIR__ . '/includes/admin_header.php';
             <template class="row-actions-source">
               <a href="/admin/admin_edit.php?id=<?= (int) $a['id'] ?>">Edit Details</a>
               <form method="post">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="toggle_super">
                 <input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
                 <button type="submit"><?= $a['is_super_admin'] ? 'Remove Super Admin' : 'Make Super Admin' ?></button>
               </form>
               <form method="post">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="toggle_active">
                 <input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
                 <button type="submit"><?= $a['is_active'] ? 'Suspend' : 'Reactivate' ?></button>
               </form>
               <form method="post">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="send_reset">
                 <input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
                 <button type="submit">Send Password Reset</button>
               </form>
               <form method="post" onsubmit="return confirm('Delete the admin account &quot;<?= h(addslashes($a['username'])) ?>&quot;? This cannot be undone.');">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
                 <button type="submit" class="danger">Delete</button>
@@ -187,6 +198,7 @@ include __DIR__ . '/includes/admin_header.php';
 <div class="form-card" style="max-width:520px;margin-top:20px;">
   <h3 style="margin-top:0;">Add an Admin</h3>
   <form method="post">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="create">
     <div class="form-group">
       <label>Full Name</label>

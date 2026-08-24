@@ -21,5 +21,6 @@ if (!$shipment) {
 $del = db()->prepare('DELETE FROM shipments WHERE id = ?');
 $del->execute([$id]);
 
+log_admin_activity('Deleted shipment', $shipment['tracking_number']);
 flash_set('success', 'Shipment ' . $shipment['tracking_number'] . ' and its tracking history were deleted.');
 redirect('/admin/dashboard.php');

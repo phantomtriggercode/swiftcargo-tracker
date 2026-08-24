@@ -135,6 +135,7 @@ include __DIR__ . '/includes/admin_header.php';
       <p class="image-slot-where"><?= h($slot['where']) ?></p>
 
       <form method="post" enctype="multipart/form-data">
+    <?= csrf_field() ?>
         <input type="hidden" name="slot" value="<?= h($key) ?>">
         <input type="hidden" name="action" value="save">
         <input type="file" name="image" accept=".png,.jpg,.jpeg,.webp,.gif,.jfif">
@@ -143,6 +144,7 @@ include __DIR__ . '/includes/admin_header.php';
 
       <?php if ($current !== $slot['default']): ?>
         <form method="post" style="margin-top:8px;">
+    <?= csrf_field() ?>
           <input type="hidden" name="slot" value="<?= h($key) ?>">
           <input type="hidden" name="action" value="reset">
           <button type="submit" class="btn btn-outline btn-sm btn-block">Reset to Default</button>

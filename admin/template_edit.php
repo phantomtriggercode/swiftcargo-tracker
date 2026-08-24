@@ -73,6 +73,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="form-card" style="max-width:560px;">
   <form method="post" enctype="multipart/form-data">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="save">
     <div class="form-group">
       <label>Template Name</label>
@@ -115,6 +116,7 @@ include __DIR__ . '/includes/admin_header.php';
 </div>
 
 <form method="post" style="max-width:560px;margin-top:14px;">
+    <?= csrf_field() ?>
   <input type="hidden" name="action" value="reset_logo">
   <button type="submit" class="btn btn-outline btn-sm">Reset logo to this layout's built-in default</button>
 </form>

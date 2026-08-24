@@ -1,0 +1,8 @@
+# If you've found a security issue with this site, we'd rather hear about
+# it from you than find out some other way. Please report it responsibly —
+# give us a reasonable amount of time to fix it before disclosing publicly.
+#
+# Replace the address below with a real inbox you check before going live.
+Contact: mailto:security@example.com
+Expires: 2027-08-24T00:00:00.000Z
+Preferred-Languages: en

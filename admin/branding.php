@@ -96,6 +96,7 @@ include __DIR__ . '/includes/admin_header.php';
   </p>
 
   <form method="post" enctype="multipart/form-data">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="save">
     <div class="form-group">
       <label>Site / Company Name</label>
@@ -122,6 +123,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <?php if (get_logo_url()): ?>
   <form method="post" style="max-width:560px;margin-top:14px;">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="reset_logo">
     <button type="submit" class="btn btn-outline btn-sm">Reset to default logo mark</button>
   </form>
@@ -137,6 +139,7 @@ include __DIR__ . '/includes/admin_header.php';
     field blank to drop that part entirely.
   </p>
   <form method="post">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="tracking_format">
     <div class="form-row">
       <div class="form-group">
@@ -161,6 +164,7 @@ include __DIR__ . '/includes/admin_header.php';
     quiet until the domain changes again. Leave this blank to turn it off.
   </p>
   <form method="post">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="go_live_alert">
     <div class="form-group">
       <label>Notify Email</label>

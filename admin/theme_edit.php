@@ -62,6 +62,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="form-card" style="max-width:640px;">
   <form method="post">
+    <?= csrf_field() ?>
     <div class="form-group">
       <label>Palette Name</label>
       <input type="text" name="name" value="<?= h($palette['name']) ?>" required>

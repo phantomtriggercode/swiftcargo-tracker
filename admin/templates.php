@@ -10,7 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $targetId = (int) ($_POST['id'] ?? 0);
 
     if ($action === 'activate') {
-        if (activate_template($targetId)) {
+        $target = get_template($targetId);
+        if ($target && activate_template($targetId)) {
+            log_admin_activity('Activated template', $target['name']);
             flash_set('success', 'Template activated site-wide.');
         } else {
             flash_set('error', 'Template not found.');
@@ -28,7 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash_set('success', 'Template duplicated — customize it below.');
         redirect('/admin/template_edit.php?id=' . $newId);
     } elseif ($action === 'delete') {
+        $target = get_template($targetId);
         $result = delete_template($targetId);
+        if ($result['ok'] && $target) {
+            log_admin_activity('Deleted template', $target['name']);
+        }
         flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Template permanently deleted.' : $result['error']);
         redirect('/admin/templates.php');
     }
@@ -84,6 +90,7 @@ include __DIR__ . '/includes/admin_header.php';
         <div class="theme-card-actions">
           <?php if (!$t['is_active']): ?>
             <form method="post">
+    <?= csrf_field() ?>
               <input type="hidden" name="action" value="activate">
               <input type="hidden" name="id" value="<?= (int) $t['id'] ?>">
               <button type="submit" class="btn btn-primary btn-sm">Activate</button>
@@ -91,12 +98,14 @@ include __DIR__ . '/includes/admin_header.php';
           <?php endif; ?>
           <a href="/admin/template_edit.php?id=<?= (int) $t['id'] ?>" class="btn btn-outline btn-sm">Edit</a>
           <form method="post">
+    <?= csrf_field() ?>
             <input type="hidden" name="action" value="duplicate">
             <input type="hidden" name="id" value="<?= (int) $t['id'] ?>">
             <button type="submit" class="btn btn-outline btn-sm">Duplicate</button>
           </form>
           <?php if (!$t['is_active']): ?>
             <form method="post" onsubmit="return confirm('Permanently delete the template &quot;<?= h(addslashes($t['name'])) ?>&quot;? This cannot be undone.');">
+    <?= csrf_field() ?>
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="id" value="<?= (int) $t['id'] ?>">
               <button type="submit" class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);">Delete</button>

@@ -53,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_must_change_password($id, false);
         }
 
+        log_admin_activity('Edited admin account', $username . ($newPassword !== '' ? ' (password changed)' : ''));
         flash_set('success', 'Admin account updated.');
         redirect('/admin/admin_edit.php?id=' . $id);
     }
@@ -78,6 +79,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="form-card" style="max-width:520px;">
   <form method="post">
+    <?= csrf_field() ?>
     <div class="form-group">
       <label>Full Name</label>
       <input type="text" name="full_name" value="<?= h($target['full_name']) ?>" required>

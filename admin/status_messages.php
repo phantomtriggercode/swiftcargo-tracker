@@ -39,6 +39,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="form-card" style="max-width:720px;">
   <form method="post">
+    <?= csrf_field() ?>
     <?php foreach (SHIPMENT_STATUSES as $status): ?>
       <div class="form-group">
         <label><?= h($status) ?></label>

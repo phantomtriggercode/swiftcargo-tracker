@@ -57,6 +57,7 @@ include __DIR__ . '/includes/admin_header.php';
     plus insurance (% of declared value) if selected.
   </p>
   <form method="post">
+    <?= csrf_field() ?>
     <?php foreach ($fields as $key => $label): ?>
       <div class="form-group">
         <label><?= h($label) ?></label>

@@ -33,8 +33,27 @@ function handle_image_upload(string $fieldName, string $filenamePrefix, int $max
     }
 
     if ($ext === 'svg') {
-        if (stripos((string) file_get_contents($_FILES[$fieldName]['tmp_name']), '<script') !== false) {
-            return ['ok' => false, 'error' => 'SVG file rejected for containing a script tag.'];
+        $svgContents = (string) file_get_contents($_FILES[$fieldName]['tmp_name']);
+        // SVG can carry executable content several ways, not just <script> —
+        // event-handler attributes (onload, onerror, ...), javascript: URIs,
+        // and embedded HTML via <foreignObject>/<iframe>/<embed> can all run
+        // script when the file is opened directly in a browser tab. Reject
+        // any of them rather than trying to sanitize, since this is admin
+        // upload input that ends up served back to any visitor who opens the
+        // logo's own URL.
+        $dangerousPatterns = [
+            '/<\s*script/i',
+            '/\bon[a-z]+\s*=/i',
+            '/javascript\s*:/i',
+            '/<\s*foreignobject/i',
+            '/<\s*iframe/i',
+            '/<\s*embed/i',
+            '/data\s*:\s*text\/html/i',
+        ];
+        foreach ($dangerousPatterns as $pattern) {
+            if (preg_match($pattern, $svgContents) === 1) {
+                return ['ok' => false, 'error' => 'SVG file rejected — it contains executable content (scripts or event handlers) that isn\'t allowed in an uploaded image.'];
+            }
         }
     } elseif (@getimagesize($_FILES[$fieldName]['tmp_name']) === false) {
         return ['ok' => false, 'error' => 'That file does not look like a valid image.'];

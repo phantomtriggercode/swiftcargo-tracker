@@ -61,6 +61,7 @@ $__navAdmin = current_admin();
         <a href="/admin/themes.php" class="<?= $activeAdminNav === 'themes' ? 'active' : '' ?>">Colors</a>
         <a href="/admin/templates.php" class="<?= $activeAdminNav === 'templates' ? 'active' : '' ?>">Templates</a>
         <a href="/admin/admins.php" class="<?= $activeAdminNav === 'admins' ? 'active' : '' ?>">Admin Accounts</a>
+        <a href="/admin/activity_log.php" class="<?= $activeAdminNav === 'activity_log' ? 'active' : '' ?>">Activity Log</a>
       <?php endif; ?>
       <a href="/track.php" target="_blank">View Public Site &#8599;</a>
       <a href="/admin/logout.php">Logout</a>

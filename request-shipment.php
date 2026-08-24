@@ -62,21 +62,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $preferredDate = trim($_POST['preferred_date'] ?? '') ?: null;
     $preferredTime = trim($_POST['preferred_time'] ?? '') ?: null;
     $pickupMethod = $_POST['pickup_method'] ?? 'Pickup';
+    $honeypot = (string) ($_POST['website'] ?? '');
 
-    if ($fullName === '') $errors[] = 'Full name is required.';
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'A valid email is required.';
-    if ($shipFrom === '') $errors[] = 'Pickup location is required.';
-    if ($shipTo === '') $errors[] = 'Delivery destination is required.';
-    if ($packageDescription === '') $errors[] = 'Please describe what you want to ship.';
-    if ($weightKg <= 0) $errors[] = 'Weight must be greater than 0.';
-    if (!in_array($packagingType, $packagingTypes, true)) $errors[] = 'Please choose a packaging type.';
-    if (!in_array($shippingMethod, $shippingMethods, true)) $errors[] = 'Please choose a shipping method.';
-    if ($shippingMethod === 'Land' && !in_array($landMethod, $landMethods, true)) $errors[] = 'Please choose a land transport type.';
-    if (!in_array($serviceType, $serviceTypes, true)) $errors[] = 'Please choose a service type.';
-    if (!in_array($pickupMethod, $pickupMethods, true)) $errors[] = 'Please choose a pickup method.';
-    if ($insured && $insuranceValue <= 0) $errors[] = 'Enter a declared value to add insurance.';
+    if (honeypot_tripped($honeypot)) {
+        // Bots that fill in the hidden field never see it fail — show the
+        // normal success screen without ever saving a request or sending
+        // an email, so nothing tells the bot to adjust its behavior.
+        $submitted = true;
+        $referenceId = 0;
+        $finalEstimate = 0.0;
+    } else {
+        if ($fullName === '') $errors[] = 'Full name is required.';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'A valid email is required.';
+        if ($shipFrom === '') $errors[] = 'Pickup location is required.';
+        if ($shipTo === '') $errors[] = 'Delivery destination is required.';
+        if ($packageDescription === '') $errors[] = 'Please describe what you want to ship.';
+        if ($weightKg <= 0) $errors[] = 'Weight must be greater than 0.';
+        if (!in_array($packagingType, $packagingTypes, true)) $errors[] = 'Please choose a packaging type.';
+        if (!in_array($shippingMethod, $shippingMethods, true)) $errors[] = 'Please choose a shipping method.';
+        if ($shippingMethod === 'Land' && !in_array($landMethod, $landMethods, true)) $errors[] = 'Please choose a land transport type.';
+        if (!in_array($serviceType, $serviceTypes, true)) $errors[] = 'Please choose a service type.';
+        if (!in_array($pickupMethod, $pickupMethods, true)) $errors[] = 'Please choose a pickup method.';
+        if ($insured && $insuranceValue <= 0) $errors[] = 'Enter a declared value to add insurance.';
+    }
 
-    if (!$errors) {
+    if (!$errors && !$submitted) {
         $finalEstimate = calculate_estimate($rates, $weightKg, $shippingMethod, $serviceType, $insured, $insuranceValue);
 
         $stmt = db()->prepare('
@@ -198,6 +208,10 @@ include __DIR__ . '/includes/header.php';
 
       <div class="form-card" style="max-width:none;">
         <form method="post" id="request-form">
+          <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+            <label for="website">Website</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" value="">
+          </div>
 
           <!-- Step 1: Route & Schedule -->
           <div class="wizard-panel" data-step="1">
@@ -364,7 +378,7 @@ include __DIR__ . '/includes/header.php';
 </section>
 
 <script>
-  window.SHIPPING_RATES = <?= json_encode($rates) ?>;
+  window.SHIPPING_RATES = <?= json_encode($rates, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 </script>
 <script src="<?= h(asset_url('/assets/js/calculator.js')) ?>"></script>
 <script src="<?= h(asset_url('/assets/js/wizard.js')) ?>"></script>

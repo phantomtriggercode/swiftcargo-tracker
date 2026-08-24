@@ -171,7 +171,7 @@ include __DIR__ . '/includes/header.php';
                   'event_time' => $e['event_time'],
               ];
           }, $events),
-      ]) ?>;
+      ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     </script>
     <script src="<?= h(asset_url('/assets/js/map.js')) ?>"></script>
 

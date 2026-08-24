@@ -61,6 +61,7 @@ include __DIR__ . '/includes/admin_header.php';
         <div class="theme-card-actions">
           <?php if (!$t['is_active']): ?>
             <form method="post">
+    <?= csrf_field() ?>
               <input type="hidden" name="action" value="activate">
               <input type="hidden" name="id" value="<?= (int) $t['id'] ?>">
               <button type="submit" class="btn btn-primary btn-sm">Use This Color</button>

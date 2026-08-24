@@ -330,6 +330,19 @@ If you already deployed an earlier version of this project:
     migration causes no visible change the moment you run it. The old
     `themes` table is renamed to `themes_legacy_backup` (not dropped); safe
     to drop yourself later once you've confirmed everything looks right.
+14. **Privacy Policy + Terms of Service:** import
+    `sql/migrations/012_privacy_terms_pages.sql` once. Seeds default page
+    content (title, lead, and body) for the new `/privacy.php` and
+    `/terms.php` pages, editable afterward at **Site Content** under the
+    "Privacy Policy" and "Terms of Service" tabs. The seeded text is a
+    generic, good-faith starting point, not legal advice — have it
+    reviewed before relying on it for a real business.
+15. **Admin activity log:** import
+    `sql/migrations/013_admin_activity_log.sql` once to add the
+    `admin_activity_log` table used by **Activity Log** (see
+    **Admin activity log** below). Works fine before you run this too — it
+    just skips logging until the table exists, the same fail-open pattern
+    as login rate-limiting.
 
 ## Login security
 
@@ -348,8 +361,25 @@ key, no third-party service:
   one account, or 10 from one IP address, within 15 minutes, further
   attempts are blocked (even with the correct password) until the window
   passes. A successful login clears the count for that account and IP.
-- **CSRF tokens** on the login form and every other auth-related form
-  (forgot password, reset password, forced password change).
+- **CSRF tokens on every admin form, site-wide** — not just the
+  login/password forms. Every POST request to any page behind
+  `require_admin()` (dashboard, shipment forms, colors, templates, admin
+  accounts, SMTP settings, everything) is checked centrally in
+  `require_admin_base()`, so a malicious page an admin happens to have
+  open in another tab can't silently submit actions using their logged-in
+  session.
+- **A 60-minute idle session timeout** for the admin panel — resets on
+  every admin page load, so it's 60 minutes of inactivity, not a hard
+  60-minute cap on a session you're actively using.
+- **A honeypot field on the public contact and shipment-request forms**
+  too, not just login — the same invisible-to-humans trick, so a
+  submission never reaches your inbox or the database from a bot filling
+  in every field of a scraped form.
+- **Uploaded SVG images are checked for executable content** (`<script>`
+  tags, `onload`/`onerror`/etc. event-handler attributes, `javascript:`
+  URIs, embedded `<iframe>`/`<foreignObject>`) and rejected if found —
+  SVG can otherwise carry a working XSS payload that a plain "is this an
+  image" check wouldn't catch.
 
 **On "reCAPTCHA" specifically:** a real Google reCAPTCHA (or hCaptcha,
 Cloudflare Turnstile, etc.) needs a site key and secret key that only the
@@ -378,6 +408,22 @@ to this site plus the two external hosts it actually uses — the Leaflet
 map library's CDN and OpenStreetMap's map tiles). That's a genuinely
 solid baseline for a small PHP site — not a guarantee nothing can ever
 go wrong.
+
+## Admin activity log
+
+**Activity Log** (super admin only, `/admin/activity_log.php`) shows the
+most recent 200 sensitive admin actions — admin accounts created,
+promoted, suspended, or deleted; password reset links sent; shipments
+deleted; SMTP credentials changed; color palettes and templates
+activated or deleted — each with who did it, when, from what IP address,
+and a short detail line. It's an audit trail for accountability, not a
+full page-view log — routine reads (viewing the dashboard, editing site
+content) aren't recorded.
+
+A log entry survives even if the admin account that created it is later
+deleted — the row keeps the admin's name as it was at the time, with the
+link to the (now-gone) account cleared rather than the whole entry being
+lost.
 
 ## Admin accounts, roles, and login
 
@@ -531,11 +577,18 @@ palette, just reached through a narrower door.
 ## Managing site content
 
 `/admin/content.php` has tabs for **Home**, **About**, **Services**, **Ship
-Now Page**, **Contact**, **Footer**, and **Countries** — every headline,
-paragraph, stat number, service tier, contact detail, and the full list of
-countries you ship to is editable there, no code changes needed. The public
+Now Page**, **Contact**, **Footer**, **Countries**, **Privacy Policy**, and
+**Terms of Service** — every headline, paragraph, stat number, service
+tier, contact detail, the full list of countries you ship to, and the
+legal page content is editable there, no code changes needed. The public
 pages read directly from this content. Branding (name/logo) and SMTP are
 separate pages — see above — since they're settings rather than marketing copy.
+
+The Privacy Policy and Terms of Service pages (`/privacy.php`, `/terms.php`,
+linked in the site footer) ship with generic, good-faith default text
+covering what a small shipping site typically collects and how it's used —
+it is **not legal advice**, and you should have it reviewed by a lawyer
+familiar with your jurisdiction before relying on it for a real business.
 
 ## Public shipment requests & the shipping calculator
 
@@ -611,6 +664,18 @@ scanner/app) rendered by a barcode encoder hand-written for this project in
   contact-form notification, and the waybill/label PDFs all pull from
   `get_active_palette()` — switch colors and everything customers and staff
   see matches, not just the website.
+- **`/.well-known/security.txt`** ([RFC 9116](https://www.rfc-editor.org/rfc/rfc9116)) —
+  a standard place for a security researcher to find how to report a
+  vulnerability responsibly, instead of guessing or going public first.
+  **Edit the placeholder contact email in that file before you go live** —
+  it ships pointing at `security@example.com`.
+- A full bug-scan pass before launch added: CSRF protection on every admin
+  form (not just login), a 60-minute admin idle timeout, a honeypot on the
+  public contact and shipment-request forms, stricter SVG upload
+  validation, numeric validation on manually-entered map coordinates, an
+  admin activity log, and Privacy Policy / Terms of Service pages — see
+  **Login security** and **Admin activity log** above for the security
+  items, and **Managing site content** for the legal pages.
 
 ## Security notes
 

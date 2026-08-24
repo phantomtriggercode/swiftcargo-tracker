@@ -41,7 +41,10 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <div>&copy; <?= date('Y') ?> <?= h(get_site_name()) ?>. <?= h(get_setting('footer_rights_text', 'All rights reserved.')) ?></div>
+      <div>&copy; <?= date('Y') ?> <?= h(get_site_name()) ?>. <?= h(get_setting('footer_rights_text', 'All rights reserved.')) ?>
+        <a href="/privacy.php" style="color:#9ca3af;margin-left:12px;">Privacy Policy</a>
+        <a href="/terms.php" style="color:#9ca3af;margin-left:12px;">Terms of Service</a>
+      </div>
       <div><?= h(get_setting('footer_bottom_note')) ?></div>
     </div>
   </div>

@@ -71,6 +71,7 @@ include __DIR__ . '/includes/admin_header.php';
               <div class="row-actions-status">
                 <label>Status</label>
                 <form method="post">
+    <?= csrf_field() ?>
                   <input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
                   <select name="status" onchange="this.form.submit()">
                     <?php foreach ($statuses as $s): ?>

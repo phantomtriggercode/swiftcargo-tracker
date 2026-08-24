@@ -85,6 +85,7 @@ include __DIR__ . '/includes/admin_header.php';
 <div class="form-card" style="max-width:520px;">
   <h3 style="margin-top:0;">Account Details</h3>
   <form method="post">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="profile">
     <div class="form-group">
       <label>Full Name</label>
@@ -108,6 +109,7 @@ include __DIR__ . '/includes/admin_header.php';
 <div class="form-card" style="max-width:520px;margin-top:16px;">
   <h3 style="margin-top:0;">Change Password</h3>
   <form method="post">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="password">
     <div class="form-group">
       <label>Current Password</label>

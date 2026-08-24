@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_setting('smtp_secure', $secure);
             set_setting('smtp_from_email', $fromEmail);
             set_setting('smtp_from_name', $fromName ?: get_site_name());
+            log_admin_activity('Changed SMTP settings', $host . ':' . $port . ($pass !== '' ? ' (password changed)' : ''));
             flash_set('success', 'Email settings saved.');
             redirect('/admin/smtp_settings.php');
         }
@@ -94,6 +95,7 @@ include __DIR__ . '/includes/admin_header.php';
   </p>
 
   <form method="post">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="save">
     <div class="form-row">
       <div class="form-group">
@@ -137,6 +139,7 @@ include __DIR__ . '/includes/admin_header.php';
 <div class="form-card" style="max-width:560px;margin-top:16px;">
   <h3 style="margin-top:0;">Send a Test Email</h3>
   <form method="post">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="test">
     <div class="form-group">
       <label>Send test to</label>

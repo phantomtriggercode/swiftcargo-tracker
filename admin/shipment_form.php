@@ -67,8 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!filter_var($receiverEmail, FILTER_VALIDATE_EMAIL)) $errors[] = 'A valid receiver email is required.';
     if ($packageDescription === '') $errors[] = 'Package description is required.';
     if (!in_array($packagingType, $packagingTypes, true)) $errors[] = 'Please choose a valid packaging type.';
-    if ($originLabel === '' || $originLat === '' || $originLng === '') $errors[] = 'Origin (label + coordinates) is required.';
-    if ($destinationLabel === '' || $destinationLat === '' || $destinationLng === '') $errors[] = 'Destination (label + coordinates) is required.';
+    if ($originLabel === '' || $originLat === '' || $originLng === '') {
+        $errors[] = 'Origin (label + coordinates) is required.';
+    } elseif (!is_numeric($originLat) || !is_numeric($originLng)) {
+        $errors[] = 'Origin coordinates must be valid numbers — use "Find on map" to look them up.';
+    }
+    if ($destinationLabel === '' || $destinationLat === '' || $destinationLng === '') {
+        $errors[] = 'Destination (label + coordinates) is required.';
+    } elseif (!is_numeric($destinationLat) || !is_numeric($destinationLng)) {
+        $errors[] = 'Destination coordinates must be valid numbers — use "Find on map" to look them up.';
+    }
     if (!in_array($serviceType, $serviceTypes, true)) $errors[] = 'Invalid service type.';
     if (!in_array($shippingMethod, $shippingMethods, true)) $errors[] = 'Invalid shipping method.';
     if ($shippingMethod === 'Land' && !in_array($landMethod, $landMethods, true)) $errors[] = 'Please choose a land transport type.';
@@ -217,6 +225,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="form-card" style="max-width:720px;">
   <form method="post">
+    <?= csrf_field() ?>
     <?php if ($fromRequestId): ?><input type="hidden" name="from_request_id" value="<?= (int) $fromRequestId ?>"><?php endif; ?>
 
     <h3 style="margin-top:0;">Sender</h3>

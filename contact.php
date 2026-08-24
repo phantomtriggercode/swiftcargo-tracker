@@ -12,6 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $message = trim($_POST['message'] ?? '');
+    $honeypot = (string) ($_POST['website'] ?? '');
+
+    if (honeypot_tripped($honeypot)) {
+        // Bots that fill in the hidden field never see it fail — pretend
+        // success without actually sending anything, so nothing tells the
+        // bot to adjust its behavior.
+        flash_set('contact_success', 'Thanks for reaching out! Our team will get back to you shortly.');
+        redirect('/contact.php');
+    }
 
     if ($name === '') $errors[] = 'Please enter your name.';
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
@@ -87,6 +96,10 @@ include __DIR__ . '/includes/header.php';
           <div class="alert alert-error"><?= h($err) ?></div>
         <?php endforeach; ?>
         <form method="post">
+          <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+            <label for="website">Website</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" value="">
+          </div>
           <div class="form-group">
             <label for="name">Full Name</label>
             <input type="text" id="name" name="name" value="<?= h($_POST['name'] ?? '') ?>" required>

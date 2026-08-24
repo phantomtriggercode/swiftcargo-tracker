@@ -10,6 +10,12 @@ function admin_logged_in(): bool
     return !empty($_SESSION['admin_id']);
 }
 
+// An admin session left idle this long is logged out on its next request —
+// standard practice for a panel that can see customer PII and hold SMTP
+// credentials. Resets on every admin page load, so it's 60 idle minutes,
+// not 60 minutes total.
+const ADMIN_IDLE_TIMEOUT_SECONDS = 3600;
+
 /**
  * Login + active-account check, without the forced-password-change
  * redirect below. Used by require_admin() itself and by
@@ -21,6 +27,29 @@ function require_admin_base(): void
     if (!admin_logged_in()) {
         redirect('/admin/login.php');
     }
+
+    $lastActivity = $_SESSION['admin_last_activity'] ?? null;
+    if ($lastActivity !== null && (time() - $lastActivity) > ADMIN_IDLE_TIMEOUT_SECONDS) {
+        // Clear just the admin identity, not the whole session (see the
+        // suspended-account branch below for why) — flash_set() right
+        // after a full session_destroy() wouldn't survive to the login page.
+        unset($_SESSION['admin_id'], $_SESSION['admin_name'], $_SESSION['admin_last_activity']);
+        flash_set('error', 'You were logged out after a period of inactivity. Please log in again.');
+        redirect('/admin/login.php');
+    }
+    $_SESSION['admin_last_activity'] = time();
+
+    // Every state-changing admin request must carry a valid CSRF token, so
+    // a malicious page an admin happens to have open elsewhere can't
+    // silently submit actions (delete a shipment, change SMTP credentials,
+    // demote another admin) using their logged-in session. Checked here,
+    // centrally, so every admin page that calls require_admin() or
+    // require_super_admin() is covered automatically — no per-page code.
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_verify($_POST['csrf_token'] ?? '')) {
+        flash_set('error', 'Your form session expired. Please try again.');
+        redirect('/admin/dashboard.php');
+    }
+
     // Re-check on every request (not just at login) so a suspended admin's
     // active session is cut off immediately, not just their next login.
     $stmt = db()->prepare('SELECT is_active FROM admins WHERE id = ?');
@@ -71,6 +100,7 @@ function attempt_admin_login(string $identifier, string $password): bool
         session_regenerate_id(true);
         $_SESSION['admin_id'] = $admin['id'];
         $_SESSION['admin_name'] = $admin['full_name'];
+        log_admin_activity('Logged in', '', $admin['id'], $admin['full_name']);
         return true;
     }
 
@@ -81,6 +111,36 @@ function admin_logout(): void
 {
     $_SESSION = [];
     session_destroy();
+}
+
+/**
+ * Records a sensitive admin action to the audit trail viewable at
+ * /admin/activity_log.php (super admins only). Fails open — a missing
+ * admin_activity_log table (not migrated yet) or any DB error here never
+ * blocks the action itself, only skips logging it.
+ *
+ * $adminId/$adminName let attempt_admin_login() log a successful login
+ * before $_SESSION is fully usable elsewhere; every other call site omits
+ * them and gets the currently logged-in admin.
+ */
+function log_admin_activity(string $action, string $details = '', ?int $adminId = null, ?string $adminName = null): void
+{
+    if ($adminId === null) {
+        $admin = current_admin();
+        $adminId = $admin['id'] ?? null;
+        $adminName = $admin['full_name'] ?? 'Unknown';
+    }
+
+    try {
+        $stmt = db()->prepare('
+            INSERT INTO admin_activity_log (admin_id, admin_name, action, details, ip_address)
+            VALUES (?, ?, ?, ?, ?)
+        ');
+        $stmt->execute([$adminId, $adminName ?? 'Unknown', $action, $details, client_ip()]);
+    } catch (PDOException $e) {
+        // Same rationale as login_attempts — a missing table should never
+        // break the admin action itself, only skip the audit trail entry.
+    }
 }
 
 function current_admin(): ?array

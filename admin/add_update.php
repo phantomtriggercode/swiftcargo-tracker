@@ -92,6 +92,7 @@ include __DIR__ . '/includes/admin_header.php';
   </p>
 
   <form method="post">
+    <?= csrf_field() ?>
     <div class="form-group">
       <label>New Status</label>
       <select name="status" required>

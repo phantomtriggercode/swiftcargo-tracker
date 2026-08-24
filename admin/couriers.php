@@ -118,6 +118,7 @@ include __DIR__ . '/includes/admin_header.php';
               <div class="row-actions-status">
                 <label>Rename</label>
                 <form method="post" style="display:flex;gap:6px;">
+    <?= csrf_field() ?>
                   <input type="hidden" name="action" value="rename">
                   <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
                   <input type="text" name="name" value="<?= h($c['name']) ?>" required style="min-width:0;flex:1;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;">
@@ -125,11 +126,13 @@ include __DIR__ . '/includes/admin_header.php';
                 </form>
               </div>
               <form method="post">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="toggle_active">
                 <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
                 <button type="submit"><?= $c['is_active'] ? 'Deactivate' : 'Activate' ?></button>
               </form>
               <form method="post" onsubmit="return confirm('Delete the carrier &quot;<?= h(addslashes($c['name'])) ?>&quot;?');">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
                 <button type="submit" class="danger" <?= $c['shipment_count'] > 0 ? 'disabled title="In use by existing shipments — deactivate instead"' : '' ?>>Delete</button>
@@ -149,6 +152,7 @@ include __DIR__ . '/includes/admin_header.php';
 <div class="form-card" style="max-width:480px;margin-top:20px;">
   <h3 style="margin-top:0;">Add a Carrier</h3>
   <form method="post">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="create">
     <div class="form-group">
       <label>Carrier Name</label>

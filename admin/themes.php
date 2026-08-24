@@ -10,7 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $targetId = (int) ($_POST['id'] ?? 0);
 
     if ($action === 'activate') {
-        if (activate_palette($targetId)) {
+        $target = get_palette($targetId);
+        if ($target && activate_palette($targetId)) {
+            log_admin_activity('Activated color palette', $target['name']);
             flash_set('success', 'Color palette activated site-wide.');
         } else {
             flash_set('error', 'Color palette not found.');
@@ -31,7 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash_set('success', 'Color palette duplicated — customize its colors below.');
         redirect('/admin/theme_edit.php?id=' . $newId);
     } elseif ($action === 'delete') {
+        $target = get_palette($targetId);
         $result = delete_palette($targetId);
+        if ($result['ok'] && $target) {
+            log_admin_activity('Deleted color palette', $target['name']);
+        }
         flash_set($result['ok'] ? 'success' : 'error', $result['ok'] ? 'Color palette permanently deleted.' : $result['error']);
         redirect('/admin/themes.php');
     }
@@ -87,6 +93,7 @@ include __DIR__ . '/includes/admin_header.php';
         <div class="theme-card-actions">
           <?php if (!$p['is_active']): ?>
             <form method="post">
+    <?= csrf_field() ?>
               <input type="hidden" name="action" value="activate">
               <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
               <button type="submit" class="btn btn-primary btn-sm">Activate</button>
@@ -94,12 +101,14 @@ include __DIR__ . '/includes/admin_header.php';
           <?php endif; ?>
           <a href="/admin/theme_edit.php?id=<?= (int) $p['id'] ?>" class="btn btn-outline btn-sm">Edit Colors</a>
           <form method="post">
+    <?= csrf_field() ?>
             <input type="hidden" name="action" value="duplicate">
             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
             <button type="submit" class="btn btn-outline btn-sm">Duplicate</button>
           </form>
           <?php if (!$p['is_active']): ?>
             <form method="post" onsubmit="return confirm('Permanently delete the color palette &quot;<?= h(addslashes($p['name'])) ?>&quot;? This cannot be undone.');">
+    <?= csrf_field() ?>
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
               <button type="submit" class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);">Delete</button>

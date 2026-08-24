@@ -42,11 +42,14 @@ $sections = [
     'contact' => ['contact_intro', 'contact_phone', 'contact_email', 'contact_address'],
     'footer' => ['footer_tagline', 'contact_email', 'contact_phone', 'footer_rights_text', 'footer_bottom_note'],
     'countries' => ['countries_title', 'countries_intro', 'countries_list'],
+    'privacy' => ['privacy_title', 'privacy_lead', 'privacy_body'],
+    'terms' => ['terms_title', 'terms_lead', 'terms_body'],
 ];
 
 $tabLabels = [
     'home' => 'Home', 'about' => 'About', 'services' => 'Services', 'request' => 'Ship Now Page',
     'contact' => 'Contact', 'footer' => 'Footer', 'countries' => 'Countries',
+    'privacy' => 'Privacy Policy', 'terms' => 'Terms of Service',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -90,6 +93,7 @@ include __DIR__ . '/includes/admin_header.php';
 
   <?php if ($activeTab === 'home'): ?>
     <form method="post">
+    <?= csrf_field() ?>
       <input type="hidden" name="section" value="home">
       <div class="form-group">
         <label>Hero Title</label>
@@ -239,6 +243,7 @@ include __DIR__ . '/includes/admin_header.php';
 
   <?php elseif ($activeTab === 'about'): ?>
     <form method="post">
+    <?= csrf_field() ?>
       <input type="hidden" name="section" value="about">
       <div class="form-group">
         <label>Page Title</label>
@@ -257,6 +262,7 @@ include __DIR__ . '/includes/admin_header.php';
 
   <?php elseif ($activeTab === 'services'): ?>
     <form method="post">
+    <?= csrf_field() ?>
       <input type="hidden" name="section" value="services">
       <div class="form-group">
         <label>Page Title</label>
@@ -325,6 +331,7 @@ include __DIR__ . '/includes/admin_header.php';
 
   <?php elseif ($activeTab === 'request'): ?>
     <form method="post">
+    <?= csrf_field() ?>
       <input type="hidden" name="section" value="request">
       <div class="form-group">
         <label>Page Title</label>
@@ -339,6 +346,7 @@ include __DIR__ . '/includes/admin_header.php';
 
   <?php elseif ($activeTab === 'contact'): ?>
     <form method="post">
+    <?= csrf_field() ?>
       <input type="hidden" name="section" value="contact">
       <div class="form-group">
         <label>Intro Text</label>
@@ -361,6 +369,7 @@ include __DIR__ . '/includes/admin_header.php';
 
   <?php elseif ($activeTab === 'footer'): ?>
     <form method="post">
+    <?= csrf_field() ?>
       <input type="hidden" name="section" value="footer">
       <div class="form-group">
         <label>Footer Tagline</label>
@@ -392,6 +401,7 @@ include __DIR__ . '/includes/admin_header.php';
 
   <?php elseif ($activeTab === 'countries'): ?>
     <form method="post">
+    <?= csrf_field() ?>
       <input type="hidden" name="section" value="countries">
       <div class="form-group">
         <label>Page Title</label>
@@ -408,6 +418,44 @@ include __DIR__ . '/includes/admin_header.php';
         ?></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Save Countries List</button>
+    </form>
+
+  <?php elseif ($activeTab === 'privacy'): ?>
+    <form method="post">
+    <?= csrf_field() ?>
+      <input type="hidden" name="section" value="privacy">
+      <div class="form-group">
+        <label>Page Title</label>
+        <input type="text" name="privacy_title" value="<?= h(get_setting('privacy_title', 'Privacy Policy')) ?>">
+      </div>
+      <div class="form-group">
+        <label>Lead Paragraph</label>
+        <textarea name="privacy_lead" rows="2"><?= h(get_setting('privacy_lead')) ?></textarea>
+      </div>
+      <div class="form-group">
+        <label>Body (separate paragraphs with a blank line)</label>
+        <textarea name="privacy_body" rows="18"><?= h(get_setting('privacy_body')) ?></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Privacy Policy</button>
+    </form>
+
+  <?php elseif ($activeTab === 'terms'): ?>
+    <form method="post">
+    <?= csrf_field() ?>
+      <input type="hidden" name="section" value="terms">
+      <div class="form-group">
+        <label>Page Title</label>
+        <input type="text" name="terms_title" value="<?= h(get_setting('terms_title', 'Terms of Service')) ?>">
+      </div>
+      <div class="form-group">
+        <label>Lead Paragraph</label>
+        <textarea name="terms_lead" rows="2"><?= h(get_setting('terms_lead')) ?></textarea>
+      </div>
+      <div class="form-group">
+        <label>Body (separate paragraphs with a blank line)</label>
+        <textarea name="terms_body" rows="18"><?= h(get_setting('terms_body')) ?></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Terms of Service</button>
     </form>
   <?php endif; ?>
 
