@@ -19,6 +19,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/admin/branding.php');
     }
 
+    if ($action === 'tracking_format') {
+        $prefix = strtoupper(trim($_POST['tracking_number_prefix'] ?? ''));
+        $suffix = strtoupper(trim($_POST['tracking_number_suffix'] ?? ''));
+        if (!preg_match('/^[A-Z0-9]{0,8}$/', $prefix)) {
+            flash_set('error', 'Prefix can only contain letters and numbers, up to 8 characters.');
+            redirect('/admin/branding.php');
+        }
+        if (!preg_match('/^[A-Z0-9]{0,8}$/', $suffix)) {
+            flash_set('error', 'Suffix can only contain letters and numbers, up to 8 characters.');
+            redirect('/admin/branding.php');
+        }
+        set_setting('tracking_number_prefix', $prefix);
+        set_setting('tracking_number_suffix', $suffix);
+        flash_set('success', 'Tracking number format updated. This only affects shipments created from now on — existing tracking numbers don\'t change.');
+        redirect('/admin/branding.php');
+    }
+
     if ($action === 'go_live_alert') {
         $notifyEmail = trim($_POST['deploy_notify_email'] ?? '');
         if ($notifyEmail !== '' && !filter_var($notifyEmail, FILTER_VALIDATE_EMAIL)) {
@@ -109,6 +126,31 @@ include __DIR__ . '/includes/admin_header.php';
     <button type="submit" class="btn btn-outline btn-sm">Reset to default logo mark</button>
   </form>
 <?php endif; ?>
+
+<div class="form-card" style="max-width:560px;margin-top:16px;">
+  <h3 style="margin-top:0;">Tracking Number Format</h3>
+  <p style="margin-top:0;color:var(--muted);font-size:14px;">
+    New shipments get a tracking number built as
+    <strong>prefix + 7 digits + 2 letters + suffix</strong> (e.g. with prefix
+    "SC" that's <code>SC7482913KE</code>). Change either side here — it only
+    applies going forward, existing tracking numbers are untouched. Leave a
+    field blank to drop that part entirely.
+  </p>
+  <form method="post">
+    <input type="hidden" name="action" value="tracking_format">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Prefix</label>
+        <input type="text" name="tracking_number_prefix" value="<?= h(get_setting('tracking_number_prefix', 'SC')) ?>" maxlength="8" placeholder="e.g. SC">
+      </div>
+      <div class="form-group">
+        <label>Suffix</label>
+        <input type="text" name="tracking_number_suffix" value="<?= h(get_setting('tracking_number_suffix', '')) ?>" maxlength="8" placeholder="e.g. US">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Save Format</button>
+  </form>
+</div>
 
 <div class="form-card" style="max-width:560px;margin-top:16px;">
   <h3 style="margin-top:0;">Go-Live Alert</h3>

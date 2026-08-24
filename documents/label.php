@@ -118,15 +118,19 @@ ob_start();
 
     <table class="meta-table">
       <tr>
-        <td style="width:33%;">
+        <td style="width:25%;">
+          <div class="k">Carrier</div>
+          <div class="v"><?= h($shipment['courier_name'] ?: $siteName) ?></div>
+        </td>
+        <td style="width:25%;">
           <div class="k">Weight</div>
           <div class="v"><?= h((string) $shipment['weight_kg']) ?> kg</div>
         </td>
-        <td style="width:33%;">
+        <td style="width:25%;">
           <div class="k">Packaging</div>
           <div class="v"><?= h($shipment['packaging_type']) ?></div>
         </td>
-        <td style="width:34%;">
+        <td style="width:25%;">
           <div class="k">Method</div>
           <div class="v"><?= $methodLabel ?></div>
         </td>

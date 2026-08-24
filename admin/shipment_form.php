@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/mailer.php';
 require_admin();
 
+$couriers = get_active_couriers();
 $packagingTypes = ['Box', 'Crate', 'Pallet', 'Loose Cargo', 'Full Container Load (FCL)', 'Less Than Container Load (LCL)', 'Envelope/Document'];
 $shippingMethods = ['Air', 'Sea', 'Land'];
 $landMethods = ['Van', 'Trailer', 'Train'];
@@ -46,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $serviceType = $_POST['service_type'] ?? 'Regular';
     $shippingMethod = $_POST['shipping_method'] ?? 'Air';
     $landMethod = trim($_POST['land_method'] ?? '') ?: null;
+    $courierId = !empty($_POST['courier_id']) ? (int) $_POST['courier_id'] : null;
     $insured = !empty($_POST['insured']);
     $insuranceValue = (float) ($_POST['insurance_value'] ?? 0);
     $originLabel = trim($_POST['origin_label'] ?? '');
@@ -67,6 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!in_array($shippingMethod, $shippingMethods, true)) $errors[] = 'Invalid shipping method.';
     if ($shippingMethod === 'Land' && !in_array($landMethod, $landMethods, true)) $errors[] = 'Please choose a land transport type.';
     if ($insured && $insuranceValue <= 0) $errors[] = 'Enter a declared value to add insurance.';
+    if ($courierId !== null) {
+        $courierCheck = db()->prepare('SELECT id FROM couriers WHERE id = ?');
+        $courierCheck->execute([$courierId]);
+        if (!$courierCheck->fetch()) {
+            $errors[] = 'Please choose a valid carrier.';
+        }
+    }
 
     if (!$errors) {
         if ($shipment) {
@@ -74,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 UPDATE shipments SET
                   sender_name = ?, sender_address = ?, receiver_name = ?, receiver_email = ?, receiver_address = ?,
                   package_description = ?, packaging_type = ?, weight_kg = ?, dimensions = ?,
-                  service_type = ?, shipping_method = ?, land_method = ?, insured = ?, insurance_value = ?,
+                  service_type = ?, shipping_method = ?, land_method = ?, courier_id = ?, insured = ?, insurance_value = ?,
                   origin_label = ?, origin_lat = ?, origin_lng = ?,
                   destination_label = ?, destination_lat = ?, destination_lng = ?,
                   estimated_delivery = ?
@@ -83,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([
                 $senderName, $senderAddress, $receiverName, $receiverEmail, $receiverAddress,
                 $packageDescription, $packagingType, $weightKg, $dimensions ?: null,
-                $serviceType, $shippingMethod, $landMethod, $insured ? 1 : 0, $insured ? $insuranceValue : null,
+                $serviceType, $shippingMethod, $landMethod, $courierId, $insured ? 1 : 0, $insured ? $insuranceValue : null,
                 $originLabel, $originLat, $originLng,
                 $destinationLabel, $destinationLat, $destinationLng,
                 $estimatedDelivery, $shipment['id'],
@@ -106,16 +115,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 INSERT INTO shipments (
                   tracking_number, sender_name, sender_address, receiver_name, receiver_email, receiver_address,
                   package_description, packaging_type, weight_kg, dimensions,
-                  service_type, shipping_method, land_method, insured, insurance_value, status,
+                  service_type, shipping_method, land_method, courier_id, insured, insurance_value, status,
                   origin_label, origin_lat, origin_lng,
                   destination_label, destination_lat, destination_lng,
                   current_lat, current_lng, estimated_delivery
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ');
             $stmt->execute([
                 $trackingNumber, $senderName, $senderAddress, $receiverName, $receiverEmail, $receiverAddress,
                 $packageDescription, $packagingType, $weightKg, $dimensions ?: null,
-                $serviceType, $shippingMethod, $landMethod, $insured ? 1 : 0, $insured ? $insuranceValue : null,
+                $serviceType, $shippingMethod, $landMethod, $courierId, $insured ? 1 : 0, $insured ? $insuranceValue : null,
                 $originLabel, $originLat, $originLng,
                 $destinationLabel, $destinationLat, $destinationLng,
                 $originLat, $originLng, $estimatedDelivery,
@@ -254,6 +263,31 @@ include __DIR__ . '/includes/admin_header.php';
           <?php endforeach; ?>
         </select>
       </div>
+    </div>
+
+    <div class="form-group">
+      <label>Carrier</label>
+      <?php
+        $curCourierId = $shipment ? (int) ($shipment['courier_id'] ?? 0) : 0;
+        $courierOptions = $couriers;
+        if ($curCourierId && !in_array($curCourierId, array_column($couriers, 'id'), true)) {
+            $inactiveCurrent = get_courier($curCourierId);
+            if ($inactiveCurrent) {
+                $inactiveCurrent['name'] .= ' (inactive)';
+                $courierOptions[] = $inactiveCurrent;
+            }
+        }
+      ?>
+      <select name="courier_id">
+        <option value="">— Unbranded / not set —</option>
+        <?php foreach ($courierOptions as $co): ?>
+          <option value="<?= (int) $co['id'] ?>" <?= $curCourierId === (int) $co['id'] ? 'selected' : '' ?>><?= h($co['name']) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        Manage the list of carriers (add DHL, UPS, FedEx, etc) at
+        <a href="/admin/couriers.php" style="color:var(--brand-red);">Couriers &amp; Carriers</a>.
+      </span>
     </div>
 
     <div class="form-group">

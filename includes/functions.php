@@ -3,6 +3,8 @@
  * Small shared helpers used across public + admin pages.
  */
 
+require_once __DIR__ . '/settings.php';
+
 function h(?string $value): string
 {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
@@ -23,13 +25,35 @@ function asset_url(string $path): string
 
 function generate_tracking_number(): string
 {
-    // e.g. SC7482913KE — SC prefix + 7 random digits + 2 random letters
+    // e.g. SC7482913KE — admin-configured prefix + 7 random digits +
+    // 2 random letters + admin-configured suffix (see /admin/branding.php).
+    $prefix = get_setting('tracking_number_prefix', 'SC');
+    $suffix = get_setting('tracking_number_suffix', '');
     $digits = str_pad((string) random_int(0, 9999999), 7, '0', STR_PAD_LEFT);
     $letters = '';
     for ($i = 0; $i < 2; $i++) {
         $letters .= chr(random_int(65, 90));
     }
-    return 'SC' . $digits . $letters;
+    return strtoupper($prefix) . $digits . $letters . strtoupper($suffix);
+}
+
+/**
+ * Active couriers/carriers for the shipment form dropdown, in the order
+ * admins arranged them at /admin/couriers.php.
+ */
+function get_active_couriers(): array
+{
+    return db()->query('SELECT * FROM couriers WHERE is_active = 1 ORDER BY sort_order ASC, name ASC')->fetchAll();
+}
+
+function get_courier(?int $id): ?array
+{
+    if (!$id) {
+        return null;
+    }
+    $stmt = db()->prepare('SELECT * FROM couriers WHERE id = ?');
+    $stmt->execute([$id]);
+    return $stmt->fetch() ?: null;
 }
 
 function status_badge_class(string $status): string
@@ -49,7 +73,12 @@ function status_badge_class(string $status): string
 
 function get_shipment_by_tracking(string $trackingNumber): ?array
 {
-    $stmt = db()->prepare('SELECT * FROM shipments WHERE tracking_number = ? LIMIT 1');
+    $stmt = db()->prepare('
+        SELECT s.*, c.name AS courier_name
+        FROM shipments s
+        LEFT JOIN couriers c ON c.id = s.courier_id
+        WHERE s.tracking_number = ? LIMIT 1
+    ');
     $stmt->execute([strtoupper(trim($trackingNumber))]);
     $row = $stmt->fetch();
     return $row ?: null;

@@ -79,6 +79,10 @@ include __DIR__ . '/includes/header.php';
             <div class="meta-value"><?= h($shipment['receiver_name']) ?></div>
           </div>
           <div class="meta-box">
+            <div class="meta-label">Carrier</div>
+            <div class="meta-value"><?= h($shipment['courier_name'] ?: get_site_name()) ?></div>
+          </div>
+          <div class="meta-box">
             <div class="meta-label">Service</div>
             <div class="meta-value"><?= h($shipment['service_type']) ?></div>
           </div>

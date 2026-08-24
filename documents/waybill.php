@@ -140,7 +140,8 @@ ob_start();
   </table>
 
   <table class="details-table">
-    <tr><th>Service Type</th><td><?= h($shipment['service_type']) ?></td><th>Shipping Method</th><td><?= $methodLabel ?></td></tr>
+    <tr><th>Carrier</th><td><?= h($shipment['courier_name'] ?: $siteName) ?></td><th>Service Type</th><td><?= h($shipment['service_type']) ?></td></tr>
+    <tr><th>Shipping Method</th><td colspan="3"><?= $methodLabel ?></td></tr>
     <tr><th>Package</th><td><?= h($shipment['package_description']) ?></td><th>Packaging Type</th><td><?= h($shipment['packaging_type']) ?></td></tr>
     <tr><th>Weight</th><td><?= h((string) $shipment['weight_kg']) ?> kg</td><th>Dimensions</th><td><?= $shipment['dimensions'] ? h($shipment['dimensions']) : '&mdash;' ?></td></tr>
     <tr><th>Insurance</th><td><?= $insuranceLabel ?></td><th>Estimated Delivery</th><td><?= h($estDelivery) ?></td></tr>

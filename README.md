@@ -246,6 +246,12 @@ If you already deployed an earlier version of this project:
    account to super admin (so nobody's locked out by running it) — visit
    `/admin/admins.php` afterward to demote accounts that shouldn't have
    full access, or create new regular-admin accounts for staff.
+7. **Couriers/carriers + tracking number format:** import
+   `sql/migrations/005_couriers_tracking_format.sql` once to add the
+   `couriers` table, a nullable `courier_id` column on `shipments`, and the
+   `tracking_number_prefix`/`tracking_number_suffix` settings. It seeds a
+   starter list of carriers (DHL, UPS, FedEx, USPS, TNT, Aramex, DPD, Royal
+   Mail) — manage that list at `/admin/couriers.php`.
 
 ## Admin accounts, roles, and login
 
@@ -274,6 +280,21 @@ confirming the site is live there — useful if you deploy this codebase
 somewhere new and want to know the moment it's reachable. It's entirely
 opt-in (blank by default), tracked in a plain settings row, and fires once
 per domain, not on every visit.
+
+### Couriers/carriers and tracking number format
+
+Under **Couriers & Carriers**, admins can add, rename, deactivate, or delete
+the carrier options offered when creating or editing a shipment (DHL, UPS,
+FedEx, USPS, or any custom name). A carrier assigned to existing shipments
+can be deactivated (hides it from the dropdown) but not deleted, so shipment
+history always keeps its carrier name. The chosen carrier shows on the
+public tracking page and on the printable waybill/label.
+
+Under **Branding**, the "Tracking Number Format" card lets you set the
+prefix and/or suffix used when a tracking number is generated for a new
+shipment (default: `SC` prefix, no suffix — e.g. `SC7482913KE`). Changing it
+only affects shipments created afterward; existing tracking numbers never
+change.
 
 ## Managing site content
 

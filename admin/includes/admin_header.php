@@ -45,6 +45,7 @@ $__navAdmin = current_admin();
       <a href="/admin/dashboard.php" class="<?= $activeAdminNav === 'dashboard' ? 'active' : '' ?>">Shipments</a>
       <a href="/admin/shipment_form.php" class="<?= $activeAdminNav === 'new' ? 'active' : '' ?>">New Shipment</a>
       <a href="/admin/requests.php" class="<?= $activeAdminNav === 'requests' ? 'active' : '' ?>">Shipment Requests</a>
+      <a href="/admin/couriers.php" class="<?= $activeAdminNav === 'couriers' ? 'active' : '' ?>">Couriers &amp; Carriers</a>
       <a href="/admin/content.php" class="<?= $activeAdminNav === 'content' ? 'active' : '' ?>">Site Content</a>
       <a href="/admin/images.php" class="<?= $activeAdminNav === 'images' ? 'active' : '' ?>">Site Images</a>
       <a href="/admin/rates.php" class="<?= $activeAdminNav === 'rates' ? 'active' : '' ?>">Calculator Rates</a>

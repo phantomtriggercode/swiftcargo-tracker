@@ -34,11 +34,33 @@ INSERT INTO admins (username, password_hash, full_name, is_super_admin, is_activ
 ON DUPLICATE KEY UPDATE username = username;
 
 -- ---------------------------------------------------------------
+-- Couriers / carriers (managed from /admin/couriers.php — admins can
+-- rename, deactivate, or add new carriers like DHL, UPS, FedEx, USPS)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS couriers (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO couriers (name, sort_order) VALUES
+('DHL Express', 1),
+('UPS', 2),
+('FedEx', 3),
+('USPS', 4),
+('TNT Express', 5),
+('Aramex', 6),
+('DPD', 7),
+('Royal Mail', 8);
+
+-- ---------------------------------------------------------------
 -- Shipments
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS shipments (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  tracking_number VARCHAR(20) NOT NULL UNIQUE,
+  tracking_number VARCHAR(32) NOT NULL UNIQUE,
 
   sender_name VARCHAR(150) NOT NULL,
   sender_address VARCHAR(255) NOT NULL,
@@ -57,6 +79,7 @@ CREATE TABLE IF NOT EXISTS shipments (
   service_type ENUM('Regular','Express') NOT NULL DEFAULT 'Regular',
   shipping_method ENUM('Air','Sea','Land') NOT NULL DEFAULT 'Air',
   land_method ENUM('Van','Trailer','Train') NULL DEFAULT NULL,
+  courier_id INT UNSIGNED NULL DEFAULT NULL,
 
   insured TINYINT(1) NOT NULL DEFAULT 0,
   insurance_value DECIMAL(10,2) NULL DEFAULT NULL,
@@ -82,7 +105,9 @@ CREATE TABLE IF NOT EXISTS shipments (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-  INDEX idx_tracking_number (tracking_number)
+  INDEX idx_tracking_number (tracking_number),
+  CONSTRAINT fk_shipment_courier FOREIGN KEY (courier_id)
+    REFERENCES couriers(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------
@@ -138,7 +163,9 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('rate_sea_multiplier', '1.0'),
 ('rate_land_multiplier', '1.2'),
 ('rate_express_multiplier', '1.5'),
-('rate_insurance_percent', '2.5');
+('rate_insurance_percent', '2.5'),
+('tracking_number_prefix', 'SC'),
+('tracking_number_suffix', '');
 
 -- ---------------------------------------------------------------
 -- Public "request a shipment" submissions.
