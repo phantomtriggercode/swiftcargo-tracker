@@ -13,6 +13,17 @@
   --danger: #dc2626;
   --radius: 10px;
   --shadow: 0 4px 16px rgba(17, 24, 39, 0.08);
+
+  /* Structural theme-style tokens (see html[data-theme-style="..."]
+     overrides near the bottom of this file) — color tokens above come
+     from the active row in the `themes` table via theme_style_tag(),
+     these come from that same row's style_key. */
+  --font-heading: inherit;
+  --btn-text-transform: none;
+  --btn-letter-spacing: normal;
+  --header-bg: var(--white);
+  --header-ink: var(--ink);
+  --header-link: var(--ink-soft);
 }
 
 * { box-sizing: border-box; }
@@ -33,6 +44,7 @@ body {
 
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
+h1, h2, h3, h4 { font-family: var(--font-heading); }
 
 .container {
   max-width: 1180px;
@@ -59,7 +71,7 @@ img { max-width: 100%; display: block; }
 
 /* ---------- Header / nav ---------- */
 .site-header {
-  background: var(--white);
+  background: var(--header-bg);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -81,14 +93,14 @@ img { max-width: 100%; display: block; }
   letter-spacing: -0.5px;
 }
 .logo .mark-img { display: block; flex: none; }
-.logo .word-brand { color: var(--ink); }
-.logo .word-cargo { color: var(--ink); }
+.logo .word-brand { color: var(--header-ink); }
+.logo .word-cargo { color: var(--header-ink); }
 
 .main-nav { display: flex; align-items: center; gap: 20px; }
 .main-nav a {
   font-weight: 600;
   font-size: 14.5px;
-  color: var(--ink-soft);
+  color: var(--header-link);
   padding: 6px 0;
   border-bottom: 2px solid transparent;
 }
@@ -100,9 +112,9 @@ img { max-width: 100%; display: block; }
 .header-actions { display: flex; align-items: center; gap: 10px; }
 .nav-menu-btn {
   display: none; background: none; border: 1.5px solid var(--border); border-radius: 6px;
-  padding: 8px 11px; font-size: 18px; line-height: 1; cursor: pointer; color: var(--ink);
+  padding: 8px 11px; font-size: 18px; line-height: 1; cursor: pointer; color: var(--header-ink);
 }
-.nav-menu-btn:hover { border-color: var(--ink); }
+.nav-menu-btn:hover { border-color: var(--header-ink); }
 
 .mobile-nav-backdrop { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.35); z-index: 55; }
 .mobile-nav-backdrop.is-open { display: block; }
@@ -133,7 +145,9 @@ img { max-width: 100%; display: block; }
   justify-content: center;
   gap: 8px;
   padding: 10px 22px;
-  border-radius: 6px;
+  border-radius: min(var(--radius), 14px);
+  text-transform: var(--btn-text-transform);
+  letter-spacing: var(--btn-letter-spacing);
   font-weight: 700;
   font-size: 14.5px;
   border: 2px solid transparent;
@@ -499,6 +513,26 @@ img { max-width: 100%; display: block; }
 .image-slot-where { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
 .image-slot-card input[type="file"] { width: 100%; font-size: 12.5px; }
 
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+.theme-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; box-shadow: var(--shadow);
+}
+.theme-card-active { outline: 2px solid var(--brand-red); outline-offset: -2px; }
+.theme-swatches { display: flex; height: 40px; }
+.theme-swatches span { flex: 1; }
+.theme-card-body { padding: 16px; }
+.theme-card-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; margin-bottom: 3px; }
+.theme-card-meta { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+.theme-card-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.theme-card-actions form { display: inline; }
+
+.theme-color-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.theme-color-field label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; }
+.theme-color-input { display: flex; gap: 8px; align-items: center; }
+.theme-color-input input[type="color"] { width: 42px; height: 40px; padding: 2px; border: 1.5px solid var(--border); border-radius: 6px; cursor: pointer; flex: none; }
+.theme-color-input input[type="text"] { flex: 1; min-width: 0; font-family: ui-monospace, monospace; text-transform: lowercase; }
+
 .admin-mobile-bar { display: none; }
 .admin-menu-btn { display: none; }
 .admin-sidebar-backdrop { display: none; }
@@ -683,3 +717,50 @@ table.data-table th:last-child, table.data-table td.actions { width: 90px; }
 @media (max-width: 420px) {
   .header-track-btn { display: none; }
 }
+
+/* ---------------------------------------------------------------
+   Theme styles — structural design variants selected by the active
+   theme's style_key (html[data-theme-style="..."], set by
+   active_theme_style_key() in includes/theme.php). Colors themselves
+   come from theme_style_tag()'s :root override, injected separately —
+   these tokens are what make two themes with different style_keys
+   feel like different templates, not just different palettes.
+   Managed only by super admins at /admin/themes.php.
+   --------------------------------------------------------------- */
+html[data-theme-style="modern"] {
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(17, 24, 39, 0.14);
+}
+html[data-theme-style="minimal"] {
+  --radius: 4px;
+  --shadow: none;
+}
+html[data-theme-style="minimal"] .table-responsive,
+html[data-theme-style="minimal"] .form-card,
+html[data-theme-style="minimal"] .timeline {
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
+html[data-theme-style="bold"] {
+  --radius: 8px;
+  --shadow: 0 14px 34px rgba(17, 24, 39, 0.22);
+  --btn-text-transform: uppercase;
+  --btn-letter-spacing: 0.5px;
+}
+html[data-theme-style="corporate"] {
+  --radius: 6px;
+  --shadow: 0 6px 20px rgba(17, 24, 39, 0.10);
+  --font-heading: Georgia, "Times New Roman", Times, serif;
+}
+html[data-theme-style="dark-header"] {
+  --header-bg: var(--ink);
+  --header-ink: #ffffff;
+  --header-link: #d1d5db;
+}
+html[data-theme-style="dark-header"] .main-nav a:hover,
+html[data-theme-style="dark-header"] .main-nav a.active {
+  color: var(--brand-yellow);
+  border-bottom-color: var(--brand-yellow);
+}
+html[data-theme-style="dark-header"] .nav-menu-btn { border-color: rgba(255,255,255,0.35); }
+html[data-theme-style="dark-header"] .nav-menu-btn:hover { border-color: #ffffff; }

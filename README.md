@@ -252,6 +252,10 @@ If you already deployed an earlier version of this project:
    `tracking_number_prefix`/`tracking_number_suffix` settings. It seeds a
    starter list of carriers (DHL, UPS, FedEx, USPS, TNT, Aramex, DPD, Royal
    Mail) — manage that list at `/admin/couriers.php`.
+8. **Site themes:** import `sql/migrations/006_themes.sql` once to add the
+   `themes` table. It seeds 10 preset themes and activates "Classic Red" —
+   the site's original look — so this migration causes no visible change
+   until a super admin picks something else at `/admin/themes.php`.
 
 ## Admin accounts, roles, and login
 
@@ -295,6 +299,37 @@ prefix and/or suffix used when a tracking number is generated for a new
 shipment (default: `SC` prefix, no suffix — e.g. `SC7482913KE`). Changing it
 only affects shipments created afterward; existing tracking numbers never
 change.
+
+### Site themes (super admin only)
+
+**Themes** (visible only to super admins) controls the color scheme and
+design style of the *entire* site — every public page, the staff login and
+password-reset screens, and the rest of the admin panel — with no code
+editing required. This is meant for running the same codebase for
+different clients: pick a theme, and everything reflects it immediately.
+
+- **10 preset themes** ship out of the box, each pairing a color palette
+  with one of 6 structural design styles (Classic, Modern, Minimal, Bold,
+  Corporate, Dark Header) that change more than just color — corner
+  radius, shadow depth, button styling, heading typography, and (for Dark
+  Header) a dark navigation bar. "Classic Red" — the site's original
+  look — is the one active by default.
+- **Activate** any theme to make it live site-wide instantly.
+- **Edit Colors** on any theme (preset or custom) to change its 12
+  colors individually via color pickers, and its design style via a
+  dropdown. Editing the *active* theme's colors applies immediately.
+- **Duplicate** a theme to start a custom variant from an existing one's
+  colors, without touching the original.
+- **Delete** a theme permanently — presets included. There is no undo.
+  Deletion is always a manual, explicit action (a confirm dialog on a
+  button click) and is only ever blocked in two cases: you can't delete
+  the currently active theme (activate a different one first), and you
+  can't delete the last remaining theme. Nothing is ever deleted
+  automatically.
+
+Regular (non-super-admin) accounts can't see or reach `/admin/themes.php`
+or `/admin/theme_edit.php` at all — attempting to visit either redirects
+back to the dashboard with a permission error.
 
 ## Managing site content
 

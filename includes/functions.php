@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/settings.php';
+require_once __DIR__ . '/theme.php';
 
 function h(?string $value): string
 {

@@ -8,13 +8,14 @@ $activeAdminNav = $activeAdminNav ?? '';
 $__navAdmin = current_admin();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme-style="<?= h(active_theme_style_key()) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= isset($pageTitle) ? h($pageTitle) . ' — Admin' : 'Admin' ?> | <?= h(get_site_name()) ?></title>
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
+<?= theme_style_tag() ?>
 </head>
 <body>
 
@@ -53,6 +54,7 @@ $__navAdmin = current_admin();
       <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>
       <a href="/admin/profile.php" class="<?= $activeAdminNav === 'profile' ? 'active' : '' ?>">My Profile</a>
       <?php if ($__navAdmin && $__navAdmin['is_super_admin']): ?>
+        <a href="/admin/themes.php" class="<?= $activeAdminNav === 'themes' ? 'active' : '' ?>">Themes</a>
         <a href="/admin/admins.php" class="<?= $activeAdminNav === 'admins' ? 'active' : '' ?>">Admin Accounts</a>
       <?php endif; ?>
       <a href="/track.php" target="_blank">View Public Site &#8599;</a>

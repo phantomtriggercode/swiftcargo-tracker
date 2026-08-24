@@ -41,13 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $pageTitle = 'Forgot Password';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme-style="<?= h(active_theme_style_key()) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Forgot Password | <?= h(get_site_name()) ?></title>
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
+<?= theme_style_tag() ?>
 </head>
 <body>
 <div class="login-page">
