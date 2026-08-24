@@ -85,6 +85,45 @@ function send_tracking_update_email(array $shipment, array $event): array
     );
 }
 
+/**
+ * Notifies the receiver when a shipment's insurance status changes —
+ * whether insurance was just added or removed — instead of the change
+ * happening silently. $shipment only needs tracking_number, receiver_name,
+ * receiver_email.
+ *
+ * @return array{ok: bool, error?: string}
+ */
+function send_insurance_status_email(array $shipment, bool $nowInsured, float $insuranceValue): array
+{
+    $site = get_site_name();
+    $theme = get_active_theme();
+    $ink = h($theme['color_ink']);
+    $primary = h($theme['color_primary']);
+    $tn = h($shipment['tracking_number']);
+    $receiver = h($shipment['receiver_name']);
+    $trackUrl = get_site_url() . '/track.php?tn=' . urlencode($shipment['tracking_number']);
+
+    if ($nowInsured) {
+        $subject = $site . ' — Shipment ' . $shipment['tracking_number'] . ' is now insured';
+        $valueLine = $insuranceValue > 0 ? ' for a declared value of <strong style="color:' . $primary . ';">$' . number_format($insuranceValue, 2) . '</strong>' : '';
+        $bodyHtml = '<p>Your shipment <strong>' . $tn . '</strong> now has shipping insurance' . $valueLine . '.</p>';
+        $bodyText = "Your shipment {$tn} now has shipping insurance" . ($insuranceValue > 0 ? ' for a declared value of $' . number_format($insuranceValue, 2) : '') . ".\n";
+    } else {
+        $subject = $site . ' — Shipment ' . $shipment['tracking_number'] . ' insurance removed';
+        $bodyHtml = '<p>Shipping insurance has been removed from your shipment <strong>' . $tn . '</strong>. It is no longer covered by insurance in transit.</p>';
+        $bodyText = "Shipping insurance has been removed from your shipment {$tn}. It is no longer covered by insurance in transit.\n";
+    }
+
+    $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . $ink . ';">'
+        . '<p>Hi ' . $receiver . ',</p>'
+        . $bodyHtml
+        . '<p><a href="' . h($trackUrl) . '" style="color:' . $primary . ';">Track your shipment</a></p>'
+        . '</div>';
+    $altBody = "Hi {$shipment['receiver_name']},\n\n{$bodyText}\nTrack your shipment: {$trackUrl}\n";
+
+    return send_smtp_mail($shipment['receiver_email'], $shipment['receiver_name'], $subject, $htmlBody, $altBody);
+}
+
 function render_tracking_email_html(array $shipment, array $event): string
 {
     $trackUrl = get_site_url() . '/track.php?tn=' . urlencode($shipment['tracking_number']);

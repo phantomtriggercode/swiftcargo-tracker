@@ -118,6 +118,10 @@ include __DIR__ . '/includes/header.php';
             <div class="meta-label">Estimated Delivery</div>
             <div class="meta-value"><?= $shipment['estimated_delivery'] ? h(date('M j, Y', strtotime($shipment['estimated_delivery']))) : 'TBD' ?></div>
           </div>
+          <div class="meta-box">
+            <div class="meta-label">Payment</div>
+            <div class="meta-value"><?= h(payment_status_label($shipment)) ?></div>
+          </div>
         </div>
       </div>
 

@@ -36,13 +36,14 @@ include __DIR__ . '/includes/admin_header.php';
       <th>Receiver</th>
       <th>Route</th>
       <th>Status</th>
+      <th>Payment</th>
       <th>Updated</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody>
     <?php if (!$shipments): ?>
-      <tr><td colspan="6" style="text-align:center;color:var(--muted);">No shipments yet. Create one to get started.</td></tr>
+      <tr><td colspan="7" style="text-align:center;color:var(--muted);">No shipments yet. Create one to get started.</td></tr>
     <?php endif; ?>
     <?php foreach ($shipments as $s): ?>
       <tr>
@@ -50,6 +51,7 @@ include __DIR__ . '/includes/admin_header.php';
         <td data-label="Receiver"><?= h($s['receiver_name']) ?><br><span style="color:var(--muted);font-size:12.5px;"><?= h($s['receiver_email']) ?></span></td>
         <td data-label="Route" style="font-size:13px;"><?= h($s['origin_label']) ?> &rarr; <?= h($s['destination_label']) ?></td>
         <td data-label="Status"><span class="badge <?= status_badge_class($s['status']) ?>"><?= h($s['status']) ?></span></td>
+        <td data-label="Payment" style="font-size:12.5px;color:var(--muted);"><?= h(payment_status_label($s)) ?></td>
         <td data-label="Updated" style="font-size:13px;color:var(--muted);"><?= h(date('M j, g:i A', strtotime($s['updated_at']))) ?></td>
         <td class="actions" data-label="Actions">
           <div class="row-actions">

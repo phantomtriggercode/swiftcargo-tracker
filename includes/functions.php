@@ -12,6 +12,45 @@ function h(?string $value): string
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
 
+const SHIPMENT_STATUSES = [
+    'Pending', 'Picked Up', 'En Route', 'Customs Clearance', 'Insurance Clearance',
+    'Out for Delivery', 'Delivered', 'On Hold', 'Delayed', 'Exception',
+];
+
+/** Settings key holding the admin-editable default message for a status (see /admin/status_messages.php). */
+function status_message_key(string $status): string
+{
+    return 'status_message_' . strtolower(str_replace(' ', '_', $status));
+}
+
+function get_status_message(string $status): string
+{
+    return get_setting(status_message_key($status), '');
+}
+
+/**
+ * Human-readable payment status for a shipment row (needs payment_type,
+ * payment_price, payment_initial_amount, payment_amount_paid). Shared by
+ * the public tracking page, the admin dashboard, and the waybill PDF so
+ * the wording never drifts between them.
+ */
+function payment_status_label(array $shipment): string
+{
+    $price = $shipment['payment_price'] ?? null;
+    switch ($shipment['payment_type'] ?? 'Full Payment') {
+        case 'Partial Payment':
+            $initial = (float) ($shipment['payment_initial_amount'] ?? 0);
+            $paid = (float) ($shipment['payment_amount_paid'] ?? 0);
+            $balance = $initial - $paid;
+            return 'Partial payment — $' . number_format($paid, 2) . ' paid of $' . number_format($initial, 2)
+                . ' ($' . number_format($balance, 2) . ' remaining)';
+        case 'Payment on Arrival':
+            return 'Payment due on arrival' . ($price !== null ? ' ($' . number_format((float) $price, 2) . ')' : '');
+        default:
+            return 'Paid in full' . ($price !== null ? ' ($' . number_format((float) $price, 2) . ')' : '');
+    }
+}
+
 /**
  * Appends a cache-busting ?v= query string (the file's last-modified time)
  * to a local /assets/... URL, so browsers and any intermediate cache fetch

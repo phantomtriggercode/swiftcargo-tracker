@@ -50,6 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $courierId = !empty($_POST['courier_id']) ? (int) $_POST['courier_id'] : null;
     $insured = !empty($_POST['insured']);
     $insuranceValue = (float) ($_POST['insurance_value'] ?? 0);
+    $paymentType = $_POST['payment_type'] ?? 'Full Payment';
+    $paymentPrice = trim($_POST['payment_price'] ?? '');
+    $paymentInitialAmount = trim($_POST['payment_initial_amount'] ?? '');
+    $paymentAmountPaid = trim($_POST['payment_amount_paid'] ?? '');
     $originLabel = trim($_POST['origin_label'] ?? '');
     $originLat = $_POST['origin_lat'] ?? '';
     $originLng = $_POST['origin_lng'] ?? '';
@@ -77,6 +81,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    $paymentTypes = ['Full Payment', 'Partial Payment', 'Payment on Arrival'];
+    if (!in_array($paymentType, $paymentTypes, true)) $errors[] = 'Please choose a valid payment type.';
+    $dbPaymentPrice = null;
+    $dbPaymentInitial = null;
+    $dbPaymentPaid = null;
+    if ($paymentType === 'Partial Payment') {
+        if ($paymentInitialAmount === '' || !is_numeric($paymentInitialAmount) || (float) $paymentInitialAmount <= 0) {
+            $errors[] = 'Enter the initial amount expected for a partial payment.';
+        }
+        if ($paymentAmountPaid === '' || !is_numeric($paymentAmountPaid) || (float) $paymentAmountPaid < 0) {
+            $errors[] = 'Enter the amount paid so far (0 if nothing has been paid yet).';
+        }
+        if (!$errors && (float) $paymentAmountPaid > (float) $paymentInitialAmount) {
+            $errors[] = 'Amount paid cannot be more than the initial amount expected.';
+        }
+        if (!$errors) {
+            $dbPaymentInitial = (float) $paymentInitialAmount;
+            $dbPaymentPaid = (float) $paymentAmountPaid;
+        }
+    } else {
+        if ($paymentPrice !== '' && (!is_numeric($paymentPrice) || (float) $paymentPrice < 0)) {
+            $errors[] = 'Enter a valid price, or leave it blank.';
+        } elseif ($paymentPrice !== '') {
+            $dbPaymentPrice = (float) $paymentPrice;
+        }
+    }
+
     if (!$errors) {
         if ($shipment) {
             $stmt = db()->prepare('
@@ -84,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   sender_name = ?, sender_address = ?, receiver_name = ?, receiver_email = ?, receiver_address = ?,
                   package_description = ?, packaging_type = ?, weight_kg = ?, dimensions = ?,
                   service_type = ?, shipping_method = ?, land_method = ?, courier_id = ?, insured = ?, insurance_value = ?,
+                  payment_type = ?, payment_price = ?, payment_initial_amount = ?, payment_amount_paid = ?,
                   origin_label = ?, origin_lat = ?, origin_lng = ?,
                   destination_label = ?, destination_lat = ?, destination_lng = ?,
                   estimated_delivery = ?
@@ -93,10 +125,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $senderName, $senderAddress, $receiverName, $receiverEmail, $receiverAddress,
                 $packageDescription, $packagingType, $weightKg, $dimensions ?: null,
                 $serviceType, $shippingMethod, $landMethod, $courierId, $insured ? 1 : 0, $insured ? $insuranceValue : null,
+                $paymentType, $dbPaymentPrice, $dbPaymentInitial, $dbPaymentPaid,
                 $originLabel, $originLat, $originLng,
                 $destinationLabel, $destinationLat, $destinationLng,
                 $estimatedDelivery, $shipment['id'],
             ]);
+
+            // Insurance status changed — let the receiver know either way
+            // (newly insured, or insurance removed), not just silently.
+            if ((bool) $shipment['insured'] !== $insured) {
+                send_insurance_status_email([
+                    'tracking_number' => $shipment['tracking_number'],
+                    'receiver_name' => $receiverName,
+                    'receiver_email' => $receiverEmail,
+                ], $insured, $insuranceValue);
+            }
+
             flash_set('success', 'Shipment ' . $shipment['tracking_number'] . ' updated.');
             redirect('/admin/dashboard.php');
         } else {
@@ -115,27 +159,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 INSERT INTO shipments (
                   tracking_number, sender_name, sender_address, receiver_name, receiver_email, receiver_address,
                   package_description, packaging_type, weight_kg, dimensions,
-                  service_type, shipping_method, land_method, courier_id, insured, insurance_value, status,
+                  service_type, shipping_method, land_method, courier_id, insured, insurance_value,
+                  payment_type, payment_price, payment_initial_amount, payment_amount_paid, status,
                   origin_label, origin_lat, origin_lng,
                   destination_label, destination_lat, destination_lng,
                   current_lat, current_lng, estimated_delivery
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ');
             $stmt->execute([
                 $trackingNumber, $senderName, $senderAddress, $receiverName, $receiverEmail, $receiverAddress,
                 $packageDescription, $packagingType, $weightKg, $dimensions ?: null,
                 $serviceType, $shippingMethod, $landMethod, $courierId, $insured ? 1 : 0, $insured ? $insuranceValue : null,
+                $paymentType, $dbPaymentPrice, $dbPaymentInitial, $dbPaymentPaid,
                 $originLabel, $originLat, $originLng,
                 $destinationLabel, $destinationLat, $destinationLng,
                 $originLat, $originLng, $estimatedDelivery,
             ]);
             $newId = (int) db()->lastInsertId();
 
+            $pendingNote = get_status_message('Pending') ?: 'Shipment booked and label created.';
             $eventStmt = db()->prepare('
                 INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note)
-                VALUES (?, \'Pending\', ?, ?, ?, \'Shipment booked and label created.\')
+                VALUES (?, \'Pending\', ?, ?, ?, ?)
             ');
-            $eventStmt->execute([$newId, $originLabel, $originLat, $originLng]);
+            $eventStmt->execute([$newId, $originLabel, $originLat, $originLng, $pendingNote]);
 
             if ($fromRequestId) {
                 $convertStmt = db()->prepare("UPDATE shipment_requests SET status = 'Converted' WHERE id = ?");
@@ -143,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $newShipment = ['id' => $newId, 'tracking_number' => $trackingNumber, 'receiver_name' => $receiverName, 'receiver_email' => $receiverEmail];
-            $newEvent = ['status' => 'Pending', 'location_label' => $originLabel, 'note' => 'Shipment booked and label created.'];
+            $newEvent = ['status' => 'Pending', 'location_label' => $originLabel, 'note' => $pendingNote];
             $mailResult = send_tracking_update_email($newShipment, $newEvent);
 
             flash_set('success', 'Shipment ' . $trackingNumber . ' created.' . ($mailResult['ok'] ? ' Confirmation email sent to receiver.' : ' (Email could not be sent: ' . $mailResult['error'] . ')'));
@@ -301,6 +348,34 @@ include __DIR__ . '/includes/admin_header.php';
       <input type="number" step="0.01" min="0" name="insurance_value" value="<?= h($shipment['insurance_value'] ?? ($prefill['insurance_value'] ?? '')) ?>">
     </div>
 
+    <h3>Payment</h3>
+    <div class="form-group">
+      <label>Payment Type</label>
+      <?php $curPaymentType = $shipment['payment_type'] ?? 'Full Payment'; ?>
+      <select name="payment_type" id="payment_type_admin">
+        <option value="Full Payment" <?= $curPaymentType === 'Full Payment' ? 'selected' : '' ?>>Full Payment</option>
+        <option value="Partial Payment" <?= $curPaymentType === 'Partial Payment' ? 'selected' : '' ?>>Partial Payment</option>
+        <option value="Payment on Arrival" <?= $curPaymentType === 'Payment on Arrival' ? 'selected' : '' ?>>Payment on Arrival (receiver pays on delivery)</option>
+      </select>
+    </div>
+    <div class="form-group" id="payment-price-admin-group">
+      <label>Price (USD)</label>
+      <input type="number" step="0.01" min="0" name="payment_price" value="<?= h($shipment['payment_price'] ?? '') ?>" placeholder="Leave blank if not decided yet">
+    </div>
+    <div class="form-row" id="payment-partial-admin-group">
+      <div class="form-group">
+        <label>Initial Amount Expected (USD)</label>
+        <input type="number" step="0.01" min="0" name="payment_initial_amount" value="<?= h($shipment['payment_initial_amount'] ?? '') ?>">
+      </div>
+      <div class="form-group">
+        <label>Amount Paid So Far (USD)</label>
+        <input type="number" step="0.01" min="0" name="payment_amount_paid" id="payment_amount_paid_admin" value="<?= h($shipment['payment_amount_paid'] ?? '') ?>">
+      </div>
+    </div>
+    <p id="payment-balance-admin" style="font-size:13.5px;color:var(--muted);margin:-10px 0 18px;">
+      Remaining balance: <strong>$<?= number_format((float) ($shipment['payment_initial_amount'] ?? 0) - (float) ($shipment['payment_amount_paid'] ?? 0), 2) ?></strong>
+    </p>
+
     <h3>Origin</h3>
     <div class="form-group">
       <label>Origin Address or Place</label>
@@ -370,6 +445,34 @@ include __DIR__ . '/includes/admin_header.php';
     insuredBox.addEventListener('change', toggleInsurance);
     toggleLand();
     toggleInsurance();
+  })();
+
+  (function () {
+    var paymentType = document.getElementById('payment_type_admin');
+    var priceGroup = document.getElementById('payment-price-admin-group');
+    var partialGroup = document.getElementById('payment-partial-admin-group');
+    var balanceEl = document.getElementById('payment-balance-admin');
+    var initialInput = partialGroup.querySelector('[name="payment_initial_amount"]');
+    var paidInput = document.getElementById('payment_amount_paid_admin');
+
+    function togglePaymentFields() {
+      var isPartial = paymentType.value === 'Partial Payment';
+      priceGroup.style.display = isPartial ? 'none' : '';
+      partialGroup.style.display = isPartial ? '' : 'none';
+      if (balanceEl) balanceEl.style.display = isPartial ? '' : 'none';
+    }
+
+    function updateBalance() {
+      if (!balanceEl) return;
+      var initial = parseFloat(initialInput.value) || 0;
+      var paid = parseFloat(paidInput.value) || 0;
+      balanceEl.innerHTML = 'Remaining balance: <strong>$' + (initial - paid).toFixed(2) + '</strong>';
+    }
+
+    paymentType.addEventListener('change', togglePaymentFields);
+    initialInput.addEventListener('input', updateBalance);
+    paidInput.addEventListener('input', updateBalance);
+    togglePaymentFields();
   })();
 </script>
 

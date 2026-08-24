@@ -198,7 +198,46 @@ whatever brand you want regardless of what domain you deploy under.
    location, add an optional note, and save. This instantly:
    - Updates the shipment's live position (shown on the public tracking map).
    - Adds a new row to the status timeline.
-   - Emails the receiver about the change.
+   - Emails the receiver about the change. If the note is left blank, that
+     status's default message (see below) fills it in instead.
+
+### Status messages
+
+Every status (Pending, Picked Up, En Route, Customs Clearance, Insurance
+Clearance, Out for Delivery, Delivered, On Hold, Delayed, Exception) has a
+default explanatory message, editable by any admin at **Status Messages**.
+When staff add an update and leave the note blank, that status's message is
+used — for the receiver email and the public tracking timeline — so
+customers always get a plain-language explanation of what a status means,
+not just the status name. Staff can still type a specific note on any
+individual update to override it. The message is copied into that update
+the moment it's created, so editing a template later never rewrites what
+an already-sent update said.
+
+### Payment tracking
+
+Each shipment has a **Payment** section on the New/Edit Shipment form:
+
+- **Full Payment** — an optional price field (leave blank if not decided yet).
+- **Payment on Arrival** — same price field, worded for cash-on-delivery —
+  the receiver sees "Payment due on arrival" with the amount.
+- **Partial Payment** — enter the initial amount expected and the amount
+  paid so far; the remaining balance is computed automatically (never
+  stored, so it can't drift out of sync) and shown live as you type.
+
+Payment status shows on the admin dashboard, the public tracking page, and
+the waybill PDF, all pulling from the same wording via one shared helper
+(`payment_status_label()`) so it can't say different things in different
+places.
+
+### Insurance status changes
+
+Insurance (the "Shipment is insured" checkbox + declared value on the Edit
+Shipment form) can be changed any time after a shipment is created — not
+just at booking. Whenever it changes, either direction, the receiver gets
+an email: newly insured shows the declared value, insurance removed says
+so plainly. This isn't silent — a receiver who was told their shipment
+was insured always finds out if that stops being true.
 
 ### Turning any address into map coordinates
 
@@ -272,6 +311,12 @@ If you already deployed an earlier version of this project:
     the login form (see **Login security** below). The login page works
     fine before you run this too — it just skips rate-limiting until the
     table exists, rather than breaking.
+12. **Payment tracking + status messages:** import
+    `sql/migrations/010_payment_and_status_messages.sql` once. Adds
+    `payment_type`/`payment_price`/`payment_initial_amount`/
+    `payment_amount_paid` to `shipments` (every existing shipment defaults
+    to "Full Payment" with no price set) and seeds the 10 status message
+    settings with sensible defaults, editable at **Status Messages**.
 
 ## Login security
 

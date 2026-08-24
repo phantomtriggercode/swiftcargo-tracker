@@ -15,10 +15,7 @@ if (!$shipment) {
     redirect('/admin/dashboard.php');
 }
 
-$statuses = [
-    'Pending', 'Picked Up', 'En Route', 'Customs Clearance', 'Insurance Clearance',
-    'Out for Delivery', 'Delivered', 'On Hold', 'Delayed', 'Exception',
-];
+$statuses = SHIPMENT_STATUSES;
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,6 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($lng === '' || !is_numeric($lng)) $errors[] = 'A valid longitude is required.';
 
     if (!$errors) {
+        // Staff left the note blank — fall back to that status's editable
+        // default message (/admin/status_messages.php), baked in now so a
+        // later edit to the template never rewrites what this update said.
+        if ($note === '') {
+            $note = get_status_message($status);
+        }
+
         db()->beginTransaction();
 
         $insert = db()->prepare('
