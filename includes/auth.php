@@ -3,9 +3,7 @@
  * Admin session auth helpers. Requires config/db.php to already be loaded.
  */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+ensure_session_started();
 
 function admin_logged_in(): bool
 {

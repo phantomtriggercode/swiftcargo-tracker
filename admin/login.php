@@ -12,7 +12,10 @@ $error = flash_get('error');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
-    $password = (string) ($_POST['password'] ?? '');
+    // Trimmed like the username — copying a password from Notes, Mail, or a
+    // password manager on a phone very often carries an invisible trailing
+    // newline or space along with it, which would otherwise fail silently.
+    $password = trim((string) ($_POST['password'] ?? ''));
 
     if (attempt_admin_login($username, $password)) {
         redirect('/admin/dashboard.php');
@@ -49,11 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="post">
       <div class="form-group">
         <label for="username">Username or Email</label>
-        <input type="text" id="username" name="username" value="<?= h($_POST['username'] ?? '') ?>" required autofocus>
+        <input type="text" id="username" name="username" value="<?= h($_POST['username'] ?? '') ?>" required autofocus
+          autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
       </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
       </div>
       <button type="submit" class="btn btn-primary btn-block">Log In</button>
     </form>

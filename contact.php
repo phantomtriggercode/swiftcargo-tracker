@@ -4,9 +4,7 @@ require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/mailer.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+ensure_session_started();
 
 $errors = [];
 

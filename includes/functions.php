@@ -113,6 +113,43 @@ function redirect(string $path): void
 }
 
 /**
+ * True if this request reached us over HTTPS. Checks $_SERVER['HTTPS']
+ * directly, then falls back to the X-Forwarded-Proto header some
+ * hosts/proxies set when they terminate SSL in front of PHP (e.g. behind
+ * a CDN or load balancer) — without this fallback, PHP can think a
+ * perfectly secure request is plain HTTP and mis-set cookie/URL scheme.
+ */
+function is_https(): bool
+{
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        return true;
+    }
+    return !empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
+}
+
+/**
+ * Starts the PHP session with explicit cookie params (mainly SameSite=Lax
+ * + Secure-when-HTTPS) instead of PHP's bare defaults. Safari/iOS is
+ * stricter about cookie attributes than most desktop browsers, and a
+ * session cookie mobile Safari won't accept means a login can succeed
+ * server-side and still bounce straight back to the login page with no
+ * error, because the browser never actually kept the session.
+ */
+function ensure_session_started(): void
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => '/',
+            'secure' => is_https(),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        session_start();
+    }
+}
+
+/**
  * The site's base URL. Uses the SITE_URL constant if it's been set to
  * something real, otherwise auto-detects from the current request — so
  * this codebase works under any domain without editing config.php just
@@ -123,7 +160,7 @@ function get_site_url(): string
     if (defined('SITE_URL') && SITE_URL !== '' && !str_contains(SITE_URL, 'localhost')) {
         return rtrim(SITE_URL, '/');
     }
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $scheme = is_https() ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     return $scheme . '://' . $host;
 }
@@ -149,7 +186,7 @@ function maybe_send_go_live_alert(): void
 
     require_once __DIR__ . '/mailer.php';
     $siteName = get_site_name();
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $scheme = is_https() ? 'https' : 'http';
     $url = $scheme . '://' . $currentHost;
     $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#111827;">'
         . '<p>' . h($siteName) . ' just received its first visit on a new domain:</p>'
