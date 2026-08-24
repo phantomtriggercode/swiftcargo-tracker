@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form method="post">
       <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required autofocus>
+        <label for="username">Username or Email</label>
+        <input type="text" id="username" name="username" value="<?= h($_POST['username'] ?? '') ?>" required autofocus>
       </div>
       <div class="form-group">
         <label for="password">Password</label>
@@ -57,6 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
       <button type="submit" class="btn btn-primary btn-block">Log In</button>
     </form>
+    <p style="text-align:center;margin:16px 0 0;font-size:13.5px;">
+      <a href="/admin/forgot_password.php" style="color:var(--brand-red);">Forgot your password?</a>
+    </p>
   </div>
 </div>
 </body>

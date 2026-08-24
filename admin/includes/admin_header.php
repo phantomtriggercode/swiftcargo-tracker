@@ -49,6 +49,7 @@ $activeAdminNav = $activeAdminNav ?? '';
       <a href="/admin/rates.php" class="<?= $activeAdminNav === 'rates' ? 'active' : '' ?>">Calculator Rates</a>
       <a href="/admin/branding.php" class="<?= $activeAdminNav === 'branding' ? 'active' : '' ?>">Branding</a>
       <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>
+      <a href="/admin/profile.php" class="<?= $activeAdminNav === 'profile' ? 'active' : '' ?>">My Profile</a>
       <a href="/track.php" target="_blank">View Public Site &#8599;</a>
       <a href="/admin/logout.php">Logout</a>
     </nav>

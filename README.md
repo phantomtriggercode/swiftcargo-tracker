@@ -117,9 +117,10 @@ In **hPanel → Databases → MySQL Databases**:
    shipments plus a default admin login.
 
 **Already have a live SwiftCargo Tracker site from an earlier version?** Don't
-re-import `schema.sql` — instead import `sql/migrations/002_expand_features.sql`
-once via the same phpMyAdmin Import tab. It only adds the new columns/tables and
-leaves your existing shipments untouched. See "Updating an existing site" below.
+re-import `schema.sql` — instead import any `sql/migrations/*.sql` files you
+haven't run yet, in order, via the same phpMyAdmin Import tab. Each one only
+adds new columns/tables and leaves your existing data untouched. See
+"Updating an existing site" below.
 
 ### 3. Upload the files
 Using Hostinger's **File Manager** (or FTP):
@@ -143,12 +144,16 @@ Visit `https://your-temp-domain/admin/login.php`.
 
 Default demo login: **admin / ChangeMe123!**
 
-**Change this password immediately** — either add a "change password" flow, or
-generate a new hash locally with:
+**Change this password immediately** — log in, then go to **My Profile** in
+the sidebar to set a real password, and add an email address while you're
+there (it lets you log in with your email instead of your username, and is
+required for the "Forgot password?" link on the login page to work).
+
+Locked out and don't know the current password? Generate a new hash locally
+and update the `admins` table's `password_hash` column via phpMyAdmin:
 ```bash
 php -r "echo password_hash('YourNewPassword', PASSWORD_DEFAULT);"
 ```
-and update the `admins` table's `password_hash` column via phpMyAdmin.
 
 ## Setting up email alerts (SMTP, no API) — in the dashboard
 
@@ -230,6 +235,11 @@ If you already deployed an earlier version of this project:
    migration is needed** for branding, SMTP-in-dashboard, the booking wizard,
    the expanded content tabs, or the waybill/label PDFs — none of that
    touches the database schema.
+5. **Admin login by email + password reset:** import
+   `sql/migrations/003_admin_profile.sql` once to add the `email`,
+   `reset_token`, and `reset_token_expires` columns to `admins`. Until you
+   run this, the site still works fine — you just won't have the new
+   My Profile page, email login, or "Forgot password?" yet.
 
 ## Managing site content
 
