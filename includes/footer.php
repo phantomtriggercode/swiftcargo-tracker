@@ -50,5 +50,12 @@
   </div>
 </footer>
 <script src="<?= h(asset_url('/assets/js/reveal.js')) ?>" defer></script>
+<?php
+// The live chat bubble (bottom-right of every public page), only when the
+// site owner has switched it on at /admin/live_chat.php. Printed last so a
+// slow or unreachable chat service can never hold up the rest of the page.
+require_once __DIR__ . '/live_chat.php';
+echo live_chat_script_tag();
+?>
 </body>
 </html>

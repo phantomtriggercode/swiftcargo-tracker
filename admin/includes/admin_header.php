@@ -53,6 +53,9 @@ $__navAdmin = current_admin();
       <a href="/admin/rates.php" class="<?= $activeAdminNav === 'rates' ? 'active' : '' ?>">Calculator Rates</a>
       <a href="/admin/branding.php" class="<?= $activeAdminNav === 'branding' ? 'active' : '' ?>">Branding</a>
       <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>
+      <?php if ($__navAdmin && $__navAdmin['is_super_admin']): ?>
+        <a href="/admin/live_chat.php" class="<?= $activeAdminNav === 'live_chat' ? 'active' : '' ?>">Live Chat</a>
+      <?php endif; ?>
       <a href="/admin/profile.php" class="<?= $activeAdminNav === 'profile' ? 'active' : '' ?>">My Profile</a>
       <?php if ($__navAdmin && !$__navAdmin['is_super_admin']): ?>
         <a href="/admin/my_theme.php" class="<?= $activeAdminNav === 'my_theme' ? 'active' : '' ?>">Site Color</a>

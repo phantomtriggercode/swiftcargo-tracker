@@ -14,6 +14,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
 require_once __DIR__ . '/../includes/mailer.php';
+require_once __DIR__ . '/../includes/live_chat.php';
 require_admin();
 
 /** @var array<int, array{label:string, state:string, detail:string, fix:string}> */
@@ -180,6 +181,41 @@ if ($smtp['host'] === '' || $smtp['user'] === '') {
     );
 } else {
     check('Email (SMTP)', 'ok', 'Configured, sending as ' . h($smtp['from_email']) . '. Use "Send Test Email" to confirm it actually delivers.');
+}
+
+// ---------------------------------------------------------------
+// Live chat
+// ---------------------------------------------------------------
+$chat = live_chat_settings();
+if (!$chat['enabled'] && $chat['property_id'] === '') {
+    check(
+        'Live chat',
+        'ok',
+        'Not set up, which is fine — the site works exactly as normal without it.',
+        'To offer visitors a chat bubble, connect a free Tawk.to account under "Live Chat" in the sidebar.'
+    );
+} elseif (!live_chat_is_configured()) {
+    check(
+        'Live chat',
+        'fail',
+        'The saved Tawk.to codes are incomplete or malformed, so no chat bubble will appear.',
+        'Open "Live Chat" in the sidebar and paste the Widget Code from your Tawk.to dashboard again.'
+    );
+} elseif (!$chat['enabled']) {
+    check(
+        'Live chat',
+        'warn',
+        'Your Tawk.to account is connected but chat is switched off, so visitors see no chat bubble.',
+        'Tick "Show the chat bubble on the public site" under "Live Chat" in the sidebar to turn it back on.'
+    );
+} else {
+    check(
+        'Live chat',
+        'ok',
+        'On, loading from ' . h(live_chat_embed_url()) . '. Browsers are being told to allow that one outside host. '
+        . 'Open the public site to confirm the bubble appears at the bottom-right.',
+        ''
+    );
 }
 
 // ---------------------------------------------------------------

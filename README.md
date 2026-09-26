@@ -33,6 +33,11 @@ prefix — change it on your first login.
   name and upload a logo at `/admin/branding.php`; set SMTP host/port/username
   /password (from any mailbox — Hostinger webmail, Gmail, etc.) at
   `/admin/smtp_settings.php`, with a one-click test-email button.
+- **Optional live chat**: connect your own free [Tawk.to](https://www.tawk.to)
+  account at `/admin/live_chat.php` and a chat bubble appears bottom-right on
+  every public page. Paste the widget code from Tawk.to, tick a box, done —
+  and the site's Content-Security-Policy adjusts itself so the widget actually
+  loads. Off by default; one tick box hides it again.
 - A public **multi-step "Request a Shipment"** wizard (route & schedule →
   package details → service options → review) with a live, admin-configurable
   cost calculator; submissions land in an admin queue that can be reviewed and
@@ -83,7 +88,7 @@ config/         Database config (config.php is git-ignored — copy config.sampl
 sql/            schema.sql (fresh installs) + migrations/ (updates for an existing DB)
 includes/       Shared PHP: db helpers, auth, mailer, settings/CMS helper, header/footer
 admin/          Staff panel: dashboard, shipments, tracking updates, requests,
-                content, rates, branding, SMTP settings
+                content, rates, branding, SMTP settings, live chat
 api/            track.php (live map polling) + geocode.php (address lookup)
 assets/         CSS + JS + images (including illustrations/ and uploads/ for
                 admin-uploaded logos)
@@ -213,6 +218,60 @@ even to switch providers later.
 `config/config.php`'s `SMTP_*` constants still work as a fallback for a fresh
 install before you've visited the dashboard — but the dashboard is the
 intended way to manage this.
+
+## Live chat (Tawk.to) — in the dashboard
+
+Go to **`/admin/live_chat.php`** ("Live Chat" in the sidebar, super admin
+only) to put a chat bubble on the bottom-right of every public page.
+
+Nothing is hardcoded and no chat account ships with this codebase — the site
+owner connects their own:
+
+1. Sign in at [tawk.to](https://www.tawk.to) (the free plan is enough).
+2. **Administration → Channels → Chat Widget.**
+3. Copy everything in the **Widget Code** box.
+4. Paste it into the dashboard page and press Save.
+
+The page only keeps the two ID codes out of that snippet (the Property ID and
+Widget ID), so pasting the whole `<script>` block, just the
+`https://embed.tawk.to/…` link, or even the Property ID on its own all work.
+Both IDs are validated against a letters-and-digits-only allowlist before
+being stored, because they end up inside a `<script src>` URL on every public
+page.
+
+**Chats are answered in Tawk.to, not here.** Tawk.to holds the conversations,
+the agent login, and the widget's appearance (colour, position, greeting,
+office hours). This site only loads the widget; there is no way to proxy a
+Tawk.to login through this dashboard, and no Tawk.to password is ever stored
+here.
+
+Things worth knowing:
+
+- **The tick box is a kill switch.** Unticking "Show the chat bubble on the
+  public site" hides chat from visitors immediately without disconnecting the
+  account — useful outside business hours. "Disconnect Tawk.to" removes the
+  stored IDs entirely.
+- **The Content-Security-Policy follows the setting automatically.** This site
+  sends a strict CSP that normally allows no outside scripts at all, which
+  would make a browser *silently* block the chat widget — the bubble would
+  simply never appear, with no error anywhere. Turning chat on adds the
+  `*.tawk.to` hosts (script, websocket, images, fonts, chat frame, and the
+  notification sound) to that policy; turning it off removes them again. You
+  never have to edit `config/db.php` for this.
+- **The admin panel never loads the widget**, and keeps the strict policy
+  regardless of the setting.
+- **Chat can never break the site.** The widget loads last and
+  asynchronously. If Tawk.to is down, blocked by a visitor's network, or
+  unreachable for any other reason, the bubble just doesn't appear — the
+  tracking page, the live map, the route line and the timeline are all
+  unaffected. This was verified in a browser with the chat host refused,
+  timed out, and returning an error.
+- **Add a line to your Privacy Policy.** The widget sets its own cookies so a
+  visitor's conversation survives a page reload. The seeded Privacy Policy
+  text says the site uses no third-party cookies, which stops being accurate
+  once chat is on — edit it under **Site Content**.
+- **System Health** (`/admin/health.php`) reports live chat's state along with
+  everything else, so you can confirm it from inside the dashboard.
 
 ## Branding & white-labeling
 
@@ -377,6 +436,15 @@ If you already deployed an earlier version of this project:
     **Admin activity log** below). Works fine before you run this too — it
     just skips logging until the table exists, the same fail-open pattern
     as login rate-limiting.
+16. **Live chat (Tawk.to):** **no migration needed.** The three settings it
+    uses are created the first time you save the page, so just upload
+    `admin/live_chat.php`, `includes/live_chat.php`, `includes/footer.php`,
+    `admin/includes/admin_header.php`, `admin/health.php` and
+    `config/db.php`, then set it up at **Live Chat** in the sidebar. The
+    `config/db.php` file matters here: it is what tells browsers to allow
+    the chat host, and without it the widget is silently blocked and the
+    bubble never appears. (`config/config.php` is a different file and is
+    never overwritten by an update.)
 
 ## Login security
 
@@ -437,9 +505,10 @@ HTTPS), file uploads are validated by content and extension with
 randomized filenames, and site-wide security headers are sent on every
 response (`X-Content-Type-Options`, `X-Frame-Options`,
 `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` on
-HTTPS, and a `Content-Security-Policy` restricting scripts/styles/images
-to this site plus the two external hosts it actually uses — the Leaflet
-map library's CDN and OpenStreetMap's map tiles). That's a genuinely
+HTTPS, and a `Content-Security-Policy` restricting scripts, styles,
+images, frames and connections to this site — the only outside hosts
+allowed are OpenStreetMap's map tiles, and Tawk.to's, and only while the
+live chat widget is switched on in the dashboard). That's a genuinely
 solid baseline for a small PHP site — not a guarantee nothing can ever
 go wrong.
 
@@ -738,8 +807,9 @@ the codebase. Nothing outside your own server is required for it to load:
 - **Leaflet (the map library) is served from your own site**, from
   `assets/vendor/leaflet/` — not a CDN. A CDN outage, a corporate
   firewall, an ad blocker, or a country blocking that CDN can no longer
-  take the map down. (The Content-Security-Policy no longer lists any
-  external script or style host at all.)
+  take the map down. (The Content-Security-Policy lists no external script
+  or style host at all, unless the live chat widget is switched on — and
+  even then only Tawk.to's own hosts, which the map never touches.)
 - **Map tiles are the only outside request left**, from OpenStreetMap. If
   they fail — outage, blocked host, rate limit, patchy mobile signal — the
   map still loads, pans and zooms, and still draws the route, the
