@@ -276,7 +276,18 @@ Things worth knowing:
 **`/admin/tracking_display.php`** ("Tracking Page" in the sidebar) controls
 what a customer sees after entering a tracking number.
 
-- **Show the live map.** With this off, the tracking page shows no map, no
+- **Show the live map.** With this off, *the public site stops mentioning a
+  live map anywhere*, not just on the tracking page. The homepage hero, the
+  "Live Map Tracking" feature card, the Services list, the About text, the
+  search prompts and the shared meta description all switch to map-free
+  wording, so the site never advertises something it no longer does. Copy
+  that says nothing about a map is left exactly as written, map on or off,
+  and wording you have edited yourself is only replaced if it still mentions
+  a map (see `mentions_live_map()` in `includes/settings.php`). Long
+  editorial text such as the About body loses only the individual sentences
+  that mention the map, not the whole paragraph.
+
+  On the tracking page itself it shows no map, no
   legend and **no coordinates at all**. Latitude and longitude are left out of
   the page *and* out of `api/track.php`, the feed the page polls, so they
   cannot be read from the page source either. Leaflet itself is not even

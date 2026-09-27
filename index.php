@@ -12,16 +12,26 @@ include __DIR__ . '/includes/header.php';
   <div class="container hero-grid">
     <div>
       <h1><?= h(get_setting('home_hero_title', 'Ship anywhere. Track everything. Live.')) ?></h1>
-      <p class="lead"><?= h(get_setting('home_hero_lead')) ?></p>
+      <p class="lead"><?= h(get_setting_map_aware(
+      'home_hero_lead',
+      get_setting('home_hero_lead'),
+      get_site_name() . ' moves freight and parcels across the United States and worldwide, with an email sent to your receiver on every single update.'
+    )) ?></p>
     </div>
-    <img src="<?= h(get_site_image('home_hero_image', '/assets/images/illustrations/photo-hero-collage.jpg')) ?>" alt="Live shipment tracking preview showing a route on a map, a live position marker, and an email alert notification" class="hero-illustration">
+    <img src="<?= h(get_site_image('home_hero_image', '/assets/images/illustrations/photo-hero-collage.jpg')) ?>" alt="<?= live_map_enabled()
+      ? 'Live shipment tracking preview showing a route on a map, a live position marker, and an email alert notification'
+      : 'Shipment tracking preview showing delivery status and an email alert notification' ?>" class="hero-illustration">
   </div>
 </section>
 
 <div class="container">
   <div class="track-card">
     <h3><?= h(get_setting('home_track_title', 'Track your shipment')) ?></h3>
-    <p><?= h(get_setting('home_track_lead', 'Enter your tracking number to see live location and delivery status.')) ?></p>
+    <p><?= h(get_setting_map_aware(
+      'home_track_lead',
+      'Enter your tracking number to see live location and delivery status.',
+      'Enter your tracking number to see its current status and delivery progress.'
+    )) ?></p>
     <form class="track-form" action="/track.php" method="get">
       <input type="text" name="tn" placeholder="Enter your tracking number" required autocomplete="off">
       <button type="submit" class="btn btn-primary">Track</button>
@@ -52,12 +62,23 @@ include __DIR__ . '/includes/header.php';
       <h2><?= h(get_setting('home_features_title', 'Built for peace of mind')) ?></h2>
       <p><?= h(get_setting('home_features_lead', 'Every shipment is monitored end-to-end, with automatic alerts so your receiver is never left guessing.')) ?></p>
     </div>
+    <?php
+    // The first card is the live map feature. With the map switched off it
+    // is describing something the site no longer does, so it is left out.
+    // The grid stays three across: this row holds six cards, so dropping one
+    // simply leaves five flowing 3 + 2, which needs no layout change. A card
+    // the owner has rewritten into something not about the map is kept.
+    $__showMapFeature = live_map_enabled()
+        || !mentions_live_map(get_setting('home_feature1_title', 'Live Map Tracking') . ' ' . get_setting('home_feature1_desc', 'Watch your package move across an interactive world map in real time, from pickup to doorstep.'));
+    ?>
     <div class="grid-3">
+      <?php if ($__showMapFeature): ?>
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/map-pin.svg" alt="" width="24" height="24"></div>
         <h3><?= h(get_setting('home_feature1_title', 'Live Map Tracking')) ?></h3>
         <p><?= h(get_setting('home_feature1_desc', 'Watch your package move across an interactive world map in real time, from pickup to doorstep.')) ?></p>
       </div>
+      <?php endif; ?>
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/mail.svg" alt="" width="24" height="24"></div>
         <h3><?= h(get_setting('home_feature2_title', 'Automatic Email Alerts')) ?></h3>
@@ -149,7 +170,11 @@ include __DIR__ . '/includes/header.php';
       <div class="card">
         <div class="icon">3</div>
         <h3><?= h(get_setting('home_step3_title', 'You & the receiver stay informed')) ?></h3>
-        <p><?= h(get_setting('home_step3_desc', 'Every update triggers an instant email, and anyone can watch progress on the live map.')) ?></p>
+        <p><?= h(get_setting_map_aware(
+          'home_step3_desc',
+          'Every update triggers an instant email, and anyone can watch progress on the live map.',
+          'Every update triggers an instant email, and anyone can follow progress on the tracking page.'
+        )) ?></p>
       </div>
     </div>
   </div>

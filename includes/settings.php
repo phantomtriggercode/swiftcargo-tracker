@@ -128,3 +128,71 @@ function tracking_shows_logo(): bool
 {
     return get_setting('tracking_show_logo', '1') === '1';
 }
+
+/**
+ * Does this piece of copy talk about the live map?
+ *
+ * Used to keep the public site honest when a super admin switches the map
+ * off: nothing should still be advertising a feature that is no longer
+ * there. Matching on the words rather than on a fixed list of settings
+ * means it also catches wording the site owner has edited themselves.
+ */
+function mentions_live_map(string $text): bool
+{
+    return (bool) preg_match('/\bmaps?\b|\bmapping\b|live location|interactive world/i', $text);
+}
+
+/**
+ * A short piece of admin-editable copy, with a map-free alternative used
+ * whenever the live map is off and the stored wording mentions it.
+ *
+ * Wording that says nothing about the map is always left exactly as the
+ * owner wrote it, map on or off.
+ */
+function get_setting_map_aware(string $key, string $defaultOn, string $defaultOff): string
+{
+    $value = get_setting($key, $defaultOn);
+
+    if (live_map_enabled() || !mentions_live_map($value)) {
+        return $value;
+    }
+
+    return $defaultOff;
+}
+
+/**
+ * The map-free version of a longer body of text, for the editorial
+ * paragraphs on pages like About where replacing the whole thing would
+ * throw away the owner's writing.
+ *
+ * Drops only the individual sentences that mention the map and keeps
+ * everything else, including the paragraph breaks. Returns the text
+ * untouched when the map is on.
+ */
+function map_free_body(string $text): string
+{
+    if (live_map_enabled() || !mentions_live_map($text)) {
+        return $text;
+    }
+
+    // Paragraphs are stored either as a literal "\n\n" or as real blank
+    // lines, so normalise before splitting (same as render_paragraphs()).
+    $normalized = str_replace(['\\r\\n', '\\n', "\r\n"], "\n", $text);
+    $paragraphs = preg_split('/\n\s*\n/', $normalized);
+
+    $kept = [];
+    foreach ($paragraphs as $paragraph) {
+        // Split on sentence ends, keeping the punctuation with the sentence.
+        $sentences = preg_split('/(?<=[.!?])\s+/', trim($paragraph));
+        $keptSentences = array_filter(
+            $sentences,
+            static fn(string $sentence) => !mentions_live_map($sentence)
+        );
+        $rebuilt = trim(implode(' ', $keptSentences));
+        if ($rebuilt !== '') {
+            $kept[] = $rebuilt;
+        }
+    }
+
+    return implode("\n\n", $kept);
+}

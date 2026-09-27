@@ -40,7 +40,9 @@ $mapOn = live_map_enabled();
 <section class="track-hero">
   <div class="container">
     <h3 style="margin:0 0 4px;">Track your shipment</h3>
-    <p style="color:#d1d5db;margin:0 0 16px;font-size:14px;">Enter a tracking number to see live location and full status history.</p>
+    <p style="color:#d1d5db;margin:0 0 16px;font-size:14px;"><?= live_map_enabled()
+      ? 'Enter a tracking number to see live location and full status history.'
+      : 'Enter a tracking number to see its current status and full history.' ?></p>
     <form class="track-form" action="/track.php" method="get">
       <input type="text" name="tn" value="<?= h($tn) ?>" placeholder="Enter your tracking number" required autocomplete="off">
       <button type="submit" class="btn btn-yellow">Track</button>
@@ -300,7 +302,9 @@ $mapOn = live_map_enabled();
     <?php endif; ?>
 
   <?php else: ?>
-    <div class="alert alert-info">Enter a tracking number above to see live status and map location.</div>
+    <div class="alert alert-info"><?= live_map_enabled()
+      ? 'Enter a tracking number above to see live status and map location.'
+      : 'Enter a tracking number above to see its current status and delivery history.' ?></div>
   <?php endif; ?>
 
 </div>

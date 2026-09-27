@@ -11,7 +11,9 @@ maybe_send_go_live_alert();
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= isset($pageTitle) ? h($pageTitle) . ' | ' . h(get_site_name()) : h(get_site_name()) . ' | Global Shipping & Tracking' ?></title>
-<meta name="description" content="Track your shipment live on the map and get instant email alerts on every status update.">
+<meta name="description" content="<?= live_map_enabled()
+  ? 'Track your shipment live on the map and get instant email alerts on every status update.'
+  : 'Track your shipment and get instant email alerts on every status update.' ?>">
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
 <?= palette_style_tag() ?>

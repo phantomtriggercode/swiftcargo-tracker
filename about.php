@@ -21,7 +21,7 @@ include __DIR__ . '/includes/header.php';
 
 <section class="section">
   <div class="container" style="max-width:800px;font-size:16px;color:var(--ink-soft);">
-    <?= render_paragraphs(get_setting('about_body')) ?>
+    <?= render_paragraphs(map_free_body(get_setting('about_body'))) ?>
   </div>
 </section>
 

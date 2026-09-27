@@ -47,8 +47,14 @@ include __DIR__ . '/includes/header.php';
       <div class="eyebrow"><?= h(get_setting('services_include_eyebrow', 'Every plan includes')) ?></div>
       <h2><?= h(get_setting('services_include_title', 'Full visibility, no extra cost')) ?></h2>
     </div>
-    <div class="grid-4">
+    <?php
+    $__showMapInclude = live_map_enabled()
+        || !mentions_live_map(get_setting('services_include1_title', 'Live Map Tracking') . ' ' . get_setting('services_include1_desc', ''));
+    ?>
+    <div class="<?= $__showMapInclude ? 'grid-4' : 'grid-3' ?>">
+      <?php if ($__showMapInclude): ?>
       <div class="card"><div class="icon"><img src="/assets/images/icons/map-pin.svg" alt="" width="24" height="24"></div><h3><?= h(get_setting('services_include1_title', 'Live Map Tracking')) ?></h3><p><?= h(get_setting('services_include1_desc', 'Free on every shipment, every service tier.')) ?></p></div>
+      <?php endif; ?>
       <div class="card"><div class="icon"><img src="/assets/images/icons/mail.svg" alt="" width="24" height="24"></div><h3><?= h(get_setting('services_include2_title', 'Email Alerts')) ?></h3><p><?= h(get_setting('services_include2_desc', "Automatic updates sent to your receiver's inbox.")) ?></p></div>
       <div class="card"><div class="icon"><img src="/assets/images/icons/clock.svg" alt="" width="24" height="24"></div><h3><?= h(get_setting('services_include3_title', 'Delivery Timeline')) ?></h3><p><?= h(get_setting('services_include3_desc', 'A timestamped history from pickup to drop-off.')) ?></p></div>
       <div class="card"><div class="icon"><img src="/assets/images/icons/shield.svg" alt="" width="24" height="24"></div><h3><?= h(get_setting('services_include4_title', '24/7 Support')) ?></h3><p><?= h(get_setting('services_include4_desc', 'Our team is available around the clock.')) ?></p></div>
