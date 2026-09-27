@@ -5,3 +5,20 @@ Options -Indexes
 </IfModule>
 
 ErrorDocument 404 /404.php
+
+# Files that describe how this site is built. None of them are needed to
+# serve a page, and between them they give away the database structure, the
+# exact library versions in use, every admin URL, and the default login from
+# the setup guide. Serving them hands a stranger the blueprint.
+#
+# This matches on the file name, so .well-known/ (which the SSL certificate
+# renewal needs) keeps working normally.
+<FilesMatch "(^\.|\.(md|sql|lock|json|yml|yaml|ini|log|bak|old|dist|sh|twig)$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>

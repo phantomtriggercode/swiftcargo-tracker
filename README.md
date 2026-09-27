@@ -478,6 +478,44 @@ If you already deployed an earlier version of this project:
     bubble never appears. (`config/config.php` is a different file and is
     never overwritten by an update.)
 
+## What is and isn't protected from copying
+
+Worth being plain about, because it affects what you promise a client.
+
+**Cannot be prevented, by any website.** The HTML, CSS, JavaScript and
+images of any public page are sent to the visitor's browser in order to be
+displayed. Anyone can save them with Ctrl+S, `wget`, or a site-ripper, and
+rebuild a visual lookalike. Blocking right-click or devtools does not change
+this (the files are already downloaded by then), breaks ordinary things like
+copying a tracking number, and looks unprofessional. This codebase
+deliberately does none of that.
+
+**Is protected.** The part that actually matters is the part a copy cannot
+reproduce:
+
+- **The PHP source is never served.** The server executes it and sends only
+  the output, so the tracking logic, database queries, admin panel and email
+  handling cannot be downloaded.
+- **`config/`, `includes/` and `sql/` are denied at the web server** by their
+  own `.htaccess` files, so credentials and the database structure are not
+  reachable over the web even by direct URL.
+- **The blueprint files are blocked** by the root `.htaccess`: `README.md`
+  (which documents every admin URL and the default password), `composer.json`
+  and `composer.lock` (which name the exact library versions an attacker
+  would look up known flaws for), and any dotfile. `.well-known/` still
+  works, so SSL certificate renewal is unaffected.
+- **Directory listings are off**, so folders cannot be browsed for files.
+- **Uploaded files cannot execute**, so a PHP file disguised as an image
+  still cannot run.
+- **The admin panel is behind login**, with rate limiting, lockout, a
+  security question, CSRF checks on every form, and per-role permissions.
+- **Your data is yours.** Shipments, tracking history, customers and
+  settings live in your database. A copied front end has none of it.
+
+So someone can copy how the site looks. They cannot copy how it works, get
+into it, or take what is in it. That is the realistic boundary, and it is
+the same one every website operates under.
+
 ## Login security
 
 The login form (`/admin/login.php`) is hardened against bots and brute
