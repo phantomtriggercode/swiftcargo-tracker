@@ -315,6 +315,12 @@ two cards stay side by side at every screen width, down to a 320px phone,
 where the label and value stack inside each card so long addresses still
 fit without the page scrolling sideways.
 
+The same eight fields are then repeated as individual tiles in the details
+grid below, ahead of Carrier and Service, so every value is also readable as
+one flat top-to-bottom list without reading across the two cards. That
+repetition is deliberate. A tile whose field is empty is left out rather
+than printed blank.
+
 The same details also appear on the waybill, and the phone numbers are
 added to the shipping label, where a courier actually needs them.
 

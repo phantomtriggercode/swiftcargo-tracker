@@ -143,6 +143,31 @@ $mapOn = live_map_enabled();
         <?php endif; ?>
 
         <div class="shipment-meta">
+          <?php
+          // The sender and receiver details also appear here as individual
+          // tiles, ahead of the carrier and service rows, so every field is
+          // readable in one flat list without reading across the two cards
+          // above. Empty fields are skipped rather than printed blank.
+          $partyTiles = [
+              'Sender Name'      => $shipment['sender_name'],
+              'Sender Phone'     => $shipment['sender_phone'] ?? '',
+              'Sender Email'     => $shipment['sender_email'] ?? '',
+              'Sender Address'   => $shipment['sender_address'],
+              'Receiver Name'    => $shipment['receiver_name'],
+              'Receiver Phone'   => $shipment['receiver_phone'] ?? '',
+              'Receiver Email'   => $shipment['receiver_email'],
+              'Receiver Address' => $shipment['receiver_address'],
+          ];
+          foreach ($partyTiles as $tileLabel => $tileValue):
+              if (trim((string) $tileValue) === '') {
+                  continue;
+              }
+          ?>
+            <div class="meta-box">
+              <div class="meta-label"><?= h($tileLabel) ?></div>
+              <div class="meta-value"><?= h($tileValue) ?></div>
+            </div>
+          <?php endforeach; ?>
           <div class="meta-box">
             <div class="meta-label">Carrier</div>
             <div class="meta-value"><?= h($shipment['courier_name'] ?: get_site_name()) ?></div>
