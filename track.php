@@ -22,11 +22,20 @@ $pageTitle = 'Track Shipment';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Leaflet is served from this site, not a CDN. The live map is the most
-     important thing on the page, so it must not depend on a third-party
-     host that can be blocked by a firewall or ad blocker, blocked in a
-     whole country, or simply have an outage. See assets/vendor/leaflet/. -->
-<link rel="stylesheet" href="<?= h(asset_url('/assets/vendor/leaflet/leaflet.css')) ?>">
+<?php
+// The live map can be switched off entirely by a super admin at
+// /admin/tracking_display.php. When it is off nothing map-related is sent
+// to the browser: no stylesheet, no library, and no coordinates anywhere
+// in the page or in the feed it polls.
+$mapOn = live_map_enabled();
+?>
+<?php if ($mapOn): ?>
+  <!-- Leaflet is served from this site, not a CDN. The live map is the most
+       important thing on the page, so it must not depend on a third-party
+       host that can be blocked by a firewall or ad blocker, blocked in a
+       whole country, or simply have an outage. See assets/vendor/leaflet/. -->
+  <link rel="stylesheet" href="<?= h(asset_url('/assets/vendor/leaflet/leaflet.css')) ?>">
+<?php endif; ?>
 
 <section class="track-hero">
   <div class="container">
@@ -47,6 +56,20 @@ include __DIR__ . '/includes/header.php';
     </div>
   <?php elseif ($shipment): ?>
 
+    <?php if (tracking_shows_logo()): ?>
+      <div class="tracking-brand">
+        <?php if ($trackLogo = get_logo_url()): ?>
+          <img src="<?= h($trackLogo) ?>" alt="" width="46" height="46">
+        <?php else: ?>
+          <img src="/assets/images/logo-mark.svg" alt="" width="46" height="46">
+        <?php endif; ?>
+        <div>
+          <strong><?= h(get_site_name()) ?></strong>
+          <span>Shipment tracking</span>
+        </div>
+      </div>
+    <?php endif; ?>
+
     <div class="tn-heading">
       <div>
         <h2>Shipment <?= h($shipment['tracking_number']) ?></h2>
@@ -55,17 +78,50 @@ include __DIR__ . '/includes/header.php';
       <span class="badge <?= status_badge_class($shipment['status']) ?>" id="status-badge"><?= h($shipment['status']) ?></span>
     </div>
 
-    <div class="doc-actions">
-      <a href="/documents/waybill.php?tn=<?= urlencode($shipment['tracking_number']) ?>" target="_blank" class="btn btn-outline btn-sm">
-        <img src="/assets/images/icons/box.svg" alt="" width="14" height="14" style="vertical-align:-2px;"> Print Waybill (PDF)
-      </a>
-      <a href="/documents/label.php?tn=<?= urlencode($shipment['tracking_number']) ?>" target="_blank" class="btn btn-outline btn-sm">
-        <img src="/assets/images/icons/box.svg" alt="" width="14" height="14" style="vertical-align:-2px;"> Print Label (PDF)
-      </a>
+    <?php
+    // The waybill and label carry both parties' full contact details, so
+    // they are printed from the admin panel only. See documents/waybill.php.
+    ?>
+
+    <div class="parties">
+      <div class="party party-sender">
+        <div class="party-tag">From (Sender)</div>
+        <div class="party-name"><?= h($shipment['sender_name']) ?></div>
+        <dl class="party-lines">
+          <?php if (!empty($shipment['sender_address'])): ?>
+            <dt>Address</dt><dd><?= h($shipment['sender_address']) ?></dd>
+          <?php endif; ?>
+          <?php if (!empty($shipment['sender_phone'])): ?>
+            <dt>Phone</dt><dd><?= h($shipment['sender_phone']) ?></dd>
+          <?php endif; ?>
+          <?php if (!empty($shipment['sender_email'])): ?>
+            <dt>Email</dt><dd><?= h($shipment['sender_email']) ?></dd>
+          <?php endif; ?>
+        </dl>
+      </div>
+
+      <div class="party-arrow" aria-hidden="true">&rarr;</div>
+
+      <div class="party party-receiver">
+        <div class="party-tag">To (Receiver)</div>
+        <div class="party-name"><?= h($shipment['receiver_name']) ?></div>
+        <dl class="party-lines">
+          <?php if (!empty($shipment['receiver_address'])): ?>
+            <dt>Address</dt><dd><?= h($shipment['receiver_address']) ?></dd>
+          <?php endif; ?>
+          <?php if (!empty($shipment['receiver_phone'])): ?>
+            <dt>Phone</dt><dd><?= h($shipment['receiver_phone']) ?></dd>
+          <?php endif; ?>
+          <?php if (!empty($shipment['receiver_email'])): ?>
+            <dt>Email</dt><dd><?= h($shipment['receiver_email']) ?></dd>
+          <?php endif; ?>
+        </dl>
+      </div>
     </div>
 
     <div class="tracking-layout">
       <div>
+        <?php if ($mapOn): ?>
         <div id="map">
           <noscript>
             <div class="map-unavailable-inner" style="padding:28px 22px;text-align:center;">
@@ -84,12 +140,9 @@ include __DIR__ . '/includes/header.php';
           <span><span class="swatch-line swatch-line-traveled"></span> Traveled</span>
           <span><span class="swatch-line swatch-line-remaining"></span> Remaining</span>
         </div>
+        <?php endif; ?>
 
         <div class="shipment-meta">
-          <div class="meta-box">
-            <div class="meta-label">Receiver</div>
-            <div class="meta-value"><?= h($shipment['receiver_name']) ?></div>
-          </div>
           <div class="meta-box">
             <div class="meta-label">Carrier</div>
             <div class="meta-value"><?= h($shipment['courier_name'] ?: get_site_name()) ?></div>
@@ -158,6 +211,7 @@ include __DIR__ . '/includes/header.php';
       </div>
     </div>
 
+    <?php if ($mapOn): ?>
     <script src="<?= h(asset_url('/assets/vendor/leaflet/leaflet.js')) ?>"></script>
     <script>
       window.SHIPMENT_INIT = <?= json_encode([
@@ -218,6 +272,7 @@ include __DIR__ . '/includes/header.php';
         }, 5000);
       })();
     </script>
+    <?php endif; ?>
 
   <?php else: ?>
     <div class="alert alert-info">Enter a tracking number above to see live status and map location.</div>

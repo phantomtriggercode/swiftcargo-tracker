@@ -184,6 +184,35 @@ if ($smtp['host'] === '' || $smtp['user'] === '') {
 }
 
 // ---------------------------------------------------------------
+// Tracking page display
+// ---------------------------------------------------------------
+if (live_map_enabled()) {
+    check(
+        'Tracking page: live map',
+        'ok',
+        'On. Customers see the live map, and the tracking page carries coordinates as normal.',
+        ''
+    );
+} else {
+    check(
+        'Tracking page: live map',
+        'warn',
+        'Switched OFF, so no map and no coordinates appear on the public tracking page.',
+        'This is a deliberate setting, not a fault. If customers are asking why there is no map, '
+        . 'turn it back on under "Tracking Page" in the sidebar. Nothing was deleted: staff still '
+        . 'record coordinates, and turning it on restores the map immediately.'
+    );
+}
+check(
+    'Tracking page: company logo',
+    'ok',
+    tracking_shows_logo()
+        ? 'Shown above each tracked shipment. Change the logo itself under Branding.'
+        : 'Not shown. Turn it on under "Tracking Page" in the sidebar if you want tracked results branded.',
+    ''
+);
+
+// ---------------------------------------------------------------
 // Live chat
 // ---------------------------------------------------------------
 $chat = live_chat_settings();

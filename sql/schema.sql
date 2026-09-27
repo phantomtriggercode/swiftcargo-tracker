@@ -77,11 +77,18 @@ CREATE TABLE IF NOT EXISTS shipments (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   tracking_number VARCHAR(32) NOT NULL UNIQUE,
 
+  -- Contact details for both ends of the shipment. Only the name is
+  -- required: email, phone and address are nullable so a shipment can be
+  -- created with whatever is known at the time, and the tracking page
+  -- leaves out any line that is empty rather than printing a blank row.
   sender_name VARCHAR(150) NOT NULL,
+  sender_email VARCHAR(190) NULL DEFAULT NULL,
+  sender_phone VARCHAR(40) NULL DEFAULT NULL,
   sender_address VARCHAR(255) NOT NULL,
 
   receiver_name VARCHAR(150) NOT NULL,
   receiver_email VARCHAR(190) NOT NULL,
+  receiver_phone VARCHAR(40) NULL DEFAULT NULL,
   receiver_address VARCHAR(255) NOT NULL,
 
   package_description VARCHAR(255) NOT NULL,
@@ -205,6 +212,11 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 -- Live chat (Tawk.to). Off and unconfigured on a fresh install; the site
 -- owner connects their own Tawk.to account at /admin/live_chat.php. These
 -- rows are seeded only so the settings table shows what is available, -- the site behaves identically whether they exist or not.
+-- What the public tracking page shows. Both are managed by a super admin
+-- at /admin/tracking_display.php. The map is on by default; turning it off
+-- also removes every coordinate from the page and from the tracking API.
+('live_map_enabled', '1'),
+('tracking_show_logo', '1'),
 ('live_chat_enabled', '0'),
 ('live_chat_property_id', ''),
 ('live_chat_widget_id', '');

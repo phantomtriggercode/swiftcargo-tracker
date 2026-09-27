@@ -6,8 +6,15 @@
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/settings.php';
 
 header('Content-Type: application/json');
+
+// When a super admin switches the live map off, coordinates are not just
+// hidden on the page, they are left out of this feed too. Otherwise anyone
+// could read them straight out of this endpoint and the switch would mean
+// nothing. Place names and status still come through, so the timeline works.
+$mapOn = live_map_enabled();
 
 $tn = trim($_GET['tn'] ?? '');
 if ($tn === '') {
@@ -25,31 +32,42 @@ if (!$shipment) {
 
 $events = get_shipment_events((int) $shipment['id']);
 
-echo json_encode([
-    'ok' => true,
-    'shipment' => [
-        'tracking_number' => $shipment['tracking_number'],
-        'status' => $shipment['status'],
+$payload = [
+    'tracking_number' => $shipment['tracking_number'],
+    'status' => $shipment['status'],
+    'current_location_label' => $events ? end($events)['location_label'] : $shipment['origin_label'],
+    'origin_label' => $shipment['origin_label'],
+    'destination_label' => $shipment['destination_label'],
+    'updated_at' => $shipment['updated_at'],
+    'map_enabled' => $mapOn,
+];
+
+if ($mapOn) {
+    $payload += [
         'current_lat' => (float) $shipment['current_lat'],
         'current_lng' => (float) $shipment['current_lng'],
-        'current_location_label' => $events ? end($events)['location_label'] : $shipment['origin_label'],
-        'origin_label' => $shipment['origin_label'],
         'origin_lat' => (float) $shipment['origin_lat'],
         'origin_lng' => (float) $shipment['origin_lng'],
-        'destination_label' => $shipment['destination_label'],
         'destination_lat' => (float) $shipment['destination_lat'],
         'destination_lng' => (float) $shipment['destination_lng'],
-        'updated_at' => $shipment['updated_at'],
-    ],
-    'events' => array_map(static function (array $e) {
-        return [
+    ];
+}
+
+echo json_encode([
+    'ok' => true,
+    'shipment' => $payload,
+    'events' => array_map(static function (array $e) use ($mapOn) {
+        $out = [
             'id' => (int) $e['id'],
             'status' => $e['status'],
             'location_label' => $e['location_label'],
-            'lat' => (float) $e['lat'],
-            'lng' => (float) $e['lng'],
             'note' => $e['note'],
             'event_time' => $e['event_time'],
         ];
+        if ($mapOn) {
+            $out['lat'] = (float) $e['lat'];
+            $out['lng'] = (float) $e['lng'];
+        }
+        return $out;
     }, $events),
 ]);

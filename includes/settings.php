@@ -111,3 +111,20 @@ function get_site_image(string $key, string $default): string
     $path = get_setting($key, '');
     return $path !== '' ? $path : $default;
 }
+
+/**
+ * The two switches that control what the public tracking page shows,
+ * managed by a super admin at /admin/tracking_display.php.
+ *
+ * Both default to on, so an existing site behaves exactly as before until
+ * someone decides otherwise.
+ */
+function live_map_enabled(): bool
+{
+    return get_setting('live_map_enabled', '1') === '1';
+}
+
+function tracking_shows_logo(): bool
+{
+    return get_setting('tracking_show_logo', '1') === '1';
+}

@@ -271,6 +271,51 @@ Things worth knowing:
 - **System Health** (`/admin/health.php`) reports live chat's state along with
   everything else, so you can confirm it from inside the dashboard.
 
+## Tracking page display (super admin only)
+
+**`/admin/tracking_display.php`** ("Tracking Page" in the sidebar) controls
+what a customer sees after entering a tracking number.
+
+- **Show the live map.** With this off, the tracking page shows no map, no
+  legend and **no coordinates at all**. Latitude and longitude are left out of
+  the page *and* out of `api/track.php`, the feed the page polls, so they
+  cannot be read from the page source either. Leaflet itself is not even
+  loaded. Customers still get the status, the full timeline with place names,
+  and every shipment detail. Staff keep recording coordinates as normal when
+  adding an update, so turning the map back on restores everything with
+  nothing lost.
+- **Show the company logo above the tracked shipment**, so a printed or
+  screenshotted result is clearly branded. The logo itself comes from
+  **Branding**.
+
+Both default to on, so an existing site behaves exactly as before until
+someone changes them. Both are recorded in the **Activity Log**.
+
+## Waybill and label PDFs are staff only
+
+`documents/waybill.php` and `documents/label.php` require an admin login.
+They carry both parties' full contact details, so they are printed from the
+**Shipments** list in the admin panel rather than by anyone holding a
+tracking number. A logged-out request is sent to the login page.
+
+## Sender and receiver details
+
+Each shipment stores a **name, email, phone and address for both the sender
+and the receiver**. Only the names and the receiver's email (where alerts go)
+are required; everything else is optional and simply left out of the display
+when empty, rather than showing a blank row.
+
+Those details appear on the public tracking page in two cards that are
+deliberately styled differently, the sender muted on the left and the
+receiver in the brand color, so nobody has to read the labels to tell which
+is which. They also appear on the waybill, and the phone numbers are added
+to the shipping label, where a courier actually needs them.
+
+**Everything filled in here is shown to whoever tracks the shipment.** The
+tracking page is public to anyone holding the tracking number, so treat these
+fields as public information and leave a field blank if it should stay
+private. The form says so above the sender block.
+
 ## Uploaded images are stripped of hidden metadata
 
 Every image uploaded through the admin panel (logos, hero photos, site
@@ -462,13 +507,19 @@ If you already deployed an earlier version of this project:
     `includes/image_metadata.php` and `includes/uploads.php`. From then on
     every newly uploaded image is cleaned automatically. Images already
     uploaded before this update keep whatever metadata they arrived with, re-upload any you care about.
-17. **Wording cleanup:** import `sql/updates/001_text_cleanup.sql` once in
+17. **Contact details + tracking page switches:** import
+    `sql/migrations/014_contact_details_and_tracking_display.sql` once. It
+    adds `sender_email`, `sender_phone` and `receiver_phone` to `shipments`
+    (all nullable, so existing shipments import fine and simply have them
+    empty until you edit them) and seeds the two tracking page settings, both
+    on. Safe to run twice.
+18. **Wording cleanup:** import `sql/updates/001_text_cleanup.sql` once in
     phpMyAdmin. The site's page copy lives in the database, so re-uploading
     the files does **not** change wording that is already saved. This updates
     it. It only touches rows that still contain the old punctuation, so any
     wording you have edited yourself under **Site Content** is left alone, and
     it is safe to run more than once.
-18. **Live chat (Tawk.to):** **no migration needed.** The three settings it
+19. **Live chat (Tawk.to):** **no migration needed.** The three settings it
     uses are created the first time you save the page, so just upload
     `admin/live_chat.php`, `includes/live_chat.php`, `includes/footer.php`,
     `admin/includes/admin_header.php`, `admin/health.php` and

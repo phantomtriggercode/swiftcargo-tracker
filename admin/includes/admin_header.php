@@ -55,6 +55,7 @@ $__navAdmin = current_admin();
       <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>
       <?php if ($__navAdmin && $__navAdmin['is_super_admin']): ?>
         <a href="/admin/live_chat.php" class="<?= $activeAdminNav === 'live_chat' ? 'active' : '' ?>">Live Chat</a>
+        <a href="/admin/tracking_display.php" class="<?= $activeAdminNav === 'tracking_display' ? 'active' : '' ?>">Tracking Page</a>
       <?php endif; ?>
       <a href="/admin/profile.php" class="<?= $activeAdminNav === 'profile' ? 'active' : '' ?>">My Profile</a>
       <?php if ($__navAdmin && !$__navAdmin['is_super_admin']): ?>

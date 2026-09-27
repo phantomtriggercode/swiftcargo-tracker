@@ -1,18 +1,23 @@
 <?php
 /**
- * Downloadable PDF air waybill for a shipment. Accessible to anyone who
- * knows the tracking number (same access model as the public tracking
- * page) so both staff and the receiver can print it.
+ * Downloadable PDF air waybill for a shipment.
+ *
+ * Staff only. A waybill carries the sender's and receiver's full contact
+ * details, so it is gated behind an admin login rather than being
+ * printable by anyone holding a tracking number.
  */
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
 require_once __DIR__ . '/../includes/barcode.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
+
+require_admin();
 
 $tn = trim($_GET['tn'] ?? '');
 $shipment = $tn !== '' ? get_shipment_by_tracking($tn) : null;
@@ -138,11 +143,20 @@ ob_start();
         <div class="addr-label">Ship From</div>
         <div class="addr-name"><?= h($shipment['sender_name']) ?></div>
         <div class="addr-line"><?= h($shipment['sender_address']) ?></div>
+        <?php if (!empty($shipment['sender_phone'])): ?>
+          <div class="addr-line">Tel: <?= h($shipment['sender_phone']) ?></div>
+        <?php endif; ?>
+        <?php if (!empty($shipment['sender_email'])): ?>
+          <div class="addr-line"><?= h($shipment['sender_email']) ?></div>
+        <?php endif; ?>
       </td>
       <td>
         <div class="addr-label">Ship To</div>
         <div class="addr-name"><?= h($shipment['receiver_name']) ?></div>
         <div class="addr-line"><?= h($shipment['receiver_address']) ?></div>
+        <?php if (!empty($shipment['receiver_phone'])): ?>
+          <div class="addr-line">Tel: <?= h($shipment['receiver_phone']) ?></div>
+        <?php endif; ?>
         <div class="addr-line"><?= h($shipment['receiver_email']) ?></div>
       </td>
     </tr>

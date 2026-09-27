@@ -36,9 +36,12 @@ if (!$shipment && $fromRequestId) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senderName = trim($_POST['sender_name'] ?? '');
+    $senderEmail = trim($_POST['sender_email'] ?? '');
+    $senderPhone = trim($_POST['sender_phone'] ?? '');
     $senderAddress = trim($_POST['sender_address'] ?? '');
     $receiverName = trim($_POST['receiver_name'] ?? '');
     $receiverEmail = trim($_POST['receiver_email'] ?? '');
+    $receiverPhone = trim($_POST['receiver_phone'] ?? '');
     $receiverAddress = trim($_POST['receiver_address'] ?? '');
     $packageDescription = trim($_POST['package_description'] ?? '');
     $packagingType = $_POST['packaging_type'] ?? 'Box';
@@ -120,7 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($shipment) {
             $stmt = db()->prepare('
                 UPDATE shipments SET
-                  sender_name = ?, sender_address = ?, receiver_name = ?, receiver_email = ?, receiver_address = ?,
+                  sender_name = ?, sender_email = ?, sender_phone = ?, sender_address = ?,
+                  receiver_name = ?, receiver_email = ?, receiver_phone = ?, receiver_address = ?,
                   package_description = ?, packaging_type = ?, weight_kg = ?, dimensions = ?,
                   service_type = ?, shipping_method = ?, land_method = ?, courier_id = ?, insured = ?, insurance_value = ?,
                   payment_type = ?, payment_price = ?, payment_initial_amount = ?, payment_amount_paid = ?,
@@ -130,7 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 WHERE id = ?
             ');
             $stmt->execute([
-                $senderName, $senderAddress, $receiverName, $receiverEmail, $receiverAddress,
+                $senderName, $senderEmail ?: null, $senderPhone ?: null, $senderAddress,
+                $receiverName, $receiverEmail, $receiverPhone ?: null, $receiverAddress,
                 $packageDescription, $packagingType, $weightKg, $dimensions ?: null,
                 $serviceType, $shippingMethod, $landMethod, $courierId, $insured ? 1 : 0, $insured ? $insuranceValue : null,
                 $paymentType, $dbPaymentPrice, $dbPaymentInitial, $dbPaymentPaid,
@@ -165,17 +170,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = db()->prepare('
                 INSERT INTO shipments (
-                  tracking_number, sender_name, sender_address, receiver_name, receiver_email, receiver_address,
+                  tracking_number,
+                  sender_name, sender_email, sender_phone, sender_address,
+                  receiver_name, receiver_email, receiver_phone, receiver_address,
                   package_description, packaging_type, weight_kg, dimensions,
                   service_type, shipping_method, land_method, courier_id, insured, insurance_value,
                   payment_type, payment_price, payment_initial_amount, payment_amount_paid, status,
                   origin_label, origin_lat, origin_lng,
                   destination_label, destination_lat, destination_lng,
                   current_lat, current_lng, estimated_delivery
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ');
             $stmt->execute([
-                $trackingNumber, $senderName, $senderAddress, $receiverName, $receiverEmail, $receiverAddress,
+                $trackingNumber,
+                $senderName, $senderEmail ?: null, $senderPhone ?: null, $senderAddress,
+                $receiverName, $receiverEmail, $receiverPhone ?: null, $receiverAddress,
                 $packageDescription, $packagingType, $weightKg, $dimensions ?: null,
                 $serviceType, $shippingMethod, $landMethod, $courierId, $insured ? 1 : 0, $insured ? $insuranceValue : null,
                 $paymentType, $dbPaymentPrice, $dbPaymentInitial, $dbPaymentPaid,
@@ -229,10 +238,25 @@ include __DIR__ . '/includes/admin_header.php';
     <?php if ($fromRequestId): ?><input type="hidden" name="from_request_id" value="<?= (int) $fromRequestId ?>"><?php endif; ?>
 
     <h3 style="margin-top:0;">Sender</h3>
+    <p style="margin:0 0 12px;color:var(--muted);font-size:13px;">
+      Only the name is required. Anything you fill in here is shown to whoever
+      tracks this shipment, so leave a field blank if you would rather it
+      stayed private.
+    </p>
     <div class="form-row">
       <div class="form-group">
         <label>Sender Name</label>
         <input type="text" name="sender_name" value="<?= h($shipment['sender_name'] ?? '') ?>" required>
+      </div>
+      <div class="form-group">
+        <label>Sender Phone</label>
+        <input type="text" name="sender_phone" value="<?= h($shipment['sender_phone'] ?? '') ?>" placeholder="e.g. +1 800 555 0199">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Sender Email</label>
+        <input type="email" name="sender_email" value="<?= h($shipment['sender_email'] ?? '') ?>" placeholder="optional">
       </div>
       <div class="form-group">
         <label>Sender Address</label>
@@ -247,13 +271,19 @@ include __DIR__ . '/includes/admin_header.php';
         <input type="text" name="receiver_name" value="<?= h($shipment['receiver_name'] ?? ($prefill['full_name'] ?? '')) ?>" required>
       </div>
       <div class="form-group">
+        <label>Receiver Phone</label>
+        <input type="text" name="receiver_phone" value="<?= h($shipment['receiver_phone'] ?? ($prefill['phone'] ?? '')) ?>" placeholder="e.g. +44 20 7946 0958">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
         <label>Receiver Email (alerts sent here)</label>
         <input type="email" name="receiver_email" value="<?= h($shipment['receiver_email'] ?? ($prefill['email'] ?? '')) ?>" required>
       </div>
-    </div>
-    <div class="form-group">
-      <label>Receiver Address</label>
-      <input type="text" name="receiver_address" value="<?= h($shipment['receiver_address'] ?? ($prefill['ship_to'] ?? '')) ?>">
+      <div class="form-group">
+        <label>Receiver Address</label>
+        <input type="text" name="receiver_address" value="<?= h($shipment['receiver_address'] ?? ($prefill['ship_to'] ?? '')) ?>">
+      </div>
     </div>
 
     <h3>Package</h3>

@@ -1,18 +1,23 @@
 <?php
 /**
- * Downloadable PDF shipping label (4x6in, standard carrier label size)
- * for a shipment. Same access model as the waybill and the public
- * tracking page, anyone with the tracking number can print it.
+ * Downloadable PDF shipping label (4x6in, standard carrier label size).
+ *
+ * Staff only, same as the waybill: a label carries delivery addresses, so
+ * it is gated behind an admin login rather than being printable by anyone
+ * holding a tracking number.
  */
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
 require_once __DIR__ . '/../includes/barcode.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
+
+require_admin();
 
 $tn = trim($_GET['tn'] ?? '');
 $shipment = $tn !== '' ? get_shipment_by_tracking($tn) : null;
@@ -114,12 +119,18 @@ ob_start();
     <div class="section-label">Ship To</div>
     <div class="ship-to-name"><?= h($shipment['receiver_name']) ?></div>
     <div class="ship-to-addr"><?= h($shipment['receiver_address']) ?></div>
+    <?php if (!empty($shipment['receiver_phone'])): ?>
+      <div class="ship-to-addr">Tel: <?= h($shipment['receiver_phone']) ?></div>
+    <?php endif; ?>
 
     <div class="divider-thin"></div>
 
     <div class="section-label">From</div>
     <div class="from-name"><?= h($shipment['sender_name']) ?></div>
     <div class="from-addr"><?= h($shipment['sender_address']) ?></div>
+    <?php if (!empty($shipment['sender_phone'])): ?>
+      <div class="from-addr">Tel: <?= h($shipment['sender_phone']) ?></div>
+    <?php endif; ?>
 
     <div class="route-line"><strong><?= h($shipment['origin_label']) ?></strong> &rarr; <strong><?= h($shipment['destination_label']) ?></strong></div>
 
