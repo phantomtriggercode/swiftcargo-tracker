@@ -20,7 +20,7 @@ include __DIR__ . '/includes/header.php';
 <section class="section">
   <div class="container">
     <div class="form-group" style="max-width:420px;margin:0 auto 32px;">
-      <input type="text" id="country-search" placeholder="Search a country…" autocomplete="off">
+      <input type="text" id="country-search" placeholder="Search a country..." autocomplete="off">
     </div>
     <div class="countries-grid" id="countries-grid">
       <?php foreach ($countries as $country): ?>

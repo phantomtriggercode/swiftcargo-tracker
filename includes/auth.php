@@ -10,8 +10,7 @@ function admin_logged_in(): bool
     return !empty($_SESSION['admin_id']);
 }
 
-// An admin session left idle this long is logged out on its next request —
-// standard practice for a panel that can see customer PII and hold SMTP
+// An admin session left idle this long is logged out on its next request, // standard practice for a panel that can see customer PII and hold SMTP
 // credentials. Resets on every admin page load, so it's 60 idle minutes,
 // not 60 minutes total.
 const ADMIN_IDLE_TIMEOUT_SECONDS = 3600;
@@ -19,8 +18,7 @@ const ADMIN_IDLE_TIMEOUT_SECONDS = 3600;
 /**
  * Login + active-account check, without the forced-password-change
  * redirect below. Used by require_admin() itself and by
- * force_password_change.php, which can't call require_admin() directly —
- * that would redirect the page back to itself in a loop.
+ * force_password_change.php, which can't call require_admin() directly, * that would redirect the page back to itself in a loop.
  */
 function require_admin_base(): void
 {
@@ -31,7 +29,7 @@ function require_admin_base(): void
     $lastActivity = $_SESSION['admin_last_activity'] ?? null;
     if ($lastActivity !== null && (time() - $lastActivity) > ADMIN_IDLE_TIMEOUT_SECONDS) {
         // Clear just the admin identity, not the whole session (see the
-        // suspended-account branch below for why) — flash_set() right
+        // suspended-account branch below for why), flash_set() right
         // after a full session_destroy() wouldn't survive to the login page.
         unset($_SESSION['admin_id'], $_SESSION['admin_name'], $_SESSION['admin_last_activity']);
         flash_set('error', 'You were logged out after a period of inactivity. Please log in again.');
@@ -44,12 +42,12 @@ function require_admin_base(): void
     // silently submit actions (delete a shipment, change SMTP credentials,
     // demote another admin) using their logged-in session. Checked here,
     // centrally, so every admin page that calls require_admin() or
-    // require_super_admin() is covered automatically — no per-page code.
+    // require_super_admin() is covered automatically, no per-page code.
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_verify($_POST['csrf_token'] ?? '')) {
-        flash_set('error', 'Your form session expired and this save did not go through — please try again.');
+        flash_set('error', 'Your form session expired and this save did not go through, please try again.');
         // Back to the page the form actually lives on (e.g.
         // admin_edit.php?id=5, smtp_settings.php), not always the
-        // dashboard — otherwise a failed save on some other page looks
+        // dashboard, otherwise a failed save on some other page looks
         // like it silently did nothing instead of clearly failing.
         // REQUEST_URI (not SCRIPT_NAME) so query params like ?id=5 survive.
         $current = $_SERVER['REQUEST_URI'] ?? '/admin/dashboard.php';
@@ -62,7 +60,7 @@ function require_admin_base(): void
     $stmt->execute([$_SESSION['admin_id']]);
     $row = $stmt->fetch();
     if (!$row || !$row['is_active']) {
-        // Clear just the admin identity, not the whole session — admin_logout()
+        // Clear just the admin identity, not the whole session: admin_logout()
         // wipes $_SESSION entirely, which would also erase the flash message
         // below before it ever reaches the login page.
         unset($_SESSION['admin_id'], $_SESSION['admin_name']);
@@ -121,7 +119,7 @@ function admin_logout(): void
 
 /**
  * Records a sensitive admin action to the audit trail viewable at
- * /admin/activity_log.php (super admins only). Fails open — a missing
+ * /admin/activity_log.php (super admins only). Fails open: a missing
  * admin_activity_log table (not migrated yet) or any DB error here never
  * blocks the action itself, only skips logging it.
  *
@@ -144,7 +142,7 @@ function log_admin_activity(string $action, string $details = '', ?int $adminId 
         ');
         $stmt->execute([$adminId, $adminName ?? 'Unknown', $action, $details, client_ip()]);
     } catch (PDOException $e) {
-        // Same rationale as login_attempts — a missing table should never
+        // Same rationale as login_attempts: a missing table should never
         // break the admin action itself, only skip the audit trail entry.
     }
 }
@@ -164,7 +162,7 @@ function set_admin_password(int $adminId, string $newPassword): void
     $hash = password_hash($newPassword, PASSWORD_DEFAULT);
     // Setting a password (self-service, a mailed reset link, or a super
     // admin setting one directly) always satisfies any pending forced
-    // change — admin_edit.php re-sets the flag afterward if it wants the
+    // change, admin_edit.php re-sets the flag afterward if it wants the
     // new password itself to be temporary.
     $stmt = db()->prepare('UPDATE admins SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL, must_change_password = 0 WHERE id = ?');
     $stmt->execute([$hash, $adminId]);
@@ -178,7 +176,7 @@ function set_must_change_password(int $adminId, bool $mustChange): void
 
 /**
  * Starts a password-reset flow for the admin with this email (if one
- * exists) and returns the raw token to email them — or null if no admin
+ * exists) and returns the raw token to email them, or null if no admin
  * uses that email. Only a SHA-256 hash of the token is stored, so a
  * database leak alone can't be used to reset a password.
  */

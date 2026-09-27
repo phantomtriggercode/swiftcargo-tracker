@@ -10,7 +10,7 @@ maybe_send_go_live_alert();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= isset($pageTitle) ? h($pageTitle) . ' — ' . h(get_site_name()) : h(get_site_name()) . ' | Global Shipping & Tracking' ?></title>
+<title><?= isset($pageTitle) ? h($pageTitle) . ' | ' . h(get_site_name()) : h(get_site_name()) . ' | Global Shipping & Tracking' ?></title>
 <meta name="description" content="Track your shipment live on the map and get instant email alerts on every status update.">
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
@@ -21,9 +21,7 @@ maybe_send_go_live_alert();
      scroll into view. Inline and in <head> on purpose: it has to run
      before first paint, or hidden sections would flash visible first.
 
-     The timer is the safety net. If assets/js/reveal.js never gets to run
-     — blocked by an extension, 404 after a bad upload, a future CSP change
-     — nothing would ever add .is-visible and those sections would stay
+     The timer is the safety net. If assets/js/reveal.js never gets to run: blocked by an extension, 404 after a bad upload, a future CSP change, nothing would ever add .is-visible and those sections would stay
      invisible forever. reveal.js stamps data-reveal-ready on <html> as
      soon as it starts; if that hasn't happened shortly after load, the
      class comes back off and every section simply renders normally,

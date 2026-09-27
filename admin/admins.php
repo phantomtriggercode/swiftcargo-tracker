@@ -154,7 +154,7 @@ include __DIR__ . '/includes/admin_header.php';
       <tr>
         <td data-label="Name"><?= h($a['full_name']) ?><?= (int) $a['id'] === (int) $me['id'] ? ' <span style="color:var(--muted);font-size:12px;">(you)</span>' : '' ?></td>
         <td data-label="Username"><?= h($a['username']) ?></td>
-        <td data-label="Email"><?= h($a['email'] ?: '—') ?></td>
+        <td data-label="Email"><?= h($a['email'] ?: 'Not set') ?></td>
         <td data-label="Role"><?= $a['is_super_admin'] ? '<span class="badge badge-transit">Super Admin</span>' : '<span class="badge badge-pending">Admin</span>' ?></td>
         <td data-label="Status"><?= $a['is_active'] ? '<span class="badge badge-delivered">Active</span>' : '<span class="badge badge-alert">Suspended</span>' ?></td>
         <td class="actions" data-label="Actions">

@@ -3,7 +3,7 @@
  * Self-hosted login protection: no external service, no API key, nothing
  * for the site owner to sign up for. Combines a honeypot field, a
  * server-generated math challenge, and an IP+username rate limit with a
- * temporary lockout — this is what stands in for "reCAPTCHA" on the admin
+ * temporary lockout. This is what stands in for "reCAPTCHA" on the admin
  * login form. See admin/login.php for how these are wired together.
  *
  * Requires config/db.php and includes/functions.php (for ensure_session_started)
@@ -26,7 +26,7 @@ function client_ip(): string
 function login_rate_limit_check(string $ip, string $identifier): ?string
 {
     // Fails open (no rate limit applied, login proceeds) if the
-    // login_attempts table doesn't exist yet — e.g. this code deployed
+    // login_attempts table doesn't exist yet, e.g. this code deployed
     // before migration 009 was imported. The alternative (throwing) would
     // take the entire login page down for every admin, which is worse
     // than briefly running without rate limiting.
@@ -72,13 +72,13 @@ function record_login_attempt(string $ip, string $identifier, bool $succeeded): 
             $clear->execute([$ip, $identifier]);
         }
 
-        // Opportunistic cleanup of old rows — no cron available on shared
+        // Opportunistic cleanup of old rows: no cron available on shared
         // hosting, so do it inline on a small fraction of requests instead.
         if (random_int(1, 50) === 1) {
             db()->exec('DELETE FROM login_attempts WHERE attempted_at < (NOW() - INTERVAL 1 DAY)');
         }
     } catch (PDOException $e) {
-        // Same rationale as above — a missing table here should never
+        // Same rationale as above: a missing table here should never
         // break the login page itself, only skip the tracking.
     }
 }
@@ -100,7 +100,7 @@ function new_captcha_challenge(): array
 function verify_captcha(string $submitted): bool
 {
     $expected = $_SESSION['login_captcha_answer'] ?? null;
-    unset($_SESSION['login_captcha_answer']); // single use — always re-issued after this call
+    unset($_SESSION['login_captcha_answer']); // single use, always re-issued after this call
     $submitted = trim($submitted);
     if ($expected === null || $submitted === '' || !ctype_digit($submitted)) {
         return false;
@@ -108,7 +108,7 @@ function verify_captcha(string $submitted): bool
     return (int) $submitted === (int) $expected;
 }
 
-/** True if the honeypot field was filled in — real users never see or fill it. */
+/** True if the honeypot field was filled in, real users never see or fill it. */
 function honeypot_tripped(string $value): bool
 {
     return trim($value) !== '';

@@ -42,7 +42,7 @@ function payment_status_label(array $shipment): string
             $initial = (float) ($shipment['payment_initial_amount'] ?? 0);
             $paid = (float) ($shipment['payment_amount_paid'] ?? 0);
             $balance = $initial - $paid;
-            return 'Partial payment — $' . number_format($paid, 2) . ' paid of $' . number_format($initial, 2)
+            return 'Partial payment: $' . number_format($paid, 2) . ' paid of $' . number_format($initial, 2)
                 . ' ($' . number_format($balance, 2) . ' remaining)';
         case 'Payment on Arrival':
             return 'Payment due on arrival' . ($price !== null ? ' ($' . number_format((float) $price, 2) . ')' : '');
@@ -54,7 +54,7 @@ function payment_status_label(array $shipment): string
 /**
  * Appends a cache-busting ?v= query string (the file's last-modified time)
  * to a local /assets/... URL, so browsers and any intermediate cache fetch
- * a fresh copy the moment a CSS/JS file changes on the server — instead of
+ * a fresh copy the moment a CSS/JS file changes on the server, instead of
  * silently keeping an old cached version after a deploy.
  */
 function asset_url(string $path): string
@@ -66,7 +66,7 @@ function asset_url(string $path): string
 
 function generate_tracking_number(): string
 {
-    // e.g. SC7482913KE — admin-configured prefix + 7 random digits +
+    // e.g. SC7482913KE, admin-configured prefix + 7 random digits +
     // 2 random letters + admin-configured suffix (see /admin/branding.php).
     $prefix = get_setting('tracking_number_prefix', 'SC');
     $suffix = get_setting('tracking_number_suffix', '');
@@ -178,7 +178,7 @@ function redirect(string $path): void
  * True if this request reached us over HTTPS. Checks $_SERVER['HTTPS']
  * directly, then falls back to the X-Forwarded-Proto header some
  * hosts/proxies set when they terminate SSL in front of PHP (e.g. behind
- * a CDN or load balancer) — without this fallback, PHP can think a
+ * a CDN or load balancer): without this fallback, PHP can think a
  * perfectly secure request is plain HTTP and mis-set cookie/URL scheme.
  */
 function is_https(): bool
@@ -192,11 +192,11 @@ function is_https(): bool
 /**
  * Stricter cousin of is_https(), used only to decide whether the session
  * cookie gets the `Secure` flag. Getting this wrong doesn't degrade the
- * site — it locks people out of it, so it errs on the side of working.
+ * site. It locks people out of it, so it errs on the side of working.
  *
  * The `Secure` flag tells the browser "only ever send this cookie over
  * HTTPS". If we set it on a response the browser received over plain
- * HTTP, the browser doesn't just ignore the flag — it refuses to store
+ * HTTP, the browser doesn't just ignore the flag. It refuses to store
  * the cookie at all. No cookie means no session, no session means the
  * CSRF token from the login form has nothing to match against, and the
  * user is told "your session expired" no matter how correct their
@@ -206,7 +206,7 @@ function is_https(): bool
  * them) send `X-Forwarded-Proto: https` on *every* request once SSL is
  * enabled, including ones the visitor genuinely made over http://. Trust
  * that header alone and the login page becomes unusable for anyone who
- * reaches the site by typing the bare domain — which is most people on a
+ * reaches the site by typing the bare domain: which is most people on a
  * phone, while desktop users click an https:// bookmark and never notice.
  *
  * So the forwarded header is only believed when the port agrees with it.
@@ -217,7 +217,7 @@ function is_https(): bool
  */
 function is_https_for_cookie(): bool
 {
-    // TLS terminated by the web server itself — unambiguous, always trust.
+    // TLS terminated by the web server itself: unambiguous, always trust.
     if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
         return true;
     }
@@ -246,7 +246,7 @@ function ensure_session_started(): void
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
-            // Deliberately is_https_for_cookie(), not is_https() — see the
+            // Deliberately is_https_for_cookie(), not is_https(), see the
             // long note on that function. Marking this Secure on a request
             // the browser made over plain HTTP makes the browser discard
             // the cookie entirely, which presents as "your session expired"
@@ -264,7 +264,7 @@ function ensure_session_started(): void
  * links, password-reset links), the waybill PDF footer, and sitemap.xml.
  *
  * SITE_URL in config/config.php is the single place to set this. When it's
- * set, it always wins — that is the recommended production setup, and the
+ * set, it always wins. That is the recommended production setup, and the
  * ONLY configuration that's safe against Host-header spoofing (see below).
  *
  * When SITE_URL is blank (or still pointing at localhost), the URL is
@@ -274,7 +274,7 @@ function ensure_session_started(): void
  * can send `Host: evil.example` to /admin/forgot_password.php with a real
  * admin's email address, and the reset email that admin receives would
  * carry a link pointing at the attacker's domain with a valid token
- * attached — classic password-reset poisoning. Setting SITE_URL closes
+ * attached, classic password-reset poisoning. Setting SITE_URL closes
  * that off completely, which is why the deploy docs insist on it.
  *
  * Either way the host is sanitized to characters actually legal in a
@@ -289,7 +289,7 @@ function get_site_url(): string
 
     $scheme = is_https() ? 'https' : 'http';
     $rawHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    // Letters, digits, dot, hyphen and an optional :port — nothing else.
+    // Letters, digits, dot, hyphen and an optional :port, nothing else.
     $host = preg_match('/^[A-Za-z0-9.\-]+(:[0-9]{1,5})?$/', $rawHost) ? $rawHost : 'localhost';
 
     return $scheme . '://' . $host;
@@ -298,7 +298,7 @@ function get_site_url(): string
 /**
  * Opt-in "go-live" alert: if a notify email is set under Branding, emails
  * it the first time the site is ever seen on a given domain. Documented,
- * admin-configured, and visible in /admin/branding.php — not hidden.
+ * admin-configured, and visible in /admin/branding.php, not hidden.
  */
 function maybe_send_go_live_alert(): void
 {

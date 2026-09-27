@@ -30,7 +30,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <p style="color:var(--muted);font-size:14px;max-width:720px;">
   When staff add a tracking update at <strong>Add Update</strong> and leave the
-  note blank, the message below for that status is used instead — in the
+  note blank, the message below for that status is used instead, in the
   status-change email sent to the receiver and on the public tracking page.
   Staff can still type a specific note on any individual update to override
   this. Editing a message here only affects updates made after you save;

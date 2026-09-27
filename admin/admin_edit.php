@@ -41,8 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$fullName, $username, $email !== '' ? $email : null, $id]);
 
         if ($newPassword !== '') {
-            // Clears any existing must_change_password flag as a side effect —
-            // re-set it below if this new password should itself be temporary.
+            // Clears any existing must_change_password flag as a side effect, // re-set it below if this new password should itself be temporary.
             set_admin_password($id, $newPassword);
         }
         if ($forceChange) {
@@ -104,7 +103,7 @@ include __DIR__ . '/includes/admin_header.php';
         Require a password change the next time they log in
       </label>
       <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
-        They'll just see a plain "set a new password to continue" prompt — nothing
+        They'll just see a plain "set a new password to continue" prompt, nothing
         singles out who required it. Pairs well with setting a temporary password above.
       </span>
     </div>

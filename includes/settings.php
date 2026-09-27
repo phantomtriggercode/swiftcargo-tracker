@@ -11,7 +11,7 @@ function get_setting(string $key, string $default = ''): string
 
     if (!array_key_exists($key, $cache)) {
         // Falls back to $default on any DB error (e.g. the settings table
-        // doesn't exist yet — schema.sql not imported) instead of a fatal
+        // doesn't exist yet: schema.sql not imported) instead of a fatal
         // error, since this runs on nearly every page load. Same
         // reasoning as includes/design.php's get_active_palette().
         try {
@@ -89,7 +89,7 @@ function get_site_name(): string
 /**
  * A custom uploaded logo (set at /admin/branding.php) always wins. With
  * none uploaded, falls back to the active template's own default logo
- * mark (see includes/design.php) — so switching templates can change the
+ * mark (see includes/design.php), so switching templates can change the
  * logo too, without the admin having to upload anything.
  */
 function get_logo_url(): ?string
@@ -103,7 +103,7 @@ function get_logo_url(): ?string
 
 /**
  * Admin-replaceable site image (hero/illustration photos). An empty stored
- * value means "reset to default" — set_setting() only upserts rows, it
+ * value means "reset to default": set_setting() only upserts rows, it
  * can't remove one, so a blank string is how a reset is represented.
  */
 function get_site_image(string $key, string $default): string

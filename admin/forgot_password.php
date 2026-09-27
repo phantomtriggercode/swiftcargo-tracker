@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
 
     if (!csrf_verify((string) ($_POST['csrf_token'] ?? ''))) {
-        $errors[] = 'Your session expired — please try again.';
+        $errors[] = 'Your session expired: please try again.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Enter a valid email address.';
     } elseif (login_rate_limit_check($ip, 'reset:' . strtolower($email)) !== null) {
@@ -34,13 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . h($theme['color_ink']) . ';">'
                 . '<p>We received a request to reset the password for the ' . h($siteName) . ' admin account tied to this email.</p>'
                 . '<p><a href="' . h($resetUrl) . '" style="display:inline-block;background:' . h($theme['color_primary']) . ';color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">Reset Password</a></p>'
-                . '<p style="color:#6b7280;font-size:12.5px;">This link expires in 1 hour. If you didn\'t request this, you can ignore this email — your password won\'t change.</p>'
+                . '<p style="color:#6b7280;font-size:12.5px;">This link expires in 1 hour. If you didn\'t request this, you can ignore this email, your password won\'t change.</p>'
                 . '</div>';
             $altBody = "Reset your {$siteName} admin password: {$resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can ignore this email.";
             send_smtp_mail($email, $siteName . ' Admin', 'Reset your ' . $siteName . ' admin password', $htmlBody, $altBody);
         }
-        // Always show the same message, whether or not that email is registered —
-        // this keeps the form from revealing which emails have admin accounts.
+        // Always show the same message, whether or not that email is registered, // this keeps the form from revealing which emails have admin accounts.
         $submitted = true;
     }
 }

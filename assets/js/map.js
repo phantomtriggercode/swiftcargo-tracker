@@ -11,7 +11,7 @@
           or discarded here rather than being handed to Leaflet, which
           would otherwise throw and kill the whole map.
        2. Tile images failing (OpenStreetMap outage, blocked host, rate
-          limit) is handled by the tile layer itself — the map still
+          limit) is handled by the tile layer itself: the map still
           loads, pans and zooms, and the route/markers still draw over a
           plain background.
        3. Anything genuinely unexpected is caught and turned into a
@@ -34,7 +34,7 @@
       msg.appendChild(body);
       mapEl.appendChild(msg);
     }
-    // Hide the "live position, auto-refreshes" tag — nothing is refreshing.
+    // Hide the "live position, auto-refreshes" tag, nothing is refreshing.
     var liveTag = document.querySelector('.map-live-tag');
     if (liveTag) liveTag.style.display = 'none';
     var legend = document.querySelector('.map-legend');
@@ -42,7 +42,7 @@
   }
 
   // Leaflet is served from this site (assets/vendor/leaflet/), not a CDN,
-  // so this should never happen — but if the file is ever missing after a
+  // so this should never happen, but if the file is ever missing after a
   // partial upload, say so rather than leaving an unexplained empty box.
   if (typeof L === 'undefined') {
     showMapMessage(
@@ -102,10 +102,10 @@
     return;
   }
 
-  // OpenStreetMap tiles — free, no API key or account required.
+  // OpenStreetMap tiles: free, no API key or account required.
   // errorTileUrl is a transparent 1px PNG: if a tile can't be fetched
   // (OSM outage, blocked host, rate limiting, patchy mobile signal) the
-  // map still works — it just shows a clean background under the route
+  // map still works. It just shows a clean background under the route
   // and markers instead of Leaflet's broken-image placeholders.
   var tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
@@ -115,7 +115,7 @@
   });
 
   // If tiles are failing consistently, tell the visitor why the map looks
-  // plain — the position and route are still accurate, which is the part
+  // plain: the position and route are still accurate, which is the part
   // that actually matters for tracking a parcel.
   var tileErrors = 0;
   tiles.on('tileerror', function () {
@@ -125,7 +125,7 @@
       if (!note) {
         note = document.createElement('div');
         note.className = 'map-tile-note';
-        note.textContent = 'Map imagery is unavailable right now, so the background is blank — '
+        note.textContent = 'Map imagery is unavailable right now, so the background is blank: '
           + 'the route and live position shown are still accurate.';
         var mapEl = document.getElementById('map');
         if (mapEl && mapEl.parentNode) mapEl.parentNode.insertBefore(note, mapEl.nextSibling);
@@ -146,7 +146,7 @@
     iconSize: [14, 14],
     iconAnchor: [7, 7]
   });
-  // Current live position — blue with an idling pulse ring, like Google Maps'
+  // Current live position: blue with an idling pulse ring, like Google Maps'
   // live location dot (see .current-marker-pulse in style.css).
   var packageIcon = L.divIcon({
     className: '',
@@ -154,7 +154,7 @@
     iconSize: [20, 20],
     iconAnchor: [10, 10]
   });
-  // Footprint — a past location the shipment has already left. Every checkpoint
+  // Footprint, a past location the shipment has already left. Every checkpoint
   // is blue (current) the moment it's reported, then fades to this footprint
   // color as soon as a newer checkpoint comes in.
   var footprintIcon = L.divIcon({
@@ -165,7 +165,7 @@
   });
 
   // Leaflet renders a string passed to bindPopup/bindTooltip/setTooltipContent
-  // as raw HTML, not text — every value below can be admin-entered free text
+  // as raw HTML, not text: every value below can be admin-entered free text
   // (origin/destination/location labels), so each one is escaped before
   // Leaflet ever sees it. Skipping this on any of them would be a stored-XSS
   // hole reachable by any admin account against every visitor to this
@@ -176,7 +176,7 @@
     .addTo(map).bindPopup('Destination: ' + escapeHtml(data.destination_label));
   var currentMarker = L.marker(currentPt, { icon: packageIcon })
     .addTo(map)
-    .bindPopup('Current position — ' + escapeHtml(data.status))
+    .bindPopup('Current position: ' + escapeHtml(data.status))
     .bindTooltip(escapeHtml(data.current_location_label || data.status), {
       permanent: true,
       direction: 'top',
@@ -198,7 +198,7 @@
     historyMarkers.forEach(function (m) { map.removeLayer(m); });
     historyMarkers = [];
 
-    // Every event except the most recent one is a footprint — the latest event
+    // Every event except the most recent one is a footprint: the latest event
     // is where the shipment is right now, already shown by the blue marker.
     var past = events.slice(0, Math.max(0, events.length - 1));
     var traveledPoints = [originPt];
@@ -240,13 +240,13 @@
       map.fitBounds(L.latLngBounds(points), { padding: [40, 40] });
     } catch (e) {
       // Degenerate bounds (every point identical, for a shipment that
-      // hasn't moved yet) — just centre on the current position.
+      // hasn't moved yet), just centre on the current position.
       map.setView(currentPt, 6);
     }
   }
   fitAll();
 
-  // Poll our own JSON endpoint (api/track.php) for live updates — no third-party API involved.
+  // Poll our own JSON endpoint (api/track.php) for live updates, no third-party API involved.
   // Everything in here is wrapped so a bad response, a dropped connection,
   // or one malformed coordinate can never break the already-working map;
   // worst case an update is skipped and the next poll tries again.
@@ -285,7 +285,7 @@
           rebuildTimeline(timelineEl, res.events);
         }
       })
-      .catch(function () { /* silent — will retry on next interval */ });
+      .catch(function () { /* silent: will retry on next interval */ });
   }
 
   function rebuildTimeline(container, events) {

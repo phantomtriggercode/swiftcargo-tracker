@@ -6,6 +6,11 @@ require_once __DIR__ . '/../includes/settings.php';
 require_once __DIR__ . '/../includes/uploads.php';
 require_admin();
 
+// The Go-Live Alert is a deployment tool, not day-to-day site branding, so
+// only a super admin sees or manages it. Regular admins get this page with
+// that section simply absent.
+$__canManageDeployAlert = ($__a = current_admin()) && $__a['is_super_admin'];
+
 $errors = [];
 $success = null;
 
@@ -32,11 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         set_setting('tracking_number_prefix', $prefix);
         set_setting('tracking_number_suffix', $suffix);
-        flash_set('success', 'Tracking number format updated. This only affects shipments created from now on — existing tracking numbers don\'t change.');
+        flash_set('success', 'Tracking number format updated. This only affects shipments created from now on, existing tracking numbers don\'t change.');
         redirect('/admin/branding.php');
     }
 
     if ($action === 'go_live_alert') {
+        if (!$__canManageDeployAlert) {
+            // Posted by someone who cannot see this section. Say nothing
+            // about why, just send them back unchanged.
+            redirect('/admin/branding.php');
+        }
         $notifyEmail = trim($_POST['deploy_notify_email'] ?? '');
         if ($notifyEmail !== '' && !filter_var($notifyEmail, FILTER_VALIDATE_EMAIL)) {
             flash_set('error', 'Enter a valid email address, or leave it blank to turn this off.');
@@ -91,7 +101,7 @@ include __DIR__ . '/includes/admin_header.php';
 <div class="form-card" style="max-width:560px;">
   <p style="margin-top:0;color:var(--muted);font-size:14px;">
     This name and logo appear everywhere across the site (header, footer, staff login,
-    emails). Nothing here is tied to any domain — deploy this codebase under any
+    emails). Nothing here is tied to any domain, deploy this codebase under any
     domain name and set whatever brand you want.
   </p>
 
@@ -134,7 +144,7 @@ include __DIR__ . '/includes/admin_header.php';
   <p style="margin-top:0;color:var(--muted);font-size:14px;">
     New shipments get a tracking number built as
     <strong>prefix + 7 digits + 2 letters + suffix</strong> (e.g. with prefix
-    "SC" that's <code>SC7482913KE</code>). Change either side here — it only
+    "SC" that's <code>SC7482913KE</code>). Change either side here. It only
     applies going forward, existing tracking numbers are untouched. Leave a
     field blank to drop that part entirely.
   </p>
@@ -155,10 +165,11 @@ include __DIR__ . '/includes/admin_header.php';
   </form>
 </div>
 
+<?php if ($__canManageDeployAlert): ?>
 <div class="form-card" style="max-width:560px;margin-top:16px;">
   <h3 style="margin-top:0;">Go-Live Alert</h3>
   <p style="margin-top:0;color:var(--muted);font-size:14px;">
-    Get an email the first time this site is visited on a new domain — useful if you
+    Get an email the first time this site is visited on a new domain, useful if you
     deploy this codebase somewhere new and want to know the moment it's actually live.
     It fires once per domain (tracked in a setting, not hidden anywhere), then stays
     quiet until the domain changes again. Leave this blank to turn it off.
@@ -173,5 +184,6 @@ include __DIR__ . '/includes/admin_header.php';
     <button type="submit" class="btn btn-primary btn-block">Save</button>
   </form>
 </div>
+<?php endif; ?>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>

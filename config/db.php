@@ -34,7 +34,7 @@ require_once $configFile;
  * The shared connection, or null if the database cannot be reached.
  *
  * Used by the Content-Security-Policy block below, which must not kill the
- * request just because the database is down — and by db(), which does.
+ * request just because the database is down, and by db(), which does.
  */
 function db_optional(): ?PDO
 {
@@ -76,15 +76,15 @@ function db(): PDO
 // Sent after config.php is loaded (and not at the top with the headers
 // above) because the policy depends on one saved setting: whether the live
 // chat widget is switched on. A CSP that forbids the chat host makes the
-// browser block the widget *silently* — no error anywhere, the chat bubble
-// simply never appears — so the policy and the widget have to agree.
+// browser block the widget *silently*: no error anywhere, the chat bubble
+// simply never appears, so the policy and the widget have to agree.
 //
 // Nothing has been printed by this point (this file is required first and
 // outputs nothing), so it is still safe to send headers here.
 // ------------------------------------------------------------------
 if (!headers_sent()) {
     // The chat widget only ever renders in includes/footer.php, which is
-    // the public site's footer — the admin panel uses its own. So admin
+    // the public site's footer, the admin panel uses its own. So admin
     // pages keep the tightest possible policy no matter what. If this
     // path check ever misfires the result is a slightly looser policy on
     // an admin page, never a blocked widget on a public one.
@@ -113,7 +113,7 @@ if (!headers_sent()) {
     // 'unsafe-inline' is required for script-src/style-src because this
     // codebase uses inline <script> blocks (menu toggles, admin widgets)
     // and inline style="" attributes throughout, plus the palette system's
-    // injected <style> tag — a stricter policy would break the site. Even
+    // injected <style> tag, a stricter policy would break the site. Even
     // with that, this still blocks loading scripts/styles/frames from any
     // origin other than this one.
     //
@@ -122,7 +122,7 @@ if (!headers_sent()) {
     // the map keeps working on networks that block third-party hosts.
     //
     // img-src always allows the OpenStreetMap tile servers, because map
-    // tiles are images fetched from them at runtime — that's the one
+    // tiles are images fetched from them at runtime, that's the one
     // outside host the map still talks to. If tiles are ever unreachable
     // the map itself still loads, pans and zooms, and shows the route and
     // markers over a plain background (see assets/js/map.js).
@@ -139,7 +139,7 @@ if (!headers_sent()) {
         // embed.tawk.to, live messages ride a websocket on *.tawk.to,
         // agent avatars and shared files come from the same family of
         // hosts, and the "new message" chime is an audio file. Every one of
-        // these is scoped to tawk.to subdomains — switching chat off in the
+        // these is scoped to tawk.to subdomains, switching chat off in the
         // admin panel removes all of them again.
         $tawk = 'https://*.tawk.to';
         $scriptSrc[]  = $tawk;

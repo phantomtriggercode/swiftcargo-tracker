@@ -14,47 +14,47 @@ $slots = [
     ],
     'home_row1_image' => [
         'label' => '"Careful handling at every hub"',
-        'where' => 'Homepage — "How We Operate" section, row 1.',
+        'where' => 'Homepage: "How We Operate" section, row 1.',
         'default' => '/assets/images/illustrations/photo-warehouse-stacking.jpg',
     ],
     'home_row2_image' => [
         'label' => '"A fleet built for reliability"',
-        'where' => 'Homepage — "How We Operate" section, row 2.',
+        'where' => 'Homepage: "How We Operate" section, row 2.',
         'default' => '/assets/images/illustrations/photo-semi-sunset.jpg',
     ],
     'home_row3_image' => [
         'label' => '"Fast, careful unloading"',
-        'where' => 'Homepage — "How We Operate" section, row 3.',
+        'where' => 'Homepage: "How We Operate" section, row 3.',
         'default' => '/assets/images/illustrations/photo-warehouse-unloading.jpg',
     ],
     'home_row4_image' => [
         'label' => '"Right to your door"',
-        'where' => 'Homepage — "How We Operate" section, row 4.',
+        'where' => 'Homepage: "How We Operate" section, row 4.',
         'default' => '/assets/images/illustrations/photo-doorstep-handoff.png',
     ],
     'home_gallery_image1' => [
-        'label' => 'Fleet Gallery — Photo 1 (large)',
-        'where' => 'Homepage — "Our Fleet in Motion" gallery, big tile.',
+        'label' => 'Fleet Gallery: Photo 1 (large)',
+        'where' => 'Homepage: "Our Fleet in Motion" gallery, big tile.',
         'default' => '/assets/images/illustrations/photo-doorstep-alt.jpg',
     ],
     'home_gallery_image2' => [
-        'label' => 'Fleet Gallery — Photo 2',
-        'where' => 'Homepage — "Our Fleet in Motion" gallery.',
+        'label' => 'Fleet Gallery: Photo 2',
+        'where' => 'Homepage: "Our Fleet in Motion" gallery.',
         'default' => '/assets/images/illustrations/photo-van-city.jpg',
     ],
     'home_gallery_image3' => [
-        'label' => 'Fleet Gallery — Photo 3',
-        'where' => 'Homepage — "Our Fleet in Motion" gallery.',
+        'label' => 'Fleet Gallery: Photo 3',
+        'where' => 'Homepage: "Our Fleet in Motion" gallery.',
         'default' => '/assets/images/illustrations/photo-container-yard.jpg',
     ],
     'home_gallery_image4' => [
-        'label' => 'Fleet Gallery — Photo 4',
-        'where' => 'Homepage — "Our Fleet in Motion" gallery.',
+        'label' => 'Fleet Gallery: Photo 4',
+        'where' => 'Homepage: "Our Fleet in Motion" gallery.',
         'default' => '/assets/images/illustrations/photo-van-dusk.jpg',
     ],
     'home_gallery_image5' => [
-        'label' => 'Fleet Gallery — Photo 5',
-        'where' => 'Homepage — "Our Fleet in Motion" gallery.',
+        'label' => 'Fleet Gallery: Photo 5',
+        'where' => 'Homepage: "Our Fleet in Motion" gallery.',
         'default' => '/assets/images/illustrations/photo-porch-delivery.jpg',
     ],
     'about_hero_image' => [
@@ -121,7 +121,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <p style="color:var(--muted);font-size:14px;max-width:640px;margin-top:0;">
   Replace any of the illustrations below with your own photo. Each one shows exactly
-  where it appears on the public site. PNG, JPG, WEBP, or GIF, up to 5MB — the image
+  where it appears on the public site. PNG, JPG, WEBP, or GIF, up to 5MB, the image
   will scale to fit its spot automatically.
   (The logo is managed separately under <a href="/admin/branding.php" style="color:var(--brand-red);">Branding</a>.)
 </p>

@@ -1,7 +1,6 @@
 /**
  * Wires a "Find on map" button to our own api/geocode.php endpoint, which
- * proxies OpenStreetMap's free Nominatim geocoder. Paste any address —
- * street, home, or a general place name — into the label field, click the
+ * proxies OpenStreetMap's free Nominatim geocoder. Paste any address: * street, home, or a general place name: into the label field, click the
  * button, and the paired latitude/longitude fields auto-fill.
  */
 function attachGeocodeLookup(labelId, latId, lngId, buttonId, statusId) {
@@ -22,7 +21,7 @@ function attachGeocodeLookup(labelId, latId, lngId, buttonId, statusId) {
 
     btn.disabled = true;
     var originalLabel = btn.textContent;
-    btn.textContent = 'Looking up…';
+    btn.textContent = 'Looking up...';
     statusEl.textContent = '';
     statusEl.className = 'geocode-status';
 
@@ -32,7 +31,7 @@ function attachGeocodeLookup(labelId, latId, lngId, buttonId, statusId) {
         btn.disabled = false;
         btn.textContent = originalLabel;
         if (!res.ok) {
-          statusEl.textContent = res.error || 'Not found — enter coordinates manually.';
+          statusEl.textContent = res.error || 'Not found, enter coordinates manually.';
           statusEl.className = 'geocode-status geocode-error';
           return;
         }
@@ -44,7 +43,7 @@ function attachGeocodeLookup(labelId, latId, lngId, buttonId, statusId) {
       .catch(function () {
         btn.disabled = false;
         btn.textContent = originalLabel;
-        statusEl.textContent = 'Lookup failed — enter coordinates manually.';
+        statusEl.textContent = 'Lookup failed, enter coordinates manually.';
         statusEl.className = 'geocode-status geocode-error';
       });
   });

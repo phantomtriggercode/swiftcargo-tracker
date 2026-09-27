@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = db()->prepare('INSERT INTO templates (name, layout_key, animation_key, logo_path, is_active, is_preset) VALUES (?, ?, ?, ?, 0, 0)');
         $stmt->execute(['Copy of ' . $source['name'], $source['layout_key'], $source['animation_key'], $source['logo_path']]);
         $newId = (int) db()->lastInsertId();
-        flash_set('success', 'Template duplicated — customize it below.');
+        flash_set('success', 'Template duplicated, customize it below.');
         redirect('/admin/template_edit.php?id=' . $newId);
     } elseif ($action === 'delete') {
         $target = get_template($targetId);
@@ -60,11 +60,11 @@ include __DIR__ . '/includes/admin_header.php';
 
 <p style="color:var(--muted);font-size:14px;max-width:760px;">
   Only super admins can see this page. The active template controls the
-  site's structural design — homepage section order, hero treatment,
-  corner/shadow style, scroll animations, and its own default logo — but
+  site's structural design: homepage section order, hero treatment,
+  corner/shadow style, scroll animations, and its own default logo: but
   never colors (that's a separate, independent choice at
   <a href="/admin/themes.php" style="color:var(--brand-red);">Colors</a>).
-  Deleting a template is permanent and manual — there's no undo. The
+  Deleting a template is permanent and manual, there's no undo. The
   active template can't be deleted; activate a different one first.
 </p>
 

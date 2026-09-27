@@ -18,7 +18,7 @@ ALTER TABLE shipments
 
 -- Default explanatory writeup for each shipment status, editable at
 -- /admin/status_messages.php. Used to fill in a tracking event's note
--- when staff leave it blank in /admin/add_update.php — baked into that
+-- when staff leave it blank in /admin/add_update.php: baked into that
 -- event at creation time, so editing a template later never rewrites
 -- what a past update said.
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES

@@ -36,8 +36,7 @@ function handle_image_upload(string $fieldName, string $filenamePrefix, int $max
 
     if ($ext === 'svg') {
         $svgContents = (string) file_get_contents($_FILES[$fieldName]['tmp_name']);
-        // SVG can carry executable content several ways, not just <script> —
-        // event-handler attributes (onload, onerror, ...), javascript: URIs,
+        // SVG can carry executable content several ways, not just <script>: // event-handler attributes (onload, onerror, ...), javascript: URIs,
         // and embedded HTML via <foreignObject>/<iframe>/<embed> can all run
         // script when the file is opened directly in a browser tab. Reject
         // any of them rather than trying to sanitize, since this is admin
@@ -54,7 +53,7 @@ function handle_image_upload(string $fieldName, string $filenamePrefix, int $max
         ];
         foreach ($dangerousPatterns as $pattern) {
             if (preg_match($pattern, $svgContents) === 1) {
-                return ['ok' => false, 'error' => 'SVG file rejected — it contains executable content (scripts or event handlers) that isn\'t allowed in an uploaded image.'];
+                return ['ok' => false, 'error' => 'SVG file rejected. It contains executable content (scripts or event handlers) that isn\'t allowed in an uploaded image.'];
             }
         }
     } elseif (@getimagesize($_FILES[$fieldName]['tmp_name']) === false) {
@@ -75,7 +74,7 @@ function handle_image_upload(string $fieldName, string $filenamePrefix, int $max
         return ['ok' => false, 'error' => 'Could not save the uploaded file.'];
     }
 
-    // Remove any metadata riding along inside the file — EXIF (which can
+    // Remove any metadata riding along inside the file: EXIF (which can
     // include the GPS coordinates of wherever a photo was taken), XMP/IPTC
     // author and copyright fields, and C2PA provenance records. All of it is
     // invisible in the picture but travels with the file to every visitor who

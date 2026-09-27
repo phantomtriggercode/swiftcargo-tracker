@@ -13,7 +13,7 @@ $ip = client_ip();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
-    // Trimmed like the username — copying a password from Notes, Mail, or a
+    // Trimmed like the username: copying a password from Notes, Mail, or a
     // password manager on a phone very often carries an invisible trailing
     // newline or space along with it, which would otherwise fail silently.
     $password = trim((string) ($_POST['password'] ?? ''));
@@ -34,17 +34,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = empty($_SESSION['csrf_token'])
             ? 'Your browser did not keep the login session. This usually means cookies are '
               . 'blocked for this site, or you are on an http:// address while the site is '
-              . 'secured with https:// — open the site at its https:// address and try again.'
-            : 'This login form was open too long — please try again.';
+              . 'secured with https://, open the site at its https:// address and try again.'
+            : 'This login form was open too long, please try again.';
     } elseif (honeypot_tripped($honeypot)) {
-        // A real visitor never sees or fills this field — only a bot
+        // A real visitor never sees or fills this field, only a bot
         // filling every input does. Treat it exactly like a wrong
         // password: no hint that a trap was sprung.
         record_login_attempt($ip, $username, false);
         $error = 'Invalid username or password.';
     } elseif (!verify_captcha($captchaAnswer)) {
         record_login_attempt($ip, $username, false);
-        $error = 'Incorrect answer to the security question below — please try again.';
+        $error = 'Incorrect answer to the security question below: please try again.';
     } else {
         $loginOk = attempt_admin_login($username, $password);
         record_login_attempt($ip, $username, $loginOk);

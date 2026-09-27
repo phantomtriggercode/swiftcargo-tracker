@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $inUse = db()->prepare('SELECT COUNT(*) FROM shipments WHERE courier_id = ?');
         $inUse->execute([$targetId]);
         if ((int) $inUse->fetchColumn() > 0) {
-            flash_set('error', "Can't delete a carrier that's assigned to existing shipments — deactivate it instead.");
+            flash_set('error', "Can't delete a carrier that's assigned to existing shipments: deactivate it instead.");
         } else {
             $stmt = db()->prepare('DELETE FROM couriers WHERE id = ?');
             $stmt->execute([$targetId]);
@@ -91,7 +91,7 @@ include __DIR__ . '/includes/admin_header.php';
 <p style="color:var(--muted);font-size:14px;max-width:720px;">
   These are the carrier options offered when creating or editing a shipment
   (DHL, UPS, FedEx, USPS, etc). Deactivate a carrier to hide it from the
-  dropdown without losing it from shipments that already use it — only
+  dropdown without losing it from shipments that already use it, only
   carriers with zero shipments can be deleted outright.
 </p>
 
@@ -135,7 +135,7 @@ include __DIR__ . '/includes/admin_header.php';
     <?= csrf_field() ?>
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
-                <button type="submit" class="danger" <?= $c['shipment_count'] > 0 ? 'disabled title="In use by existing shipments — deactivate instead"' : '' ?>>Delete</button>
+                <button type="submit" class="danger" <?= $c['shipment_count'] > 0 ? 'disabled title="In use by existing shipments, deactivate instead"' : '' ?>>Delete</button>
               </form>
             </template>
           </div>
@@ -143,7 +143,7 @@ include __DIR__ . '/includes/admin_header.php';
       </tr>
     <?php endforeach; ?>
     <?php if (!$couriers): ?>
-      <tr><td colspan="4" style="text-align:center;color:var(--muted);">No carriers yet — add one below.</td></tr>
+      <tr><td colspan="4" style="text-align:center;color:var(--muted);">No carriers yet, add one below.</td></tr>
     <?php endif; ?>
   </tbody>
 </table>

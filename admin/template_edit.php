@@ -104,7 +104,7 @@ include __DIR__ . '/includes/admin_header.php';
         <?php endif; ?>
         <span style="font-size:12.5px;color:var(--muted);">
           Used site-wide whenever no custom logo is uploaded under
-          <a href="/admin/branding.php" style="color:var(--brand-red);">Branding</a> — a Branding upload always wins over this.
+          <a href="/admin/branding.php" style="color:var(--brand-red);">Branding</a>, a Branding upload always wins over this.
         </span>
       </div>
       <input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp,.gif,.svg">

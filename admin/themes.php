@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $values = array_merge(['Copy of ' . $source['name']], array_map(fn($c) => $source[$c], $columns));
         $stmt->execute($values);
         $newId = (int) db()->lastInsertId();
-        flash_set('success', 'Color palette duplicated — customize its colors below.');
+        flash_set('success', 'Color palette duplicated, customize its colors below.');
         redirect('/admin/theme_edit.php?id=' . $newId);
     } elseif ($action === 'delete') {
         $target = get_palette($targetId);
@@ -63,11 +63,11 @@ include __DIR__ . '/includes/admin_header.php';
 
 <p style="color:var(--muted);font-size:14px;max-width:760px;">
   Only super admins can see this page. The active color palette applies
-  site-wide — every public page, the staff login, and the rest of this
-  admin panel — and only ever changes colors, never the page layout or
+  site-wide: every public page, the staff login, and the rest of this
+  admin panel, and only ever changes colors, never the page layout or
   design (that's a separate, independent choice at
   <a href="/admin/templates.php" style="color:var(--brand-red);">Templates</a>).
-  Deleting a palette is permanent and manual — there's no undo, and it's
+  Deleting a palette is permanent and manual: there's no undo, and it's
   always your decision to do it, never automatic. The active palette can't
   be deleted; activate a different one first.
 </p>

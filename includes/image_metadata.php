@@ -13,7 +13,7 @@
  * are invisible in the picture and survive every copy of the file.
  *
  * This works at the byte level rather than re-encoding the image, so the
- * picture is bit-for-bit unchanged — no quality loss, no colour shift, and
+ * picture is bit-for-bit unchanged: no quality loss, no colour shift, and
  * animation in APNG/GIF is preserved. Colour-management data (ICC profiles)
  * is deliberately kept, since removing it would change how the image looks.
  *
@@ -59,7 +59,7 @@ function strip_image_metadata(string $path): bool
  * application segments and COM comment segments; the picture itself is in
  * the scan that follows the SOS marker.
  *
- * Dropped: APP1 (EXIF and XMP), APP11 (JUMBF — this is where C2PA Content
+ * Dropped: APP1 (EXIF and XMP), APP11 (JUMBF. This is where C2PA Content
  * Credentials live), APP13 (IPTC/Photoshop), and COM comments.
  * Kept: APP0 (JFIF), APP2 (ICC colour profile) and APP14 (Adobe colour
  * transform), because dropping either of those last two can visibly change
@@ -76,7 +76,7 @@ function strip_jpeg_metadata(string $data): ?string
 
     while ($i < $len) {
         if ($data[$i] !== "\xFF") {
-            return null; // Not where a marker should be — leave the file alone.
+            return null; // Not where a marker should be, leave the file alone.
         }
         // Markers may be padded with any number of 0xFF fill bytes.
         while ($i < $len && $data[$i] === "\xFF") {
@@ -155,7 +155,7 @@ function strip_png_metadata(string $data): ?string
         }
     }
 
-    return null; // Ran off the end without IEND — malformed, leave it alone.
+    return null; // Ran off the end without IEND: malformed, leave it alone.
 }
 
 /**

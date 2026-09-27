@@ -75,7 +75,7 @@ include __DIR__ . '/includes/header.php';
             </div>
           </noscript>
         </div>
-        <div class="map-live-tag"><span class="dot"></span> Live position — auto-refreshes every 15s</div>
+        <div class="map-live-tag"><span class="dot"></span> Live position, refreshed every 15 seconds</div>
         <div class="map-legend">
           <span><span class="swatch swatch-origin"></span> Origin</span>
           <span><span class="swatch swatch-history"></span> Past location (footprint)</span>
@@ -101,7 +101,7 @@ include __DIR__ . '/includes/header.php';
           <div class="meta-box">
             <div class="meta-label">Shipping Method</div>
             <div class="meta-value">
-              <?= h($shipment['shipping_method']) ?><?= $shipment['land_method'] ? ' — ' . h($shipment['land_method']) : '' ?>
+              <?= h($shipment['shipping_method']) ?><?= $shipment['land_method'] ? ' (' . h($shipment['land_method']) . ')' : '' ?>
             </div>
           </div>
           <div class="meta-box">
@@ -192,8 +192,7 @@ include __DIR__ . '/includes/header.php';
          failure it can see, but it can't report a problem if map.js is the
          thing that never loaded (bad upload, aggressive blocker). A few
          seconds after load, if the map area is still empty and no message
-         has been shown, explain it rather than leaving a blank grey box —
-         and drop the "auto-refreshes" line, since nothing is refreshing. */
+         has been shown, explain it rather than leaving a blank grey box, and drop the "auto-refreshes" line, since nothing is refreshing. */
       (function () {
         window.setTimeout(function () {
           var el = document.getElementById('map');

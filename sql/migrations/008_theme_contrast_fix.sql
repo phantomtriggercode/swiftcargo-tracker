@@ -1,8 +1,7 @@
 -- Migration 008: fix two preset themes whose button text failed WCAG AA
--- contrast against their primary color (white text at 3.56:1 and 3.74:1 —
--- both below the 4.5:1 minimum for normal-size text, so button labels
+-- contrast against their primary color (white text at 3.56:1 and 3.74:1: -- both below the 4.5:1 minimum for normal-size text, so button labels
 -- were genuinely hard to read). Verified computationally against every
--- theme's colors — see the commit this migration ships with.
+-- theme's colors, see the commit this migration ships with.
 --
 -- Safe to run once via phpMyAdmin's Import tab. Only touches the two
 -- affected preset rows; any theme a super admin has already customized

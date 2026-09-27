@@ -1,11 +1,11 @@
 -- Migration 013: adds an audit trail of sensitive admin actions, viewable
 -- by super admins at /admin/activity_log.php. Logs things like admin
 -- account changes, shipment deletions, SMTP credential changes, and
--- color/template activation — not routine page views.
+-- color/template activation, not routine page views.
 --
 -- admin_id is nullable and ON DELETE SET NULL: a log entry survives even
 -- after the admin account that made it is deleted, so the history isn't
--- silently lost — admin_name is stored alongside as a readable label for
+-- silently lost, admin_name is stored alongside as a readable label for
 -- that case.
 --
 -- Safe to run once via phpMyAdmin's Import tab.

@@ -1,11 +1,11 @@
--- SwiftCargo Tracker database schema — single-file, complete, up to date.
+-- SwiftCargo Tracker database schema: single-file, complete, up to date.
 -- This one file creates every table the current codebase needs (admins,
 -- couriers, shipments, tracking_events, settings, color_palettes,
 -- templates, shipment_requests, login_attempts, admin_activity_log) with
 -- every column and default the app currently reads, plus starter/seed
 -- data (a default admin login, 8 carriers, 11 color palettes, 6 design
 -- templates, all site copy, and calculator rates). It supersedes every
--- individual file under sql/migrations/ — those exist only for upgrading
+-- individual file under sql/migrations/. Those exist only for upgrading
 -- an *existing* live database in place without losing its data; if you
 -- are starting from an empty database (a fresh install, or a live site
 -- you've intentionally dropped and are reimporting from scratch), import
@@ -14,7 +14,7 @@
 -- Import this file via Hostinger's phpMyAdmin (or `mysql -u user -p dbname < schema.sql`).
 --
 -- NOTE: if you already have a live database with real shipments/admins in
--- it, do NOT import this file — CREATE TABLE IF NOT EXISTS means it won't
+-- it, do NOT import this file: CREATE TABLE IF NOT EXISTS means it won't
 -- overwrite your data, but INSERT IGNORE / ON DUPLICATE KEY seed rows can
 -- still reintroduce old default content or the original demo admin
 -- password. Use the specific migration file for whatever you're adding
@@ -41,15 +41,15 @@ CREATE TABLE IF NOT EXISTS admins (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Default admin login: username = admin / password = ChangeMe123!
--- (hash generated with PHP password_hash — change this password immediately after first login)
--- This first account is the super admin — it can create/suspend/delete
+-- (hash generated with PHP password_hash, change this password immediately after first login)
+-- This first account is the super admin. It can create/suspend/delete
 -- any other admin account from /admin/admins.php.
 INSERT INTO admins (username, password_hash, full_name, is_super_admin, is_active) VALUES
 ('admin', '$2y$12$HYDffKZi7ppAiampmKCVU.Fm8Fk/S4.vKv.dvwoUYPRyvoXs.l9G.', 'Site Administrator', 1, 1)
 ON DUPLICATE KEY UPDATE username = username;
 
 -- ---------------------------------------------------------------
--- Couriers / carriers (managed from /admin/couriers.php — admins can
+-- Couriers / carriers (managed from /admin/couriers.php: admins can
 -- rename, deactivate, or add new carriers like DHL, UPS, FedEx, USPS)
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS couriers (
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('home_hero_title', 'Ship anywhere. Track everything. Live.'),
-('home_hero_lead', 'SwiftCargo moves freight and parcels across the United States and worldwide, and shows you exactly where they are on a live map — with an email sent to your receiver on every single update.'),
+('home_hero_lead', 'SwiftCargo moves freight and parcels across the United States and worldwide, and shows you exactly where they are on a live map, with an email sent to your receiver on every single update.'),
 ('stat_countries', '195+'),
 ('stat_ontime', '98.6%'),
 ('stat_support', '24/7'),
@@ -198,26 +198,25 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('status_message_exception', 'There was an exception with your shipment that needs attention. Our team has been notified and will follow up.'),
 ('privacy_title', 'Privacy Policy'),
 ('privacy_lead', 'How we collect, use, and protect the information you share with us.'),
-('privacy_body', 'This Privacy Policy explains what information we collect when you use this website or ship with us, why we collect it, and how it is handled.\n\nInformation we collect: when you request a shipment, track a package, or contact us, we collect the details you provide — names, email addresses, phone numbers, physical addresses, and information about the shipment itself (contents description, weight, dimensions, and declared value if insured). We do not ask for or store payment card numbers on this site.\n\nHow we use it: we use this information to create and manage shipments, send tracking and delivery status emails, respond to inquiries, calculate shipping estimates, and keep records required to operate our shipping service. Contact information tied to a shipment is also used to send status update emails as the shipment moves through our network.\n\nCookies and site data: this site uses a single session cookie to keep you logged in to the admin panel and to remember short-lived confirmation messages. We do not use third-party advertising or tracking cookies.\n\nSharing: we do not sell your personal information. We may share shipment details with the carrier or courier handling a given shipment, and with service providers who help us operate this site (for example, our email delivery provider), solely to provide the service you requested.\n\nData retention: we keep shipment and contact records for as long as needed to provide our services, meet legal or accounting obligations, and resolve disputes.\n\nSecurity: we use reasonable technical and organizational measures to protect the information we hold, including encrypted connections and access controls on our admin systems. No method of transmission or storage is 100% secure, and we cannot guarantee absolute security.\n\nYour choices: you can contact us at any time to ask what information we hold about you, request a correction, or request deletion where we are not required to keep it for legal or operational reasons.\n\nChanges to this policy: we may update this policy from time to time. The version posted here is always the current one.\n\nContact us: if you have questions about this policy, reach out using the details on our Contact page.'),
+('privacy_body', 'This Privacy Policy explains what information we collect when you use this website or ship with us, why we collect it, and how it is handled.\n\nInformation we collect: when you request a shipment, track a package, or contact us, we collect the details you provide: names, email addresses, phone numbers, physical addresses, and information about the shipment itself (contents description, weight, dimensions, and declared value if insured). We do not ask for or store payment card numbers on this site.\n\nHow we use it: we use this information to create and manage shipments, send tracking and delivery status emails, respond to inquiries, calculate shipping estimates, and keep records required to operate our shipping service. Contact information tied to a shipment is also used to send status update emails as the shipment moves through our network.\n\nCookies and site data: this site uses a single session cookie to keep you logged in to the admin panel and to remember short-lived confirmation messages. We do not use third-party advertising or tracking cookies.\n\nSharing: we do not sell your personal information. We may share shipment details with the carrier or courier handling a given shipment, and with service providers who help us operate this site (for example, our email delivery provider), solely to provide the service you requested.\n\nData retention: we keep shipment and contact records for as long as needed to provide our services, meet legal or accounting obligations, and resolve disputes.\n\nSecurity: we use reasonable technical and organizational measures to protect the information we hold, including encrypted connections and access controls on our admin systems. No method of transmission or storage is 100% secure, and we cannot guarantee absolute security.\n\nYour choices: you can contact us at any time to ask what information we hold about you, request a correction, or request deletion where we are not required to keep it for legal or operational reasons.\n\nChanges to this policy: we may update this policy from time to time. The version posted here is always the current one.\n\nContact us: if you have questions about this policy, reach out using the details on our Contact page.'),
 ('terms_title', 'Terms of Service'),
 ('terms_lead', 'The terms that apply when you use our site and shipping services.'),
-('terms_body', 'By using this website or requesting a shipment through us, you agree to the terms below.\n\nOur services: this site lets you request a shipment quote, and lets senders, receivers, and our staff track a shipment''s status and location. Submitting a shipment request is a request for service, not a confirmed booking — our team follows up to confirm final details, pricing, and pickup arrangements before a shipment is created.\n\nAccuracy of information: you are responsible for providing accurate sender, receiver, and package information. Delays or delivery issues caused by incomplete or incorrect information are not our responsibility.\n\nEstimates and pricing: cost estimates shown on this site are calculated from the details you provide and are subject to confirmation by our team before a shipment is booked. Final pricing may differ based on verified weight, dimensions, destination, or service level.\n\nProhibited shipments: you agree not to ship anything illegal, hazardous, or prohibited by applicable customs, postal, or transport regulations. We may refuse or cancel a shipment that we reasonably believe violates this.\n\nInsurance: declared-value insurance is optional and, where selected, is subject to the terms communicated to you at the time of booking. We are not liable for loss or damage beyond any insurance coverage in place for a given shipment.\n\nLimitation of liability: to the fullest extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from the use of this site or our shipping services, beyond the value of the shipment (and any insurance coverage) involved.\n\nIntellectual property: the content, design, and branding on this site belong to us or our licensors and may not be copied or reused without permission.\n\nChanges: we may update these terms from time to time. Continued use of this site after a change means you accept the updated terms.\n\nContact us: questions about these terms can be sent using the details on our Contact page.'),
+('terms_body', 'By using this website or requesting a shipment through us, you agree to the terms below.\n\nOur services: this site lets you request a shipment quote, and lets senders, receivers, and our staff track a shipment''s status and location. Submitting a shipment request is a request for service, not a confirmed booking. Our team follows up to confirm final details, pricing, and pickup arrangements before a shipment is created.\n\nAccuracy of information: you are responsible for providing accurate sender, receiver, and package information. Delays or delivery issues caused by incomplete or incorrect information are not our responsibility.\n\nEstimates and pricing: cost estimates shown on this site are calculated from the details you provide and are subject to confirmation by our team before a shipment is booked. Final pricing may differ based on verified weight, dimensions, destination, or service level.\n\nProhibited shipments: you agree not to ship anything illegal, hazardous, or prohibited by applicable customs, postal, or transport regulations. We may refuse or cancel a shipment that we reasonably believe violates this.\n\nInsurance: declared-value insurance is optional and, where selected, is subject to the terms communicated to you at the time of booking. We are not liable for loss or damage beyond any insurance coverage in place for a given shipment.\n\nLimitation of liability: to the fullest extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from the use of this site or our shipping services, beyond the value of the shipment (and any insurance coverage) involved.\n\nIntellectual property: the content, design, and branding on this site belong to us or our licensors and may not be copied or reused without permission.\n\nChanges: we may update these terms from time to time. Continued use of this site after a change means you accept the updated terms.\n\nContact us: questions about these terms can be sent using the details on our Contact page.'),
 -- Live chat (Tawk.to). Off and unconfigured on a fresh install; the site
 -- owner connects their own Tawk.to account at /admin/live_chat.php. These
--- rows are seeded only so the settings table shows what is available —
--- the site behaves identically whether they exist or not.
+-- rows are seeded only so the settings table shows what is available, -- the site behaves identically whether they exist or not.
 ('live_chat_enabled', '0'),
 ('live_chat_property_id', ''),
 ('live_chat_widget_id', '');
 
 -- ---------------------------------------------------------------
 -- Site-wide color palettes (managed only by super admins, at
--- /admin/themes.php — the "Colors" page). Exactly one row is active
+-- /admin/themes.php, the "Colors" page). Exactly one row is active
 -- at a time; its colors are injected as CSS variable overrides on
 -- every page. Colors are fully independent from the structural
--- design — activating a palette never touches layout (see
+-- design, activating a palette never touches layout (see
 -- `templates` below). Presets are just as deletable as any palette a
--- super admin creates — is_preset is informational only.
+-- super admin creates, is_preset is informational only.
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS color_palettes (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -302,7 +301,7 @@ INSERT INTO color_palettes (
 -- the scroll-reveal animation style; logo_path is that template's
 -- own default logo mark, used site-wide whenever no custom logo is
 -- uploaded under Branding. Activating a template never touches
--- colors — see `color_palettes` above.
+-- colors, see `color_palettes` above.
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS templates (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

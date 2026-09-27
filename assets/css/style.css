@@ -15,7 +15,7 @@
   --shadow: 0 4px 16px rgba(17, 24, 39, 0.08);
 
   /* Structural template tokens (see html[data-template="..."] overrides
-     near the bottom of this file) — color tokens above come from the
+     near the bottom of this file): color tokens above come from the
      active row in `color_palettes` via palette_style_tag(); these come
      from the active row in `templates`, independently. */
   --font-heading: inherit;
@@ -30,7 +30,7 @@
 
 * { box-sizing: border-box; }
 
-/* overflow-x: clip (not hidden) — hidden forces overflow-y to auto per the
+/* overflow-x: clip (not hidden): hidden forces overflow-y to auto per the
    CSS spec, which breaks position:sticky on the header. clip blocks the
    same horizontal scroll/drag without that side effect. */
 html { overflow-x: clip; }
@@ -120,8 +120,7 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
 
 /* Must stay BELOW .site-header's z-index (50), not above it. The mobile
    nav dropdown lives inside .site-header, and that header is
-   position:sticky with a z-index, so it forms its own stacking context —
-   the dropdown's own z-index can never lift it above the header's global
+   position:sticky with a z-index, so it forms its own stacking context, the dropdown's own z-index can never lift it above the header's global
    level. A backdrop stacked above the header therefore covers the open
    menu itself, swallowing every tap on a menu link (the tap hits the
    backdrop, which just closes the menu, so nothing ever navigates).
@@ -366,7 +365,7 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
   z-index: 1;
 }
 /* Shown by assets/js/map.js when the Leaflet library can't be reached
-   (CDN blocked/offline) — an explained empty state instead of a blank box. */
+   (CDN blocked/offline), an explained empty state instead of a blank box. */
 #map.map-unavailable {
   display: flex;
   align-items: center;
@@ -383,7 +382,7 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
 .map-unavailable-inner strong { font-size: 15px; color: var(--ink); }
 .map-unavailable-inner span { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
 /* Shown under the map when tile images keep failing (OSM outage / blocked
-   host). The map itself still works — this only explains the plain
+   host). The map itself still works. This only explains the plain
    background so it doesn't read as a broken page. */
 .map-tile-note {
   margin-top: 8px; padding: 8px 12px;
@@ -649,7 +648,7 @@ table.data-table th:last-child, table.data-table td.actions { width: 90px; }
 .btn-danger:hover { background: var(--danger); color: var(--white); }
 
 /* Per-row actions: a single compact button that opens a small menu, instead
-   of a full row of buttons — keeps every table column visible without
+   of a full row of buttons, keeps every table column visible without
    forcing horizontal scrolling at normal desktop widths. */
 .row-actions { display: inline-block; }
 .row-actions-btn {
@@ -681,7 +680,7 @@ table.data-table th:last-child, table.data-table td.actions { width: 90px; }
 }
 
 /* Below 680px, data tables become stacked cards instead of a horizontally
-   scrolling table — there's nothing left to scroll sideways on a phone. */
+   scrolling table, there's nothing left to scroll sideways on a phone. */
 @media (max-width: 680px) {
   .table-responsive { overflow-x: visible; box-shadow: none; background: none; }
   table.data-table { min-width: 0; width: 100%; }
@@ -728,7 +727,7 @@ table.data-table th:last-child, table.data-table td.actions { width: 90px; }
     display: flex; align-items: center; justify-content: space-between;
     background: var(--ink); color: var(--white); padding: 14px 18px;
     /* Above .admin-sidebar-backdrop (100) so the ☰ button stays crisp and
-       directly tappable while the sidebar is open — otherwise the backdrop
+       directly tappable while the sidebar is open, otherwise the backdrop
        covers it and the button's own open/close toggle never runs. */
     position: relative; z-index: 102;
   }
@@ -760,16 +759,16 @@ table.data-table th:last-child, table.data-table td.actions { width: 90px; }
 }
 
 /* ---------------------------------------------------------------
-   Templates — structural design variants selected by the active row
+   Templates, structural design variants selected by the active row
    in `templates` (html[data-template="..."] / [data-animation="..."],
    set by active_template_layout_key()/active_template_animation_key()
    in includes/design.php). Colors are entirely separate, coming from
-   the active color palette's palette_style_tag() — a template never
+   the active color palette's palette_style_tag(): a template never
    changes colors, and a palette never changes any of this. Managed
    only by super admins at /admin/templates.php.
    --------------------------------------------------------------- */
 
-/* Homepage sections admins can reorder per template — see the
+/* Homepage sections admins can reorder per template, see the
    .home-sections wrapper in index.php. Order values below are the
    original/default sequence; templates override specific ones. */
 .home-sections { display: flex; flex-direction: column; }
@@ -785,9 +784,9 @@ table.data-table th:last-child, table.data-table td.actions { width: 90px; }
    Every "hide it until revealed" rule below is gated on html.js-anim, a
    class added by a small inline script in includes/header.php and removed
    again by that script's own failsafe if reveal.js never starts. Without
-   that gate, anything that stops reveal.js from running — JavaScript
+   that gate, anything that stops reveal.js from running: JavaScript
    turned off, an ad/privacy blocker, a botched deploy that 404s the file,
-   a stricter CSP later on — would leave these sections stuck at opacity 0
+   a stricter CSP later on, would leave these sections stuck at opacity 0
    and silently erase most of the homepage. Content-hiding must never be
    the default state; it's opt-in, and only once JS has proven it can undo
    it. */
@@ -887,7 +886,7 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
   [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
 
-/* System Health page (admin/health.php) — a plain-English install check. */
+/* System Health page (admin/health.php), a plain-English install check. */
 .health-summary { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }
 .health-pill {
   font-size: 12.5px; font-weight: 700; padding: 6px 12px;

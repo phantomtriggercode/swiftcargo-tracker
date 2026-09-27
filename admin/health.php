@@ -1,6 +1,6 @@
 <?php
 /**
- * Installation health check — a plain-English "is everything set up
+ * Installation health check: a plain-English "is everything set up
  * correctly?" page for the person running the site, who may not write
  * code. Visit it right after uploading to a new server, and any time
  * something looks wrong.
@@ -15,7 +15,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
 require_once __DIR__ . '/../includes/mailer.php';
 require_once __DIR__ . '/../includes/live_chat.php';
-require_admin();
+require_super_admin();
 
 /** @var array<int, array{label:string, state:string, detail:string, fix:string}> */
 $checks = [];
@@ -27,7 +27,7 @@ function check(string $label, string $state, string $detail, string $fix = ''): 
 }
 
 // ---------------------------------------------------------------
-// The live map — the most important thing on the site, so it's first.
+// The live map: the most important thing on the site, so it's first.
 // ---------------------------------------------------------------
 $root = dirname(__DIR__);
 $mapFiles = [
@@ -42,7 +42,7 @@ foreach ($mapFiles as $rel => $what) {
     }
 }
 if (!$missingMap) {
-    check('Live map files', 'ok', 'All map files are present and served from this site — the map does not depend on any outside service to load.');
+    check('Live map files', 'ok', 'All map files are present and served from this site, the map does not depend on any outside service to load.');
 } else {
     check(
         'Live map files',
@@ -119,10 +119,10 @@ try {
             ? 'Exactly one colour palette and one template are active, as expected.'
             : 'Active colour palettes: ' . $paletteCount . ', active templates: ' . $templateCount . '.',
         $designOk ? '' : 'Go to Colors and to Templates in the sidebar and click "Activate" on the one you want. '
-            . 'The site still works meanwhile — it falls back to the original red/classic look.'
+            . 'The site still works meanwhile. It falls back to the original red/classic look.'
     );
 } catch (PDOException $e) {
-    check('Active colour palette and template', 'warn', 'Could not check — the colour/template tables are missing.', 'Import sql/migrations/011_split_templates_and_colors.sql.');
+    check('Active colour palette and template', 'warn', 'Could not check: the colour/template tables are missing.', 'Import sql/migrations/011_split_templates_and_colors.sql.');
 }
 
 // ---------------------------------------------------------------
@@ -157,7 +157,7 @@ if ($configuredUrl === '' || str_contains($configuredUrl, 'localhost')) {
         'fail',
         'SITE_URL is set to ' . h($configuredUrl) . ', but you are viewing the site at ' . h($currentHost) . '.',
         'These must match. Update SITE_URL in config/config.php to https://' . h($currentHost)
-        . ' — otherwise every tracking link you email to customers points at the wrong (probably dead) address.'
+        . ': otherwise every tracking link you email to customers points at the wrong (probably dead) address.'
     );
 } else {
     check('Site address (SITE_URL)', 'ok', 'Set to ' . h($configuredUrl) . ', which matches the address you are using now.');
@@ -191,7 +191,7 @@ if (!$chat['enabled'] && $chat['property_id'] === '') {
     check(
         'Live chat',
         'ok',
-        'Not set up, which is fine — the site works exactly as normal without it.',
+        'Not set up, which is fine: the site works exactly as normal without it.',
         'To offer visitors a chat bubble, connect a free Tawk.to account under "Live Chat" in the sidebar.'
     );
 } elseif (!live_chat_is_configured()) {
@@ -252,7 +252,7 @@ check(
 );
 
 // Login/session cookie sanity. A mismatch here is what makes a correct
-// password come back as "your session expired" — usually only on phones,
+// password come back as "your session expired", usually only on phones,
 // because desktop users tend to arrive via an https:// bookmark.
 $forwardedProto = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
 $serverPort = (int) ($_SERVER['SERVER_PORT'] ?? 0);
@@ -263,7 +263,7 @@ if ($forwardedProto === 'https' && !is_https_for_cookie()) {
         'warn',
         'Your host reports this request as HTTPS, but it arrived on port ' . $serverPort . ', which is the plain HTTP port. '
         . 'The session cookie is deliberately being sent without the "Secure" flag so that logins keep working.',
-        'Nothing is broken — this is the safe fallback. To get the extra hardening back, make the site always '
+        'Nothing is broken. This is the safe fallback. To get the extra hardening back, make the site always '
         . 'use https:// (turn on "Force HTTPS" in your hosting control panel), then re-check this page.'
     );
 } elseif (!is_https() && !$cookieSecure) {
@@ -274,7 +274,7 @@ if ($forwardedProto === 'https' && !is_https_for_cookie()) {
         'Turn on the free SSL certificate and "Force HTTPS" in your hosting control panel, then use the https:// address.'
     );
 } else {
-    check('Login sessions', 'ok', 'The session cookie is correctly marked Secure, HttpOnly and SameSite=Lax — logins will work and stay protected.');
+    check('Login sessions', 'ok', 'The session cookie is correctly marked Secure, HttpOnly and SameSite=Lax: logins will work and stay protected.');
 }
 
 $protectedDirs = ['config', 'includes', 'sql', 'vendor'];
@@ -292,7 +292,7 @@ check(
         : 'All sensitive folders have their .htaccess protection in place.',
     $missingHtaccess
         ? 'These files block visitors from browsing straight to your database settings and source code. '
-        . 'They start with a dot, so file managers often hide them — turn on "show hidden files" and re-upload them.'
+        . 'They start with a dot, so file managers often hide them: turn on "show hidden files" and re-upload them.'
         : ''
 );
 
@@ -310,7 +310,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <p style="color:var(--muted);font-size:14px;max-width:760px;">
   A plain-English check of whether this installation is set up correctly. Nothing here changes
-  anything — it only looks and reports. Worth opening right after moving the site to a new
+  anything. It only looks and reports. Worth opening right after moving the site to a new
   server, and any time something seems off.
 </p>
 
@@ -321,7 +321,7 @@ include __DIR__ . '/includes/admin_header.php';
 </div>
 
 <?php if ($counts['fail'] === 0 && $counts['warn'] === 0): ?>
-  <div class="alert alert-success">Everything checks out — this installation looks healthy.</div>
+  <div class="alert alert-success">Everything checks out. This installation looks healthy.</div>
 <?php endif; ?>
 
 <div class="health-list">

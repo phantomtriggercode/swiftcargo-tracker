@@ -30,7 +30,7 @@ include __DIR__ . '/includes/header.php';
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/plane.svg" alt="" width="24" height="24"></div>
         <h3><?= h(get_setting('services_card2_title', 'Express')) ?></h3>
-        <p><?= h(get_setting('services_card2_desc', 'Reliable, fast international delivery — ideal for business documents and time-sensitive parcels.')) ?></p>
+        <p><?= h(get_setting('services_card2_desc', 'Reliable, fast international delivery, ideal for business documents and time-sensitive parcels.')) ?></p>
       </div>
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/truck.svg" alt="" width="24" height="24"></div>

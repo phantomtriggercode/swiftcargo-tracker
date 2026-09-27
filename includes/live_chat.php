@@ -9,7 +9,7 @@
  * Only the two IDs out of that snippet are kept, and both are checked
  * against a strict letters-and-digits allowlist before ever being saved,
  * because they end up inside a <script src="..."> URL on every public
- * page — anything looser would let an admin-supplied value point that
+ * page, anything looser would let an admin-supplied value point that
  * script somewhere else entirely.
  *
  * Requires config/db.php, includes/functions.php and includes/settings.php.
@@ -48,7 +48,7 @@ function live_chat_is_valid_widget_id(string $id): bool
 }
 
 /**
- * True when the widget is switched on and properly configured — i.e. when
+ * True when the widget is switched on and properly configured. I.e. when
  * the chat bubble should actually appear on the public site.
  */
 function live_chat_is_configured(): bool
@@ -92,7 +92,7 @@ function live_chat_parse_ids(string $input): ?array
         return ['property_id' => $m[1], 'widget_id' => $m[2]];
     }
 
-    // Just the Property ID — Tawk.to calls the widget every account starts
+    // Just the Property ID: Tawk.to calls the widget every account starts
     // with "default", so this is the safe assumption rather than an error.
     if (preg_match('~^([A-Za-z0-9]{16,40})$~', $input, $m)) {
         return ['property_id' => $m[1], 'widget_id' => 'default'];
@@ -118,7 +118,7 @@ function live_chat_embed_url(): string
  * live chat is off or not configured.
  *
  * Called only from includes/footer.php, so the widget shows up on the
- * public site and never inside the admin panel — staff answer chats in
+ * public site and never inside the admin panel: staff answer chats in
  * their own Tawk.to dashboard, not here.
  *
  * Loading it last and asynchronously is deliberate: if Tawk.to is slow or

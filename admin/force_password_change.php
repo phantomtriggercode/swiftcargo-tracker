@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm = (string) ($_POST['new_password_confirm'] ?? '');
 
     if (!csrf_verify((string) ($_POST['csrf_token'] ?? ''))) {
-        $errors[] = 'Your session expired — please reload the page and try again.';
+        $errors[] = 'Your session expired: please reload the page and try again.';
     }
     if (strlen($newPassword) < 8) {
         $errors[] = 'New password must be at least 8 characters.';

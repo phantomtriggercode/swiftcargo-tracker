@@ -2,7 +2,7 @@
 /**
  * Downloadable PDF shipping label (4x6in, standard carrier label size)
  * for a shipment. Same access model as the waybill and the public
- * tracking page — anyone with the tracking number can print it.
+ * tracking page, anyone with the tracking number can print it.
  */
 
 require_once __DIR__ . '/../config/db.php';

@@ -98,7 +98,7 @@ include __DIR__ . '/includes/admin_header.php';
     });
   });
 
-  // Live WCAG contrast check — warns (never blocks) when a chosen pair of
+  // Live WCAG contrast check: warns (never blocks) when a chosen pair of
   // colors would make text hard or impossible to read, per the same
   // ratios verified against every preset palette.
   function hexToRgb(hex) {
@@ -134,7 +134,7 @@ include __DIR__ . '/includes/admin_header.php';
     CONTRAST_PAIRS.forEach(function (pair) {
       var ratio = contrastRatio(fieldValue(pair[1]), fieldValue(pair[2]));
       if (ratio !== null && ratio < pair[3]) {
-        warnings.push(pair[0] + ' is only ' + ratio.toFixed(2) + ':1 (aim for at least ' + pair[3] + ':1) — text may be hard to read.');
+        warnings.push(pair[0] + ' is only ' + ratio.toFixed(2) + ':1 (aim for at least ' + pair[3] + ':1), text may be hard to read.');
       }
     });
     box.innerHTML = warnings.length

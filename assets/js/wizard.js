@@ -84,7 +84,7 @@
     var shippingMethod = fieldValue('shipping_method');
     var landGroup = document.getElementById('land-method-group');
     var landLine = (shippingMethod === 'Land' && landGroup && landGroup.style.display !== 'none')
-      ? shippingMethod + ' — ' + fieldValue('land_method')
+      ? shippingMethod + ', ' + fieldValue('land_method')
       : shippingMethod;
 
     var insuredBox = document.getElementById('insured');

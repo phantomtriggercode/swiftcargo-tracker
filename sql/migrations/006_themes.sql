@@ -1,8 +1,8 @@
 -- Migration 006: site-wide color themes, manageable only by super admins.
 --
 -- Safe to run once via phpMyAdmin's Import tab. Adds a `themes` table with
--- 10 seeded presets (6 distinct structural styles — classic, modern,
--- minimal, bold, corporate, dark-header — each paired with its own color
+-- 10 seeded presets (6 distinct structural styles: classic, modern,
+-- minimal, bold, corporate, dark-header, each paired with its own color
 -- palette). "Classic Red" is seeded active, matching the site's existing
 -- look exactly, so running this migration causes zero visible change until
 -- a super admin picks something else at /admin/themes.php.

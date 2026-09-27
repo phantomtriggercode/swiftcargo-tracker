@@ -1,14 +1,14 @@
 <?php
 /**
  * Address -> coordinates lookup, proxied server-side to OpenStreetMap's
- * Nominatim geocoder (https://nominatim.org) — free and keyless, same
+ * Nominatim geocoder (https://nominatim.org): free and keyless, same
  * project that provides our map tiles. No third-party paid API involved.
  *
  * Admin-only: this makes an outbound request per call, and Nominatim's
  * usage policy caps public use at 1 request/second, so it's gated behind
  * login rather than exposed on the public site.
  *
- * Nominatim requires a real identifying User-Agent on every request — see
+ * Nominatim requires a real identifying User-Agent on every request, see
  * https://operations.osmfoundation.org/policies/nominatim/
  */
 

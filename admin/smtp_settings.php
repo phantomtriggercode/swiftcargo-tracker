@@ -29,12 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'A valid "from" email is required.';
         } elseif (is_reserved_test_domain($fromEmail)) {
             // .test/.example/.invalid/.localhost are reserved by RFC 2606
-            // and never resolve in real DNS — any real SMTP server will
+            // and never resolve in real DNS: any real SMTP server will
             // reject mail claiming to be from one ("Sender address
             // rejected: Domain not found"), every single time. Catching
             // it here stops the placeholder from config.sample.php ever
             // getting saved as a real site's live "from" address.
-            $errors[] = 'The "from" email uses a reserved test domain (like .test, .example, .invalid, or .localhost) that no real mail server will accept. Use an email address on a real domain you control — ideally one that matches where this site is hosted.';
+            $errors[] = 'The "from" email uses a reserved test domain (like .test, .example, .invalid, or .localhost) that no real mail server will accept. Use an email address on a real domain you control: ideally one that matches where this site is hosted.';
         }
         if (!in_array($secure, ['tls', 'ssl'], true)) $errors[] = 'Invalid encryption type.';
 
@@ -55,14 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'reset_to_config') {
         // Clears the saved-in-the-database override so smtp_config() falls
-        // back to the SMTP_* constants in config/config.php again — the
+        // back to the SMTP_* constants in config/config.php again: the
         // only way to make a config.php edit take effect once anything has
         // ever been saved here, since a saved value always wins otherwise.
         foreach ($fields as $key) {
             db()->prepare('DELETE FROM settings WHERE setting_key = ?')->execute([$key]);
         }
         log_admin_activity('Reset SMTP settings to config.php defaults');
-        flash_set('success', 'Cleared — now using whatever is in config/config.php.');
+        flash_set('success', 'Cleared, now using whatever is in config/config.php.');
         redirect('/admin/smtp_settings.php');
     } elseif ($action === 'test') {
         $testEmail = trim($_POST['test_email'] ?? '');
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $testResult = send_smtp_mail(
                 $testEmail,
                 $testEmail,
-                get_site_name() . ' — Test Email',
+                get_site_name() . ': test email',
                 '<p style="font-family:sans-serif;">This is a test email from your ' . h(get_site_name()) . ' admin panel. If you received this, your SMTP settings are working.</p>',
                 'This is a test email from your ' . get_site_name() . ' admin panel. If you received this, your SMTP settings are working.'
             );
@@ -107,16 +107,16 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div class="form-card" style="max-width:560px;">
   <p style="margin-top:0;color:var(--muted);font-size:14px;">
-    Enter any SMTP mailbox's details here — a mailbox from your web hosting
+    Enter any SMTP mailbox's details here: a mailbox from your web hosting
     provider's control panel, a Gmail account with an
     <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--brand-red);">App Password</a>,
     or a free <a href="https://ethereal.email" target="_blank" style="color:var(--brand-red);">Ethereal</a> test
-    inbox for development. No third-party email API is used — this connects
+    inbox for development. No third-party email API is used. This connects
     directly to the mailbox over standard SMTP.
   </p>
   <p style="color:var(--muted);font-size:13px;">
     Once you save anything here, it's stored in the database and always
-    takes priority over <code>config/config.php</code> — editing that file
+    takes priority over <code>config/config.php</code>, editing that file
     afterward won't change what's actually used for sending mail. If you'd
     rather manage SMTP from <code>config.php</code> instead, use
     "Reset to config.php defaults" below to clear the saved override.
@@ -155,7 +155,7 @@ include __DIR__ . '/includes/admin_header.php';
         <label>"From" Email</label>
         <input type="text" name="smtp_from_email" value="<?= h($cfg['from_email']) ?>" placeholder="e.g. tracking@yourdomain.com" required>
         <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
-          Must be on a real domain you control — most mail servers reject a
+          Must be on a real domain you control, most mail servers reject a
           "from" address on a domain that doesn't exist (this is what
           "Sender address rejected: Domain not found" means).
         </span>
@@ -169,7 +169,7 @@ include __DIR__ . '/includes/admin_header.php';
   </form>
 </div>
 
-<form method="post" style="max-width:560px;margin-top:14px;" onsubmit="return confirm('Clear the saved email settings and go back to whatever is in config/config.php? Do this only if you want config.php — not this page — to control SMTP.');">
+<form method="post" style="max-width:560px;margin-top:14px;" onsubmit="return confirm('Clear the saved email settings and go back to whatever is in config/config.php? Do this only if you want config.php, not this page, to control SMTP.');">
   <?= csrf_field() ?>
   <input type="hidden" name="action" value="reset_to_config">
   <button type="submit" class="btn btn-outline btn-sm">Reset to config.php defaults</button>

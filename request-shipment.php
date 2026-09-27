@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $honeypot = (string) ($_POST['website'] ?? '');
 
     if (honeypot_tripped($honeypot)) {
-        // Bots that fill in the hidden field never see it fail — show the
+        // Bots that fill in the hidden field never see it fail: show the
         // normal success screen without ever saving a request or sending
         // an email, so nothing tells the bot to adjust its behavior.
         $submitted = true;
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $submitted = true;
 
         // Best-effort: the request is already saved either way, and staff
-        // can always see it at /admin/requests.php — a failed email here
+        // can always see it at /admin/requests.php: a failed email here
         // (unconfigured SMTP, etc.) shouldn't block the confirmation page.
         $refCode = 'REQ-' . str_pad((string) $referenceId, 5, '0', STR_PAD_LEFT);
         $siteName = get_site_name();
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         send_smtp_mail(
             $email,
             $fullName,
-            $siteName . ' — Shipment request ' . $refCode . ' received',
+            $siteName . ': shipment request ' . $refCode . ' received',
             '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . $ink . ';">'
                 . '<p>Hi ' . h($fullName) . ',</p>'
                 . '<p>Thanks for requesting a shipment with ' . h($siteName) . '. We\'ve received your request '
@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             send_smtp_mail(
                 $notifyEmail,
                 $siteName,
-                'New shipment request ' . $refCode . ' — ' . $fullName,
+                'New shipment request ' . $refCode . ' from ' . $fullName,
                 '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . $ink . ';">'
                     . '<p><strong>New shipment request ' . h($refCode) . '</strong></p>'
                     . '<p><strong>From:</strong> ' . h($fullName) . ' &lt;' . h($email) . '&gt;' . ($phone ? ' · ' . h($phone) : '') . '</p>'
@@ -161,7 +161,7 @@ include __DIR__ . '/includes/header.php';
 <section class="hero" style="padding-bottom:60px;">
   <div class="container">
     <h1 style="font-size:34px;"><?= h(get_setting('request_title', 'Request a Shipment')) ?></h1>
-    <p class="lead"><?= h(get_setting('request_lead', "Tell us what you're shipping and when — we'll get back to you with a confirmed quote. Prices below are a live estimate.")) ?></p>
+    <p class="lead"><?= h(get_setting('request_lead', "Tell us what you're shipping and when. We'll get back to you with a confirmed quote. Prices below are a live estimate.")) ?></p>
   </div>
 </section>
 
@@ -253,9 +253,9 @@ include __DIR__ . '/includes/header.php';
                 <label>Preferred Time</label>
                 <select id="preferred_time" name="preferred_time">
                   <option value="">Any time</option>
-                  <option value="Morning (8am–12pm)" <?= ($_POST['preferred_time'] ?? '') === 'Morning (8am–12pm)' ? 'selected' : '' ?>>Morning (8am–12pm)</option>
-                  <option value="Afternoon (12pm–4pm)" <?= ($_POST['preferred_time'] ?? '') === 'Afternoon (12pm–4pm)' ? 'selected' : '' ?>>Afternoon (12pm–4pm)</option>
-                  <option value="Evening (4pm–8pm)" <?= ($_POST['preferred_time'] ?? '') === 'Evening (4pm–8pm)' ? 'selected' : '' ?>>Evening (4pm–8pm)</option>
+                  <option value="Morning (8am to 12pm)" <?= ($_POST['preferred_time'] ?? '') === 'Morning (8am to 12pm)' ? 'selected' : '' ?>>Morning (8am to 12pm)</option>
+                  <option value="Afternoon (12pm to 4pm)" <?= ($_POST['preferred_time'] ?? '') === 'Afternoon (12pm to 4pm)' ? 'selected' : '' ?>>Afternoon (12pm to 4pm)</option>
+                  <option value="Evening (4pm to 8pm)" <?= ($_POST['preferred_time'] ?? '') === 'Evening (4pm to 8pm)' ? 'selected' : '' ?>>Evening (4pm to 8pm)</option>
                 </select>
               </div>
             </div>

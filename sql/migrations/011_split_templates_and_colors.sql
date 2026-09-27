@@ -1,9 +1,9 @@
 -- Migration 011: split the combined `themes` table (color + structural
 -- style in one row) into two independent things a super admin controls
 -- separately:
---   - `color_palettes` — just the 12 colors. Activating one never touches
+--   - `color_palettes`, just the 12 colors. Activating one never touches
 --     the page layout.
---   - `templates` — the structural design (layout_key selects section
+--   - `templates`: the structural design (layout_key selects section
 --     order/hero treatment in style.css, animation_key selects the
 --     scroll-reveal animation style, logo_path is that template's own
 --     default logo, used when no custom logo is uploaded under Branding).
@@ -13,7 +13,7 @@
 -- is_active/is_preset/is_admin_selectable). The 6 distinct structural
 -- styles that existed (classic/modern/minimal/bold/corporate/dark-header)
 -- become the 6 templates, and whichever one matches the currently-active
--- theme's style is marked active — so this migration causes no visible
+-- theme's style is marked active, so this migration causes no visible
 -- change the moment you run it.
 --
 -- The old `themes` table is renamed (not dropped) to `themes_legacy_backup`

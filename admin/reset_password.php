@@ -19,7 +19,7 @@ if ($admin && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm = (string) ($_POST['password_confirm'] ?? '');
 
     if (!csrf_verify((string) ($_POST['csrf_token'] ?? ''))) {
-        $errors[] = 'Your session expired — please reload the page and try again.';
+        $errors[] = 'Your session expired: please reload the page and try again.';
     }
     if (strlen($password) < 8) {
         $errors[] = 'Password must be at least 8 characters.';

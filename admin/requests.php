@@ -62,7 +62,7 @@ include __DIR__ . '/includes/admin_header.php';
           <?= h($r['package_description']) ?><br>
           <span style="color:var(--muted);"><?= h($r['weight_kg']) ?>kg &middot; <?= h($r['packaging_type']) ?> &middot; <?= h($r['shipping_method']) ?><?= $r['land_method'] ? ' (' . h($r['land_method']) . ')' : '' ?> &middot; <?= h($r['service_type']) ?></span>
         </td>
-        <td data-label="Est. Cost"><?= $r['estimated_cost'] !== null ? '$' . number_format((float) $r['estimated_cost'], 2) : '—' ?></td>
+        <td data-label="Est. Cost"><?= $r['estimated_cost'] !== null ? '$' . number_format((float) $r['estimated_cost'], 2) : 'Not quoted' ?></td>
         <td data-label="Status"><span class="status-pill <?= $statusClass($r['status']) ?>"><?= h($r['status']) ?></span></td>
         <td class="actions" data-label="Actions">
           <div class="row-actions">

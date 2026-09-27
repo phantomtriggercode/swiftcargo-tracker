@@ -6,8 +6,7 @@
 SET NAMES utf8mb4;
 
 -- Regular (non-super-admin) accounts get a small, safe "Site Color" picker
--- at /admin/my_theme.php limited to whichever themes are flagged here —
--- they can activate one of these, but never edit or delete any theme.
+-- at /admin/my_theme.php limited to whichever themes are flagged here: -- they can activate one of these, but never edit or delete any theme.
 -- Super admins keep full access to every theme via /admin/themes.php.
 ALTER TABLE themes
   ADD COLUMN is_admin_selectable TINYINT(1) NOT NULL DEFAULT 0 AFTER is_preset;
@@ -28,7 +27,7 @@ INSERT INTO themes (
 
 -- Super admins can force an admin to set a new password on their next
 -- login (e.g. after resetting it for them). The admin sees a plain
--- "set a new password to continue" prompt — nothing in the UI attributes
+-- "set a new password to continue" prompt: nothing in the UI attributes
 -- this to a super admin, matching how the rest of the super-admin role
 -- stays out of a regular admin's own working screens.
 ALTER TABLE admins

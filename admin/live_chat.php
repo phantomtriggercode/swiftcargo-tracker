@@ -1,6 +1,6 @@
 <?php
 /**
- * Live chat settings — where the site owner connects their own Tawk.to
+ * Live chat settings, where the site owner connects their own Tawk.to
  * account so the chat bubble appears on the public site.
  *
  * Deliberately paste-anything friendly: the owner copies the "Widget Code"
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'The Widget ID in that code is not in a format Tawk.to uses. Please re-copy the widget code.';
         }
         if (!$errors && $enabled && ($propertyId === '' || $widgetId === '')) {
-            $errors[] = 'Paste your Tawk.to widget code first — there is nothing to switch on yet.';
+            $errors[] = 'Paste your Tawk.to widget code first. There is nothing to switch on yet.';
         }
 
         if (!$errors) {
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             log_admin_activity(
                 'Changed live chat settings',
                 ($enabled ? 'Enabled' : 'Disabled')
-                . ($propertyId !== '' ? ' — property ' . $propertyId . '/' . $widgetId : '')
+                . ($propertyId !== '' ? ', property ' . $propertyId . '/' . $widgetId : '')
             );
             flash_set(
                 'success',
@@ -114,7 +114,7 @@ include __DIR__ . '/includes/admin_header.php';
     This connects your own free
     <a href="https://www.tawk.to" target="_blank" rel="noopener" style="color:var(--brand-red);">Tawk.to</a>
     account to the site, so visitors can chat with you while they track a shipment.
-    You keep your Tawk.to login — it is never stored here, and you answer chats in the
+    You keep your Tawk.to login. It is never stored here, and you answer chats in the
     Tawk.to dashboard or its phone app, not in this admin panel.
   </p>
 
@@ -133,7 +133,7 @@ include __DIR__ . '/includes/admin_header.php';
       <label>Tawk.to widget code</label>
       <textarea name="widget_code" rows="6" placeholder="<!--Start of Tawk.to Script-->&#10;<script type=&quot;text/javascript&quot;>&#10;...&#10;s1.src='https://embed.tawk.to/xxxxxxxxxxxxxxxxxxxxxxxx/default';&#10;...&#10;</script>&#10;<!--End of Tawk.to Script-->"></textarea>
       <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
-        Paste the whole block — extra lines are fine, only the two ID codes inside it are saved.
+        Paste the whole block: extra lines are fine, only the two ID codes inside it are saved.
         Just the <code>https://embed.tawk.to/...</code> link on its own works too.
         <?php if (live_chat_is_configured()): ?>
           Leave this blank to keep the account already connected below.
@@ -147,7 +147,7 @@ include __DIR__ . '/includes/admin_header.php';
         Show the chat bubble on the public site
       </label>
       <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
-        Untick this to hide chat from visitors without disconnecting your account — handy
+        Untick this to hide chat from visitors without disconnecting your account: handy
         outside business hours, or while you are still setting Tawk.to up.
       </span>
     </div>
@@ -160,8 +160,7 @@ include __DIR__ . '/includes/admin_header.php';
   <div class="form-card" style="max-width:640px;margin-top:16px;">
     <h3 style="margin-top:0;">Connected account</h3>
     <p style="color:var(--muted);font-size:14px;margin-top:0;">
-      These are the codes read out of the widget code you pasted. They are not secret —
-      they are the same codes Tawk.to puts on any page your widget runs on.
+      These are the codes read out of the widget code you pasted. They are not secret. They are the same codes Tawk.to puts on any page your widget runs on.
     </p>
     <dl style="margin:0;font-size:14px;">
       <dt style="font-weight:700;color:var(--ink-soft);font-size:12.5px;text-transform:uppercase;letter-spacing:0.4px;">Property ID</dt>
@@ -185,7 +184,7 @@ include __DIR__ . '/includes/admin_header.php';
     <li><strong>Where the bubble sits, what colour it is and the greeting text</strong> are all
       set inside Tawk.to (Administration → Channels → Chat Widget). Bottom-right is its
       default. Nothing about the look of the widget is controlled from this page.</li>
-    <li><strong>Only the public site</strong> shows the bubble — never this admin panel.</li>
+    <li><strong>Only the public site</strong> shows the bubble: never this admin panel.</li>
     <li><strong>If chat is unreachable</strong> (a visitor's network blocks it, or Tawk.to is
       down), the widget just doesn't appear. The rest of the page, including the live
       tracking map, is completely unaffected.</li>
@@ -195,7 +194,7 @@ include __DIR__ . '/includes/admin_header.php';
     <li><strong>Worth a line in your Privacy Policy.</strong> The chat widget sets its own
       cookies so a visitor's conversation survives a page reload. Your Privacy Policy
       currently says the site uses no third-party cookies, which stops being quite true
-      once chat is on — you can edit that wording under
+      once chat is on. You can edit that wording under
       <a href="/admin/content.php" style="color:var(--brand-red);">Site Content</a>.</li>
   </ul>
 </div>

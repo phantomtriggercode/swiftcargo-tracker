@@ -3,7 +3,7 @@
 --
 -- Safe to run once on your existing SwiftCargo Tracker database via
 -- phpMyAdmin's Import tab. It does NOT touch your existing shipments'
--- data (origin/destination/etc.) — it only adds new columns/tables and
+-- data (origin/destination/etc.). It only adds new columns/tables and
 -- remaps a couple of renamed enum values. Run this only once.
 
 SET NAMES utf8mb4;
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS settings (
 -- Home page
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('home_hero_title', 'Ship anywhere. Track everything. Live.'),
-('home_hero_lead', 'SwiftCargo moves freight and parcels across the United States and worldwide, and shows you exactly where they are on a live map — with an email sent to your receiver on every single update.'),
+('home_hero_lead', 'SwiftCargo moves freight and parcels across the United States and worldwide, and shows you exactly where they are on a live map, with an email sent to your receiver on every single update.'),
 ('stat_countries', '195+'),
 ('stat_ontime', '98.6%'),
 ('stat_support', '24/7'),

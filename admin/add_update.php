@@ -27,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!in_array($status, $statuses, true)) $errors[] = 'Please choose a valid status.';
     if ($locationLabel === '') $errors[] = 'Location label is required.';
-    // Range-checked, not just "is it a number" — an out-of-range coordinate
+    // Range-checked, not just "is it a number", an out-of-range coordinate
     // saves fine but would break the live map for this shipment.
-    if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90 — use "Find on map" to fill it in automatically.';
-    if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180 — use "Find on map" to fill it in automatically.';
+    if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90: use "Find on map" to fill it in automatically.';
+    if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180: use "Find on map" to fill it in automatically.';
 
     if (!$errors) {
-        // Staff left the note blank — fall back to that status's editable
+        // Staff left the note blank: fall back to that status's editable
         // default message (/admin/status_messages.php), baked in now so a
         // later edit to the template never rewrites what this update said.
         if ($note === '') {
@@ -80,7 +80,7 @@ include __DIR__ . '/includes/admin_header.php';
 ?>
 
 <div class="admin-topbar">
-  <h1>Add Update — <?= h($shipment['tracking_number']) ?></h1>
+  <h1>Add Update for <?= h($shipment['tracking_number']) ?></h1>
 </div>
 
 <?php foreach ($errors as $err): ?>
@@ -104,9 +104,9 @@ include __DIR__ . '/includes/admin_header.php';
       </select>
     </div>
     <div class="form-group">
-      <label>Location — Address or Place</label>
+      <label>Location: Address or Place</label>
       <div class="input-with-button">
-        <input type="text" id="location_label" name="location_label" placeholder="Paste any address — street, home, or a place name" required>
+        <input type="text" id="location_label" name="location_label" placeholder="Paste any address: street, home, or a place name" required>
         <button type="button" id="location-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
       </div>
       <span id="location-geocode-status" class="geocode-status"></span>
@@ -123,7 +123,7 @@ include __DIR__ . '/includes/admin_header.php';
     </div>
     <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
       "Find on map" fills these in for you. If it's ever unavailable, type them
-      by hand instead — open <strong>Google Maps</strong>, right-click the spot,
+      by hand instead: open <strong>Google Maps</strong>, right-click the spot,
       and click the numbers at the top of the menu to copy them.
     </p>
     <div class="form-group">

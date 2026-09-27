@@ -5,7 +5,7 @@
  * /admin/templates.php for structural design):
  *
  *   - Color palettes (`color_palettes` table): just the 12 CSS color
- *     variables. Activating one only ever changes colors — never layout,
+ *     variables. Activating one only ever changes colors: never layout,
  *     animation, or logo.
  *   - Templates (`templates` table): the structural design. layout_key
  *     selects a section-order/hero/typography treatment defined in
@@ -18,7 +18,7 @@
  *
  * Regular (non-super-admin) accounts can only activate one of a small
  * fixed set of color palettes (is_admin_selectable) at /admin/my_theme.php
- * — never a template, never edit/delete anything.
+ *: never a template, never edit/delete anything.
  *
  * Requires config/db.php to already be loaded.
  */
@@ -39,20 +39,20 @@ const PALETTE_COLOR_FIELDS = [
 ];
 
 const TEMPLATE_LAYOUT_KEYS = [
-    'classic'     => 'Classic — the site\'s original section order and look',
-    'modern'      => 'Modern — soft rounded cards, reordered homepage sections, fade-up reveals',
-    'minimal'     => 'Minimal — sharp corners, flat, no shadows, no motion',
-    'bold'        => 'Bold — strong shadows, uppercase buttons, reordered sections, scale-in reveals',
-    'corporate'   => 'Corporate — serif headings, restrained radius, formal hero',
-    'dark-header' => 'Dark Header — dark navigation bar site-wide, reordered sections, slide-in reveals',
+    'classic'     => 'Classic: the site\'s original section order and look',
+    'modern'      => 'Modern: soft rounded cards, reordered homepage sections, fade-up reveals',
+    'minimal'     => 'Minimal: sharp corners, flat, no shadows, no motion',
+    'bold'        => 'Bold: strong shadows, uppercase buttons, reordered sections, scale-in reveals',
+    'corporate'   => 'Corporate: serif headings, restrained radius, formal hero',
+    'dark-header' => 'Dark Header: dark navigation bar site-wide, reordered sections, slide-in reveals',
 ];
 
 const TEMPLATE_ANIMATION_KEYS = [
-    'none'     => 'None — content appears instantly',
-    'fade'     => 'Fade — a gentle fade in',
-    'fade-up'  => 'Fade Up — fades in while rising slightly',
-    'scale-in' => 'Scale In — grows in from slightly smaller',
-    'slide-in' => 'Slide In — slides in from the side',
+    'none'     => 'None: content appears instantly',
+    'fade'     => 'Fade: a gentle fade in',
+    'fade-up'  => 'Fade Up: fades in while rising slightly',
+    'scale-in' => 'Scale In: grows in from slightly smaller',
+    'slide-in' => 'Slide In: slides in from the side',
 ];
 
 /* ------------------------- Color palettes ------------------------- */
@@ -64,9 +64,9 @@ function get_active_palette(): array
         return $palette;
     }
 
-    // Defensive fallback — matches the site's original hardcoded colors.
+    // Defensive fallback, matches the site's original hardcoded colors.
     // Used whenever the query can't return a real row: the table doesn't
-    // exist yet (new code deployed before migration 011 was run — this is
+    // exist yet (new code deployed before migration 011 was run. This is
     // what a site-wide white screen right after an update almost always
     // means), or every palette somehow got deleted. This runs on every
     // public and admin page load, so it must never throw.
@@ -134,7 +134,7 @@ function activate_palette(int $id): bool
 /**
  * Permanently deletes a color palette. Blocks deleting the active one
  * (so the site never ends up with none active) and the last remaining
- * one. There is no undo — a deliberate, manual action from
+ * one. There is no undo: a deliberate, manual action from
  * /admin/themes.php, never automatic.
  */
 function delete_palette(int $id): array
@@ -144,7 +144,7 @@ function delete_palette(int $id): array
         return ['ok' => false, 'error' => 'Color palette not found.'];
     }
     if ($palette['is_active']) {
-        return ['ok' => false, 'error' => "Can't delete the active color palette — activate a different one first."];
+        return ['ok' => false, 'error' => "Can't delete the active color palette: activate a different one first."];
     }
     $total = (int) db()->query('SELECT COUNT(*) FROM color_palettes')->fetchColumn();
     if ($total <= 1) {
@@ -164,7 +164,7 @@ function get_active_template(): array
         return $template;
     }
 
-    // Same rationale as get_active_palette()'s fallback above — must never
+    // Same rationale as get_active_palette()'s fallback above: must never
     // throw, since this also runs on every page load.
     try {
         $row = db()->query('SELECT * FROM templates WHERE is_active = 1 LIMIT 1')->fetch();
@@ -235,7 +235,7 @@ function delete_template(int $id): array
         return ['ok' => false, 'error' => 'Template not found.'];
     }
     if ($template['is_active']) {
-        return ['ok' => false, 'error' => "Can't delete the active template — activate a different one first."];
+        return ['ok' => false, 'error' => "Can't delete the active template: activate a different one first."];
     }
     $total = (int) db()->query('SELECT COUNT(*) FROM templates')->fetchColumn();
     if ($total <= 1) {

@@ -2,7 +2,7 @@
 -- tracking number prefix/suffix.
 --
 -- Safe to run once via phpMyAdmin's Import tab. Adds a `couriers` table
--- (managed from /admin/couriers.php — admins can rename, deactivate, or
+-- (managed from /admin/couriers.php: admins can rename, deactivate, or
 -- add new carriers such as DHL, UPS, FedEx, USPS at any time), a nullable
 -- `courier_id` column on `shipments`, widens `tracking_number` to fit a
 -- custom prefix/suffix, and seeds the two new tracking-number-format

@@ -2,8 +2,7 @@
 --
 -- Safe to run once via phpMyAdmin's Import tab. Adds two columns to
 -- `admins` and promotes every existing admin account to super admin
--- (so nobody gets locked out of their own site by this migration) —
--- go to /admin/admins.php afterward to demote accounts that shouldn't
+-- (so nobody gets locked out of their own site by this migration), -- go to /admin/admins.php afterward to demote accounts that shouldn't
 -- have full access.
 
 SET NAMES utf8mb4;

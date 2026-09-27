@@ -2,8 +2,7 @@
 /**
  * Sends tracking-update alert emails over plain SMTP using PHPMailer.
  *
- * No third-party email API (SendGrid, Mailgun, etc.) is used anywhere here —
- * this talks directly to an SMTP server using the standard SMTP protocol,
+ * No third-party email API (SendGrid, Mailgun, etc.) is used anywhere here, * this talks directly to an SMTP server using the standard SMTP protocol,
  * the same way any desktop email client does.
  *
  * SMTP credentials are read from the settings table first (editable at
@@ -20,9 +19,9 @@ use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 /**
  * True if an email address's domain is one reserved by RFC 2606 for
- * documentation/testing — the .test/.example/.invalid/.localhost TLDs
+ * documentation/testing: the .test/.example/.invalid/.localhost TLDs
  * (which never resolve in real DNS, so any real SMTP server will reject a
- * message claiming to be from one — config.sample.php's SMTP_FROM
+ * message claiming to be from one: config.sample.php's SMTP_FROM
  * placeholder, tracking@swiftcargo.test, is exactly this) plus the three
  * "example" second-level domains the same RFC reserves under .com/.net/.org
  * (these do resolve, since IANA parks them, but are just as much a
@@ -103,7 +102,7 @@ function send_smtp_mail(string $toEmail, string $toName, string $subject, string
 function send_tracking_update_email(array $shipment, array $event): array
 {
     $site = get_site_name();
-    $subject = $site . ' — Shipment ' . $shipment['tracking_number'] . ' update: ' . $event['status'];
+    $subject = $site . ': shipment ' . $shipment['tracking_number'] . ' is now ' . $event['status'];
 
     return send_smtp_mail(
         $shipment['receiver_email'],
@@ -115,8 +114,7 @@ function send_tracking_update_email(array $shipment, array $event): array
 }
 
 /**
- * Notifies the receiver when a shipment's insurance status changes —
- * whether insurance was just added or removed — instead of the change
+ * Notifies the receiver when a shipment's insurance status changes, * whether insurance was just added or removed, instead of the change
  * happening silently. $shipment only needs tracking_number, receiver_name,
  * receiver_email.
  *
@@ -133,12 +131,12 @@ function send_insurance_status_email(array $shipment, bool $nowInsured, float $i
     $trackUrl = get_site_url() . '/track.php?tn=' . urlencode($shipment['tracking_number']);
 
     if ($nowInsured) {
-        $subject = $site . ' — Shipment ' . $shipment['tracking_number'] . ' is now insured';
+        $subject = $site . ': shipment ' . $shipment['tracking_number'] . ' is now insured';
         $valueLine = $insuranceValue > 0 ? ' for a declared value of <strong style="color:' . $primary . ';">$' . number_format($insuranceValue, 2) . '</strong>' : '';
         $bodyHtml = '<p>Your shipment <strong>' . $tn . '</strong> now has shipping insurance' . $valueLine . '.</p>';
         $bodyText = "Your shipment {$tn} now has shipping insurance" . ($insuranceValue > 0 ? ' for a declared value of $' . number_format($insuranceValue, 2) : '') . ".\n";
     } else {
-        $subject = $site . ' — Shipment ' . $shipment['tracking_number'] . ' insurance removed';
+        $subject = $site . ': shipment ' . $shipment['tracking_number'] . ' insurance removed';
         $bodyHtml = '<p>Shipping insurance has been removed from your shipment <strong>' . $tn . '</strong>. It is no longer covered by insurance in transit.</p>';
         $bodyText = "Shipping insurance has been removed from your shipment {$tn}. It is no longer covered by insurance in transit.\n";
     }

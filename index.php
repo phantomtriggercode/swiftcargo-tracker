@@ -61,7 +61,7 @@ include __DIR__ . '/includes/header.php';
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/mail.svg" alt="" width="24" height="24"></div>
         <h3><?= h(get_setting('home_feature2_title', 'Automatic Email Alerts')) ?></h3>
-        <p><?= h(get_setting('home_feature2_desc', 'The receiver gets an email the instant a shipment status changes — picked up, in transit, out for delivery, delivered.')) ?></p>
+        <p><?= h(get_setting('home_feature2_desc', 'The receiver gets an email the instant a shipment status changes, so they always know: picked up, in transit, out for delivery, delivered.')) ?></p>
       </div>
       <div class="card">
         <div class="icon"><img src="/assets/images/icons/clock.svg" alt="" width="24" height="24"></div>
@@ -99,7 +99,7 @@ include __DIR__ . '/includes/header.php';
       <img src="<?= h(get_site_image('home_row1_image', '/assets/images/illustrations/photo-warehouse-stacking.jpg')) ?>" alt="Warehouse workers carefully stacking and handling packages" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row1_title', 'Careful handling at every hub')) ?></h3>
-        <p><?= h(get_setting('home_row1_desc', 'Every parcel and pallet is scanned, verified, and handled by trained staff the moment it arrives at one of our facilities — logged instantly so your tracking page updates in real time.')) ?></p>
+        <p><?= h(get_setting('home_row1_desc', 'Every parcel and pallet is scanned, verified, and handled by trained staff the moment it arrives at one of our facilities, logged instantly so your tracking page updates in real time.')) ?></p>
       </div>
     </div>
 
@@ -107,7 +107,7 @@ include __DIR__ . '/includes/header.php';
       <img src="<?= h(get_site_image('home_row2_image', '/assets/images/illustrations/photo-semi-sunset.jpg')) ?>" alt="Delivery truck on the highway at sunset" loading="lazy">
       <div>
         <h3><?= h(get_setting('home_row2_title', 'A fleet built for reliability')) ?></h3>
-        <p><?= h(get_setting('home_row2_desc', 'Ground transport by van, trailer, or rail, and air and sea freight for long-haul and international shipments — routed for speed without cutting corners.')) ?></p>
+        <p><?= h(get_setting('home_row2_desc', 'Ground transport by van, trailer, or rail, and air and sea freight for long-haul and international shipments, routed for speed without cutting corners.')) ?></p>
       </div>
     </div>
 
@@ -144,7 +144,7 @@ include __DIR__ . '/includes/header.php';
       <div class="card">
         <div class="icon">2</div>
         <h3><?= h(get_setting('home_step2_title', 'We move it')) ?></h3>
-        <p><?= h(get_setting('home_step2_desc', 'Your package travels through our network of hubs — each checkpoint logged live.')) ?></p>
+        <p><?= h(get_setting('home_step2_desc', 'Your package travels through our network of hubs, with each checkpoint logged live.')) ?></p>
       </div>
       <div class="card">
         <div class="icon">3</div>

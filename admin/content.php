@@ -153,7 +153,7 @@ include __DIR__ . '/includes/admin_header.php';
       <?php
       $featureDefaults = [
           1 => ['Live Map Tracking', 'Watch your package move across an interactive world map in real time, from pickup to doorstep.'],
-          2 => ['Automatic Email Alerts', 'The receiver gets an email the instant a shipment status changes — picked up, in transit, out for delivery, delivered.'],
+          2 => ['Automatic Email Alerts', 'The receiver gets an email the instant a shipment status changes: picked up, in transit, out for delivery, delivered.'],
           3 => ['Real-Time Status Timeline', 'A full, timestamped history of every checkpoint your package has passed through.'],
           4 => ['Regular & Express Options', 'Choose the service level that matches your urgency, and ship by air, sea, or land.'],
           5 => ['Worldwide Coverage', 'From coast to coast across the U.S. and worldwide, we move freight and parcels reliably to every country we serve.'],
@@ -190,8 +190,8 @@ include __DIR__ . '/includes/admin_header.php';
       </div>
       <?php
       $rowDefaults = [
-          1 => ['Careful handling at every hub', 'Every parcel and pallet is scanned, verified, and handled by trained staff the moment it arrives at one of our facilities — logged instantly so your tracking page updates in real time.'],
-          2 => ['A fleet built for reliability', 'Ground transport by van, trailer, or rail, and air and sea freight for long-haul and international shipments — routed for speed without cutting corners.'],
+          1 => ['Careful handling at every hub', 'Every parcel and pallet is scanned, verified, and handled by trained staff the moment it arrives at one of our facilities, logged instantly so your tracking page updates in real time.'],
+          2 => ['A fleet built for reliability', 'Ground transport by van, trailer, or rail, and air and sea freight for long-haul and international shipments, routed for speed without cutting corners.'],
           3 => ['Fast, careful unloading', 'At every stop, our team unloads and sorts shipments quickly and carefully, keeping your delivery window tight and your package intact.'],
           4 => ['Right to your door', "The last mile matters most. Our couriers deliver directly to your doorstep, and your receiver gets an email the moment it's dropped off."],
       ];
@@ -221,7 +221,7 @@ include __DIR__ . '/includes/admin_header.php';
       <?php
       $stepDefaults = [
           1 => ['Book a shipment', 'Our team creates your shipment and issues a unique tracking number.'],
-          2 => ['We move it', 'Your package travels through our network of hubs — each checkpoint logged live.'],
+          2 => ['We move it', 'Your package travels through our network of hubs, with each checkpoint logged live.'],
           3 => ['You & the receiver stay informed', 'Every update triggers an instant email, and anyone can watch progress on the live map.'],
       ];
       foreach ($stepDefaults as $i => [$defTitle, $defDesc]):
@@ -277,7 +277,7 @@ include __DIR__ . '/includes/admin_header.php';
       <?php
       $tierDefaults = [
           1 => ['Priority', 'Our fastest service for time-critical shipments, with premium handling and priority routing at every hub.'],
-          2 => ['Express', 'Reliable, fast international delivery — ideal for business documents and time-sensitive parcels.'],
+          2 => ['Express', 'Reliable, fast international delivery, ideal for business documents and time-sensitive parcels.'],
           3 => ['Standard', 'Cost-effective shipping for everyday parcels, with the same live tracking and email alerts.'],
       ];
       foreach ($tierDefaults as $i => [$defTitle, $defDesc]):
@@ -339,7 +339,7 @@ include __DIR__ . '/includes/admin_header.php';
       </div>
       <div class="form-group">
         <label>Lead Paragraph</label>
-        <textarea name="request_lead" rows="2"><?= h(get_setting('request_lead', "Tell us what you're shipping and when — we'll get back to you with a confirmed quote. Prices below are a live estimate.")) ?></textarea>
+        <textarea name="request_lead" rows="2"><?= h(get_setting('request_lead', "Tell us what you're shipping and when. We'll get back to you with a confirmed quote. Prices below are a live estimate.")) ?></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Save Ship Now Content</button>
     </form>
@@ -377,16 +377,16 @@ include __DIR__ . '/includes/admin_header.php';
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Get in Touch — Email</label>
+          <label>Contact Email</label>
           <input type="text" name="contact_email" value="<?= h(get_setting('contact_email')) ?>">
         </div>
         <div class="form-group">
-          <label>Get in Touch — Phone</label>
+          <label>Contact Phone</label>
           <input type="text" name="contact_phone" value="<?= h(get_setting('contact_phone')) ?>">
         </div>
       </div>
       <p style="margin-top:-6px;color:var(--muted);font-size:13px;">
-        These are the same email and phone shown on the Contact page — editing them here updates both.
+        These are the same email and phone shown on the Contact page, editing them here updates both.
       </p>
       <div class="form-group">
         <label>Rights Text (after "&copy; <?= date('Y') ?> <?= h(get_site_name()) ?>.")</label>

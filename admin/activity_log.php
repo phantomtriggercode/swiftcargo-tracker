@@ -16,9 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($target) {
                 $del = db()->prepare('DELETE FROM admin_activity_log WHERE id = ?');
                 $del->execute([$id]);
-                // Deleting an audit entry is itself worth a trace — logged
+                // Deleting an audit entry is itself worth a trace, logged
                 // after the delete so this new row is the one that survives it.
-                log_admin_activity('Deleted activity log entry', $target['action'] . ' — ' . $target['admin_name'] . ', ' . $target['created_at']);
+                log_admin_activity('Deleted activity log entry', $target['action'] . ', ' . $target['admin_name'] . ', ' . $target['created_at']);
                 flash_set('success', 'Entry deleted.');
             } else {
                 flash_set('error', 'Entry not found.');
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('success', 'Activity log cleared.');
         }
     } catch (PDOException $e) {
-        // Table not migrated yet — same fail-open rationale as the SELECT
+        // Table not migrated yet: same fail-open rationale as the SELECT
         // below, just for the write side too.
         flash_set('error', 'The activity log table is not set up yet.');
     }
@@ -41,7 +41,7 @@ $entries = [];
 try {
     $entries = db()->query('SELECT * FROM admin_activity_log ORDER BY created_at DESC LIMIT 200')->fetchAll();
 } catch (PDOException $e) {
-    // Table not migrated yet (see sql/migrations/013_admin_activity_log.sql) — show an empty list instead of a fatal error.
+    // Table not migrated yet (see sql/migrations/013_admin_activity_log.sql), show an empty list instead of a fatal error.
 }
 
 $activeAdminNav = 'activity_log';
@@ -68,8 +68,8 @@ include __DIR__ . '/includes/admin_header.php';
 <?php endif; ?>
 
 <p style="color:var(--muted);font-size:14px;max-width:760px;">
-  A record of sensitive admin actions — account changes, shipment deletions, SMTP credential
-  changes, and color/template activation — for accountability. Showing the most recent 200 entries.
+  A record of sensitive admin actions: account changes, shipment deletions, SMTP credential
+  changes, and color/template activation, for accountability. Showing the most recent 200 entries.
   Deleting an entry (or clearing the log) is itself recorded, so wiping history always leaves a trace.
 </p>
 

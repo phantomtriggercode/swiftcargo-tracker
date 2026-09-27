@@ -1,0 +1,29 @@
+-- Text cleanup: replaces the em dashes in the site's wording with ordinary
+-- punctuation. Import this ONCE in phpMyAdmin (pick your database, click
+-- Import, choose this file, Go) if your site was set up before this change.
+--
+-- Safe to run more than once. Every statement only touches rows that still
+-- contain an em dash, so any wording you have edited yourself through Site
+-- Content is left exactly as you wrote it.
+
+-- 1. The seeded page copy that contained one.
+UPDATE settings SET setting_value = 'SwiftCargo moves freight and parcels across the United States and worldwide, and shows you exactly where they are on a live map, with an email sent to your receiver on every single update.'
+  WHERE setting_key = 'home_hero_lead' AND setting_value LIKE '%—%';
+
+UPDATE settings SET setting_value = 'This Privacy Policy explains what information we collect when you use this website or ship with us, why we collect it, and how it is handled.\n\nInformation we collect: when you request a shipment, track a package, or contact us, we collect the details you provide: names, email addresses, phone numbers, physical addresses, and information about the shipment itself (contents description, weight, dimensions, and declared value if insured). We do not ask for or store payment card numbers on this site.\n\nHow we use it: we use this information to create and manage shipments, send tracking and delivery status emails, respond to inquiries, calculate shipping estimates, and keep records required to operate our shipping service. Contact information tied to a shipment is also used to send status update emails as the shipment moves through our network.\n\nCookies and site data: this site uses a single session cookie to keep you logged in to the admin panel and to remember short-lived confirmation messages. We do not use third-party advertising or tracking cookies.\n\nSharing: we do not sell your personal information. We may share shipment details with the carrier or courier handling a given shipment, and with service providers who help us operate this site (for example, our email delivery provider), solely to provide the service you requested.\n\nData retention: we keep shipment and contact records for as long as needed to provide our services, meet legal or accounting obligations, and resolve disputes.\n\nSecurity: we use reasonable technical and organizational measures to protect the information we hold, including encrypted connections and access controls on our admin systems. No method of transmission or storage is 100% secure, and we cannot guarantee absolute security.\n\nYour choices: you can contact us at any time to ask what information we hold about you, request a correction, or request deletion where we are not required to keep it for legal or operational reasons.\n\nChanges to this policy: we may update this policy from time to time. The version posted here is always the current one.\n\nContact us: if you have questions about this policy, reach out using the details on our Contact page.'
+  WHERE setting_key = 'privacy_body' AND setting_value LIKE '%—%';
+
+UPDATE settings SET setting_value = 'By using this website or requesting a shipment through us, you agree to the terms below.\n\nOur services: this site lets you request a shipment quote, and lets senders, receivers, and our staff track a shipment''s status and location. Submitting a shipment request is a request for service, not a confirmed booking. Our team follows up to confirm final details, pricing, and pickup arrangements before a shipment is created.\n\nAccuracy of information: you are responsible for providing accurate sender, receiver, and package information. Delays or delivery issues caused by incomplete or incorrect information are not our responsibility.\n\nEstimates and pricing: cost estimates shown on this site are calculated from the details you provide and are subject to confirmation by our team before a shipment is booked. Final pricing may differ based on verified weight, dimensions, destination, or service level.\n\nProhibited shipments: you agree not to ship anything illegal, hazardous, or prohibited by applicable customs, postal, or transport regulations. We may refuse or cancel a shipment that we reasonably believe violates this.\n\nInsurance: declared-value insurance is optional and, where selected, is subject to the terms communicated to you at the time of booking. We are not liable for loss or damage beyond any insurance coverage in place for a given shipment.\n\nLimitation of liability: to the fullest extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from the use of this site or our shipping services, beyond the value of the shipment (and any insurance coverage) involved.\n\nIntellectual property: the content, design, and branding on this site belong to us or our licensors and may not be copied or reused without permission.\n\nChanges: we may update these terms from time to time. Continued use of this site after a change means you accept the updated terms.\n\nContact us: questions about these terms can be sent using the details on our Contact page.'
+  WHERE setting_key = 'terms_body' AND setting_value LIKE '%—%';
+
+-- 2. Anything else in the settings table that still has one, including any
+--    wording you edited yourself.
+UPDATE settings SET setting_value = REPLACE(setting_value, ' — ', ', ') WHERE setting_value LIKE '% — %';
+UPDATE settings SET setting_value = REPLACE(setting_value, '—', ',')   WHERE setting_value LIKE '%—%';
+
+-- 3. Staff-written notes on tracking updates already in the system.
+UPDATE tracking_events SET note = REPLACE(note, ' — ', ', ') WHERE note LIKE '% — %';
+UPDATE tracking_events SET note = REPLACE(note, '—', ',')   WHERE note LIKE '%—%';
+
+-- 4. Should come back as 0.
+SELECT COUNT(*) AS dashes_remaining FROM settings WHERE setting_value LIKE '%—%';

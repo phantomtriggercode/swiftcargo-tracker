@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $honeypot = (string) ($_POST['website'] ?? '');
 
     if (honeypot_tripped($honeypot)) {
-        // Bots that fill in the hidden field never see it fail — pretend
+        // Bots that fill in the hidden field never see it fail: pretend
         // success without actually sending anything, so nothing tells the
         // bot to adjust its behavior.
         flash_set('contact_success', 'Thanks for reaching out! Our team will get back to you shortly.');

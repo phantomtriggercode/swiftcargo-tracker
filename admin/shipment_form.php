@@ -70,12 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($originLabel === '' || $originLat === '' || $originLng === '') {
         $errors[] = 'Origin (label + coordinates) is required.';
     } elseif (!is_valid_latitude((string) $originLat) || !is_valid_longitude((string) $originLng)) {
-        $errors[] = 'Origin coordinates look wrong — latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
+        $errors[] = 'Origin coordinates look wrong: latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
     }
     if ($destinationLabel === '' || $destinationLat === '' || $destinationLng === '') {
         $errors[] = 'Destination (label + coordinates) is required.';
     } elseif (!is_valid_latitude((string) $destinationLat) || !is_valid_longitude((string) $destinationLng)) {
-        $errors[] = 'Destination coordinates look wrong — latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
+        $errors[] = 'Destination coordinates look wrong: latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
     }
     if (!in_array($serviceType, $serviceTypes, true)) $errors[] = 'Invalid service type.';
     if (!in_array($shippingMethod, $shippingMethods, true)) $errors[] = 'Invalid shipping method.';
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $estimatedDelivery, $shipment['id'],
             ]);
 
-            // Insurance status changed — let the receiver know either way
+            // Insurance status changed: let the receiver know either way
             // (newly insured, or insurance removed), not just silently.
             if ((bool) $shipment['insured'] !== $insured) {
                 send_insurance_status_email([
@@ -313,7 +313,7 @@ include __DIR__ . '/includes/admin_header.php';
         <label>Land Transport Type</label>
         <select name="land_method">
           <?php $curLand = $shipment['land_method'] ?? ($prefill['land_method'] ?? ''); ?>
-          <option value="">—</option>
+          <option value="">Select a carrier</option>
           <?php foreach ($landMethods as $opt): ?>
             <option value="<?= $opt ?>" <?= $curLand === $opt ? 'selected' : '' ?>><?= $opt ?></option>
           <?php endforeach; ?>
@@ -335,7 +335,7 @@ include __DIR__ . '/includes/admin_header.php';
         }
       ?>
       <select name="courier_id">
-        <option value="">— Unbranded / not set —</option>
+        <option value="">Unbranded / not set</option>
         <?php foreach ($courierOptions as $co): ?>
           <option value="<?= (int) $co['id'] ?>" <?= $curCourierId === (int) $co['id'] ? 'selected' : '' ?>><?= h($co['name']) ?></option>
         <?php endforeach; ?>
@@ -389,7 +389,7 @@ include __DIR__ . '/includes/admin_header.php';
     <div class="form-group">
       <label>Origin Address or Place</label>
       <div class="input-with-button">
-        <input type="text" id="origin_label" name="origin_label" value="<?= h($shipment['origin_label'] ?? ($prefill['ship_from'] ?? '')) ?>" placeholder="Paste any address — street, home, or a place name" required>
+        <input type="text" id="origin_label" name="origin_label" value="<?= h($shipment['origin_label'] ?? ($prefill['ship_from'] ?? '')) ?>" placeholder="Paste any address: street, home, or a place name" required>
         <button type="button" id="origin-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
       </div>
       <span id="origin-geocode-status" class="geocode-status"></span>
@@ -409,7 +409,7 @@ include __DIR__ . '/includes/admin_header.php';
     <div class="form-group">
       <label>Destination Address or Place</label>
       <div class="input-with-button">
-        <input type="text" id="destination_label" name="destination_label" value="<?= h($shipment['destination_label'] ?? ($prefill['ship_to'] ?? '')) ?>" placeholder="Paste any address — street, home, or a place name" required>
+        <input type="text" id="destination_label" name="destination_label" value="<?= h($shipment['destination_label'] ?? ($prefill['ship_to'] ?? '')) ?>" placeholder="Paste any address: street, home, or a place name" required>
         <button type="button" id="destination-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
       </div>
       <span id="destination-geocode-status" class="geocode-status"></span>
@@ -430,7 +430,7 @@ include __DIR__ . '/includes/admin_header.php';
       If the lookup is ever unavailable or can't find a precise match, you can
       always type the coordinates in by hand and everything works exactly the
       same: open <strong>Google Maps</strong>, right-click the spot, and click
-      the numbers at the top of the menu to copy them — paste the first into
+      the numbers at the top of the menu to copy them, paste the first into
       Latitude and the second into Longitude.
     </p>
 

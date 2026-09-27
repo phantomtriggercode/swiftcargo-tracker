@@ -41,7 +41,7 @@ include __DIR__ . '/includes/admin_header.php';
 <?php endif; ?>
 
 <p style="color:var(--muted);font-size:14px;max-width:640px;">
-  Choose the site's color everywhere — this applies to every page for
+  Choose the site's color everywhere. This applies to every page for
   every visitor, not just your own screen.
 </p>
 

@@ -1,13 +1,13 @@
 <?php
 /**
- * Hand-built Code 39 barcode generator — no external API, no library.
+ * Hand-built Code 39 barcode generator: no external API, no library.
  * Renders directly to a PNG via GD and returns it as a base64 data URI,
  * which is the most reliable way to get a crisp barcode into a Dompdf-
  * rendered PDF (Dompdf's inline-SVG support is inconsistent across
  * versions; a raster image embeds reliably every time).
  *
  * Every character pattern below was verified against a real barcode
- * decoder (zbar) during development — see the project's dev notes.
+ * decoder (zbar) during development, see the project's dev notes.
  */
 
 const CODE39_TABLE = [
@@ -29,7 +29,7 @@ const CODE39_TABLE = [
 /**
  * Renders $text as a Code 39 barcode PNG and returns it as a data: URI.
  * Non-encodable characters are stripped (Code 39 supports 0-9, A-Z, and
- * a handful of symbols — tracking numbers are always within this set).
+ * a handful of symbols, tracking numbers are always within this set).
  */
 function barcode_data_uri(string $text, int $moduleWidth = 2, int $barHeight = 60): string
 {
