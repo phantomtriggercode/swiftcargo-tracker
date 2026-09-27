@@ -111,10 +111,10 @@ CREATE TABLE IF NOT EXISTS shipments (
   payment_initial_amount DECIMAL(10,2) NULL DEFAULT NULL,
   payment_amount_paid DECIMAL(10,2) NULL DEFAULT NULL,
 
-  status ENUM(
-    'Pending','Picked Up','En Route','Customs Clearance','Insurance Clearance',
-    'Out for Delivery','Delivered','On Hold','Delayed','Exception'
-  ) NOT NULL DEFAULT 'Pending',
+  -- Free text rather than a fixed list, because staff manage the available
+  -- statuses themselves at /admin/statuses.php. The allowed values live in
+  -- the shipment_statuses table below.
+  status VARCHAR(50) NOT NULL DEFAULT 'Pending',
 
   origin_label VARCHAR(150) NOT NULL,
   origin_lat DECIMAL(10,7) NOT NULL,
@@ -155,6 +155,37 @@ CREATE TABLE IF NOT EXISTS tracking_events (
     REFERENCES shipments(id) ON DELETE CASCADE,
   INDEX idx_shipment_id (shipment_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------
+-- The statuses a shipment can be given, managed by staff at
+-- /admin/statuses.php. Adding a row here (for example "In Transit") makes
+-- it selectable when adding a tracking update, with no code change.
+--
+-- is_protected marks a status the code itself depends on, so the admin
+-- panel refuses to delete it. Only "Pending" is protected, because that is
+-- the status every new shipment is created with.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS shipment_statuses (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE,
+  badge_class VARCHAR(30) NOT NULL DEFAULT 'badge-pending',
+  sort_order INT NOT NULL DEFAULT 0,
+  is_protected TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_sort (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO shipment_statuses (name, badge_class, sort_order, is_protected) VALUES
+('Pending',              'badge-pending',   10, 1),
+('Picked Up',            'badge-pending',   20, 0),
+('En Route',             'badge-transit',   30, 0),
+('Customs Clearance',    'badge-hold',      40, 0),
+('Insurance Clearance',  'badge-hold',      50, 0),
+('Out for Delivery',     'badge-transit',   60, 0),
+('Delivered',            'badge-delivered', 70, 0),
+('On Hold',              'badge-hold',      80, 0),
+('Delayed',              'badge-alert',     90, 0),
+('Exception',            'badge-alert',    100, 0);
 
 -- ---------------------------------------------------------------
 -- Site content + calculator rate settings (key/value, editable from
@@ -215,6 +246,8 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 -- What the public tracking page shows. Both are managed by a super admin
 -- at /admin/tracking_display.php. The map is on by default; turning it off
 -- also removes every coordinate from the page and from the tracking API.
+('insurance_enabled', '1'),
+('tracking_show_history', '1'),
 ('live_map_enabled', '1'),
 ('tracking_show_logo', '1'),
 ('live_chat_enabled', '0'),

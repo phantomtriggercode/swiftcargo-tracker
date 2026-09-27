@@ -155,7 +155,7 @@ ob_start();
       </tr>
     </table>
 
-    <?php if ($shipment['insured']): ?>
+    <?php if (insurance_enabled() && $shipment['insured']): ?>
       <div class="insured-stamp">&#10003; Insured Shipment</div>
     <?php endif; ?>
 

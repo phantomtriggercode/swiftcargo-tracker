@@ -196,3 +196,19 @@ function map_free_body(string $text): string
 
     return implode("\n\n", $kept);
 }
+
+/**
+ * Whether shipment insurance is offered at all. Turning it off hides every
+ * insurance field and label across the admin panel, the public site and the
+ * waybill, without deleting what is already recorded against a shipment.
+ */
+function insurance_enabled(): bool
+{
+    return get_setting('insurance_enabled', '1') === '1';
+}
+
+/** Whether the tracked page shows the full update history at the bottom. */
+function tracking_shows_history(): bool
+{
+    return get_setting('tracking_show_history', '1') === '1';
+}

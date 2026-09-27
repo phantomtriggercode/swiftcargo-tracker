@@ -167,7 +167,11 @@ ob_start();
     <tr><th>Shipping Method</th><td colspan="3"><?= $methodLabel ?></td></tr>
     <tr><th>Package</th><td><?= h($shipment['package_description']) ?></td><th>Packaging Type</th><td><?= h($shipment['packaging_type']) ?></td></tr>
     <tr><th>Weight</th><td><?= h((string) $shipment['weight_kg']) ?> kg</td><th>Dimensions</th><td><?= $shipment['dimensions'] ? h($shipment['dimensions']) : '&mdash;' ?></td></tr>
-    <tr><th>Insurance</th><td><?= $insuranceLabel ?></td><th>Estimated Delivery</th><td><?= h($estDelivery) ?></td></tr>
+    <?php if (insurance_enabled()): ?>
+      <tr><th>Insurance</th><td><?= $insuranceLabel ?></td><th>Estimated Delivery</th><td><?= h($estDelivery) ?></td></tr>
+    <?php else: ?>
+      <tr><th>Estimated Delivery</th><td colspan="3"><?= h($estDelivery) ?></td></tr>
+    <?php endif; ?>
     <tr><th>Payment</th><td colspan="3"><?= h(payment_status_label($shipment)) ?></td></tr>
   </table>
 

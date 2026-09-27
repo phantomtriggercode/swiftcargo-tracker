@@ -15,7 +15,7 @@ if (!$shipment) {
     redirect('/admin/dashboard.php');
 }
 
-$statuses = SHIPMENT_STATUSES;
+$statuses = get_shipment_status_names();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,8 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lat = $_POST['lat'] ?? '';
     $lng = $_POST['lng'] ?? '';
     $note = trim($_POST['note'] ?? '');
+    $eventTime = trim($_POST['event_time'] ?? '');
 
     if (!in_array($status, $statuses, true)) $errors[] = 'Please choose a valid status.';
+    // The timeline shows exactly what is typed here, never the moment the
+    // form happened to be submitted, so a backdated update reads correctly.
+    $eventTimeSql = parse_admin_datetime($eventTime);
+    if ($eventTimeSql === null) $errors[] = 'Enter the date and time this update happened.';
     if ($locationLabel === '') $errors[] = 'Location label is required.';
     // Range-checked, not just "is it a number", an out-of-range coordinate
     // saves fine but would break the live map for this shipment.
@@ -43,16 +48,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db()->beginTransaction();
 
         $insert = db()->prepare('
-            INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note, event_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ');
-        $insert->execute([$shipment['id'], $status, $locationLabel, $lat, $lng, $note ?: null]);
+        $insert->execute([$shipment['id'], $status, $locationLabel, $lat, $lng, $note ?: null, $eventTimeSql]);
         $eventId = (int) db()->lastInsertId();
 
-        $update = db()->prepare('
-            UPDATE shipments SET status = ?, current_lat = ?, current_lng = ? WHERE id = ?
-        ');
-        $update->execute([$status, $lat, $lng, $shipment['id']]);
+        // The shipment follows whichever update is newest by the time staff
+        // entered, not simply whichever was saved last. Without this, adding
+        // a checkpoint that was missed a few days ago would drag the current
+        // status backwards even though a later checkpoint already exists.
+        resync_shipment_from_events((int) $shipment['id']);
 
         db()->commit();
 
@@ -99,7 +105,8 @@ include __DIR__ . '/includes/admin_header.php';
       <label>New Status</label>
       <select name="status" required>
         <?php foreach ($statuses as $opt): ?>
-          <option value="<?= $opt ?>" <?= $shipment['status'] === $opt ? 'selected' : '' ?>><?= $opt ?></option>
+          <?php $selected = $_POST['status'] ?? $shipment['status']; ?>
+          <option value="<?= h($opt) ?>" <?= $selected === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
         <?php endforeach; ?>
       </select>
     </div>
@@ -127,8 +134,23 @@ include __DIR__ . '/includes/admin_header.php';
       and click the numbers at the top of the menu to copy them.
     </p>
     <div class="form-group">
-      <label>Note (optional)</label>
-      <textarea name="note" rows="3" placeholder="e.g. Departed regional hub, en route to next facility."></textarea>
+      <label>Date &amp; Time of this update</label>
+      <input type="datetime-local" name="event_time" value="<?= h($_POST['event_time'] ?? date('Y-m-d\TH:i')) ?>" required>
+      <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
+        This exact date and time is what the customer sees on the timeline. It
+        is prefilled with now for convenience, but change it freely to record
+        something that happened earlier, or to schedule the wording of a
+        checkpoint you are entering late.
+      </span>
+    </div>
+    <div class="form-group">
+      <label>Remark or comment (optional)</label>
+      <textarea name="note" rows="3" placeholder="e.g. Departed regional hub, en route to next facility."><?= h($_POST['note'] ?? '') ?></textarea>
+      <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
+        Shown to the customer under this checkpoint, and included in the email
+        alert. Leave it blank to use the default message written for this
+        status under <a href="/admin/status_messages.php" style="color:var(--brand-red);">Status Messages</a>.
+      </span>
     </div>
     <button type="submit" class="btn btn-primary btn-block">Save Update &amp; Email Receiver</button>
   </form>

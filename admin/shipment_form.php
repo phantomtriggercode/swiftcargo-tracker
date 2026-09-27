@@ -51,8 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $shippingMethod = $_POST['shipping_method'] ?? 'Air';
     $landMethod = trim($_POST['land_method'] ?? '') ?: null;
     $courierId = !empty($_POST['courier_id']) ? (int) $_POST['courier_id'] : null;
-    $insured = !empty($_POST['insured']);
-    $insuranceValue = (float) ($_POST['insurance_value'] ?? 0);
+    if (insurance_enabled()) {
+        $insured = !empty($_POST['insured']);
+        $insuranceValue = (float) ($_POST['insurance_value'] ?? 0);
+    } else {
+        // The fields are not on the form while insurance is switched off, so
+        // keep whatever the shipment already had rather than reading an
+        // absent checkbox as "not insured" and wiping it.
+        $insured = !empty($shipment['insured']);
+        $insuranceValue = (float) ($shipment['insurance_value'] ?? 0);
+    }
     $paymentType = $_POST['payment_type'] ?? 'Full Payment';
     $paymentPrice = trim($_POST['payment_price'] ?? '');
     $paymentInitialAmount = trim($_POST['payment_initial_amount'] ?? '');
@@ -376,6 +384,7 @@ include __DIR__ . '/includes/admin_header.php';
       </span>
     </div>
 
+    <?php if (insurance_enabled()): ?>
     <div class="form-group">
       <label style="display:flex;align-items:center;gap:8px;font-weight:600;">
         <input type="checkbox" name="insured" id="insured_admin" value="1" style="width:auto;" <?= !empty($shipment['insured']) || !empty($prefill['insured']) ? 'checked' : '' ?>>
@@ -386,6 +395,7 @@ include __DIR__ . '/includes/admin_header.php';
       <label>Declared Value (USD)</label>
       <input type="number" step="0.01" min="0" name="insurance_value" value="<?= h($shipment['insurance_value'] ?? ($prefill['insurance_value'] ?? '')) ?>">
     </div>
+    <?php endif; ?>
 
     <h3>Payment</h3>
     <div class="form-group">

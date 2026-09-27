@@ -12,10 +12,60 @@ function h(?string $value): string
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-const SHIPMENT_STATUSES = [
+/**
+ * The statuses this codebase ships with, and the fallback used if the
+ * shipment_statuses table cannot be read (for example the migration has
+ * not been imported yet). Same fail-open habit as get_setting(): a
+ * database problem must never leave the status dropdown empty.
+ */
+const DEFAULT_SHIPMENT_STATUSES = [
     'Pending', 'Picked Up', 'En Route', 'Customs Clearance', 'Insurance Clearance',
     'Out for Delivery', 'Delivered', 'On Hold', 'Delayed', 'Exception',
 ];
+
+/**
+ * Every status staff can choose from, in display order, as managed at
+ * /admin/statuses.php.
+ *
+ * @return array<int, array{id:int, name:string, badge_class:string, sort_order:int, is_protected:int}>
+ */
+function get_shipment_statuses(): array
+{
+    static $cache = null;
+
+    if ($cache === null) {
+        try {
+            $cache = db()->query(
+                'SELECT id, name, badge_class, sort_order, is_protected
+                 FROM shipment_statuses ORDER BY sort_order, name'
+            )->fetchAll();
+        } catch (PDOException $e) {
+            $cache = [];
+        }
+
+        if (!$cache) {
+            $order = 0;
+            foreach (DEFAULT_SHIPMENT_STATUSES as $name) {
+                $order += 10;
+                $cache[] = [
+                    'id' => 0,
+                    'name' => $name,
+                    'badge_class' => 'badge-pending',
+                    'sort_order' => $order,
+                    'is_protected' => $name === 'Pending' ? 1 : 0,
+                ];
+            }
+        }
+    }
+
+    return $cache;
+}
+
+/** Just the status names, which is all most callers need. */
+function get_shipment_status_names(): array
+{
+    return array_column(get_shipment_statuses(), 'name');
+}
 
 /** Settings key holding the admin-editable default message for a status (see /admin/status_messages.php). */
 function status_message_key(string $status): string
@@ -120,13 +170,21 @@ function is_valid_longitude(string $value): bool
 
 function status_badge_class(string $status): string
 {
+    // A status staff created themselves carries its own colour choice.
+    foreach (get_shipment_statuses() as $row) {
+        if ($row['name'] === $status) {
+            return $row['badge_class'] !== '' ? $row['badge_class'] : 'badge-pending';
+        }
+    }
+
+    // A status no longer in the list (an older shipment still carrying a
+    // status that has since been deleted) still needs a sensible colour.
     return match ($status) {
         'Delivered' => 'badge-delivered',
         'Out for Delivery' => 'badge-transit',
         'En Route', 'In Transit' => 'badge-transit',
         'Customs Clearance', 'Insurance Clearance' => 'badge-hold',
-        'Picked Up' => 'badge-pending',
-        'Pending' => 'badge-pending',
+        'Picked Up', 'Pending' => 'badge-pending',
         'On Hold' => 'badge-hold',
         'Delayed', 'Exception' => 'badge-alert',
         default => 'badge-pending',
@@ -324,4 +382,81 @@ function maybe_send_go_live_alert(): void
         . '</div>';
     $altBody = "{$siteName} just received its first visit on a new domain:\n{$url}";
     send_smtp_mail($notifyEmail, $siteName . ' Admin', $siteName . ' is now live at ' . $currentHost, $htmlBody, $altBody);
+}
+
+/**
+ * Turns what an admin typed into a <input type="datetime-local"> into a
+ * value MySQL will store, or null if it is not a usable date.
+ *
+ * Every tracking update carries the time staff entered rather than the
+ * moment the form was submitted, so the customer's timeline reflects when
+ * things actually happened, including checkpoints recorded after the fact.
+ */
+function parse_admin_datetime(string $input): ?string
+{
+    $input = trim($input);
+    if ($input === '') {
+        return null;
+    }
+
+    // Browsers send "2026-09-27T14:30", sometimes with seconds.
+    $formats = ['Y-m-d\TH:i', 'Y-m-d\TH:i:s', 'Y-m-d H:i', 'Y-m-d H:i:s'];
+    foreach ($formats as $format) {
+        $date = DateTime::createFromFormat($format, $input);
+        if (!$date instanceof DateTime) {
+            continue;
+        }
+
+        // createFromFormat silently rolls impossible values over: month 13
+        // becomes January of the next year, hour 99 becomes four days on,
+        // and 29 February in a non-leap year becomes 1 March. Requiring the
+        // parsed date to format back to exactly what was typed rejects those
+        // rather than storing a date nobody entered.
+        if ($date->format($format) !== $input) {
+            continue;
+        }
+
+        return $date->format('Y-m-d H:i:s');
+    }
+
+    return null;
+}
+
+/** The value to put in a datetime-local input for an existing timestamp. */
+function datetime_local_value(?string $sqlDateTime): string
+{
+    if ($sqlDateTime === null || $sqlDateTime === '') {
+        return date('Y-m-d\TH:i');
+    }
+    $ts = strtotime($sqlDateTime);
+    return $ts === false ? date('Y-m-d\TH:i') : date('Y-m-d\TH:i', $ts);
+}
+
+/**
+ * Re-derives a shipment's current status and position from its tracking
+ * updates, newest first by the time staff entered.
+ *
+ * Needed because updates can be edited, retimed and deleted. Without this,
+ * correcting the date on an update, or deleting the latest one, would leave
+ * the shipment showing a status that no longer matches its own history.
+ */
+function resync_shipment_from_events(int $shipmentId): void
+{
+    $stmt = db()->prepare(
+        'SELECT status, lat, lng FROM tracking_events
+         WHERE shipment_id = ?
+         ORDER BY event_time DESC, id DESC
+         LIMIT 1'
+    );
+    $stmt->execute([$shipmentId]);
+    $latest = $stmt->fetch();
+
+    if (!$latest) {
+        return; // No updates left; leave the shipment exactly as it is.
+    }
+
+    $update = db()->prepare(
+        'UPDATE shipments SET status = ?, current_lat = ?, current_lng = ? WHERE id = ?'
+    );
+    $update->execute([$latest['status'], $latest['lat'], $latest['lng'], $shipmentId]);
 }

@@ -6,7 +6,7 @@ require_once __DIR__ . '/../includes/settings.php';
 require_admin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach (SHIPMENT_STATUSES as $status) {
+    foreach (get_shipment_status_names() as $status) {
         $key = status_message_key($status);
         $message = trim($_POST[$key] ?? '');
         set_setting($key, $message);
@@ -40,7 +40,7 @@ include __DIR__ . '/includes/admin_header.php';
 <div class="form-card" style="max-width:720px;">
   <form method="post">
     <?= csrf_field() ?>
-    <?php foreach (SHIPMENT_STATUSES as $status): ?>
+    <?php foreach (get_shipment_status_names() as $status): ?>
       <div class="form-group">
         <label><?= h($status) ?></label>
         <textarea name="<?= h(status_message_key($status)) ?>" rows="2"><?= h(get_status_message($status)) ?></textarea>

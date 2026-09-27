@@ -13,22 +13,31 @@ require_once __DIR__ . '/../includes/settings.php';
 require_super_admin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save') {
-    $map  = !empty($_POST['live_map_enabled']) ? '1' : '0';
-    $logo = !empty($_POST['tracking_show_logo']) ? '1' : '0';
+    $map       = !empty($_POST['live_map_enabled']) ? '1' : '0';
+    $logo      = !empty($_POST['tracking_show_logo']) ? '1' : '0';
+    $history   = !empty($_POST['tracking_show_history']) ? '1' : '0';
+    $insurance = !empty($_POST['insurance_enabled']) ? '1' : '0';
 
     set_setting('live_map_enabled', $map);
     set_setting('tracking_show_logo', $logo);
+    set_setting('tracking_show_history', $history);
+    set_setting('insurance_enabled', $insurance);
 
     log_admin_activity(
         'Changed tracking page display',
-        'Live map ' . ($map === '1' ? 'on' : 'off') . ', logo ' . ($logo === '1' ? 'on' : 'off')
+        'Live map ' . ($map === '1' ? 'on' : 'off')
+        . ', logo ' . ($logo === '1' ? 'on' : 'off')
+        . ', history ' . ($history === '1' ? 'on' : 'off')
+        . ', insurance ' . ($insurance === '1' ? 'on' : 'off')
     );
     flash_set('success', 'Tracking page settings saved.');
     redirect('/admin/tracking_display.php');
 }
 
-$mapOn  = live_map_enabled();
-$logoOn = tracking_shows_logo();
+$mapOn       = live_map_enabled();
+$logoOn      = tracking_shows_logo();
+$historyOn   = tracking_shows_history();
+$insuranceOn = insurance_enabled();
 
 $activeAdminNav = 'tracking_display';
 $pageTitle = 'Tracking Page';
@@ -82,6 +91,31 @@ include __DIR__ . '/includes/admin_header.php';
       </span>
     </div>
 
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+        <input type="checkbox" name="tracking_show_history" value="1" <?= $historyOn ? 'checked' : '' ?>>
+        Show the full update history at the bottom of a tracked shipment
+      </label>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        A dated table of every checkpoint, under the shipment details. The
+        short timeline beside the map is always shown; this is the fuller
+        record, with the remark staff wrote against each update.
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+        <input type="checkbox" name="insurance_enabled" value="1" <?= $insuranceOn ? 'checked' : '' ?>>
+        Offer shipment insurance
+      </label>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        With this off, insurance disappears from the shipment form, the public
+        tracking page, the booking request wizard and the waybill. Nothing is
+        deleted: a shipment already marked insured keeps that on record, and
+        turning this back on shows it again exactly as before.
+      </span>
+    </div>
+
     <button type="submit" class="btn btn-primary btn-block">Save Settings</button>
   </form>
 </div>
@@ -91,6 +125,8 @@ include __DIR__ . '/includes/admin_header.php';
   <ul style="color:var(--muted);font-size:14px;line-height:1.9;padding-left:20px;margin-bottom:0;">
     <li>Live map is <strong><?= $mapOn ? 'ON' : 'OFF' ?></strong><?= $mapOn ? '' : ', and coordinates are hidden everywhere on the public side' ?>.</li>
     <li>Logo above tracking results is <strong><?= $logoOn ? 'ON' : 'OFF' ?></strong>.</li>
+    <li>Full update history on the tracking page is <strong><?= $historyOn ? 'ON' : 'OFF' ?></strong>.</li>
+    <li>Shipment insurance is <strong><?= $insuranceOn ? 'OFFERED' : 'NOT OFFERED' ?></strong>.</li>
     <li>Waybill and label PDFs are printable from the admin panel only.</li>
   </ul>
 </div>

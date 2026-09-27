@@ -60,6 +60,7 @@ include __DIR__ . '/includes/admin_header.php';
               <a href="/admin/add_update.php?id=<?= (int) $s['id'] ?>">Update</a>
               <a href="/admin/shipment_form.php?id=<?= (int) $s['id'] ?>">Edit</a>
               <a href="/track.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Track</a>
+              <a href="/admin/updates.php?shipment=<?= (int) $s['id'] ?>">Updates</a>
               <a href="/documents/waybill.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Waybill</a>
               <a href="/documents/label.php?tn=<?= urlencode($s['tracking_number']) ?>" target="_blank">Label</a>
               <form method="post" action="/admin/shipment_delete.php" onsubmit="return confirm('Delete shipment <?= h(addslashes($s['tracking_number'])) ?> and its full tracking history? This cannot be undone.');">

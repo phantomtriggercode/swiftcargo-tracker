@@ -196,6 +196,7 @@ $mapOn = live_map_enabled();
             <div class="meta-label">Weight</div>
             <div class="meta-value"><?= h((string) $shipment['weight_kg']) ?> kg</div>
           </div>
+          <?php if (insurance_enabled()): ?>
           <div class="meta-box">
             <div class="meta-label">Insurance</div>
             <div class="meta-value">
@@ -206,6 +207,7 @@ $mapOn = live_map_enabled();
               <?php endif; ?>
             </div>
           </div>
+          <?php endif; ?>
           <div class="meta-box">
             <div class="meta-label">Estimated Delivery</div>
             <div class="meta-value"><?= $shipment['estimated_delivery'] ? h(date('M j, Y', strtotime($shipment['estimated_delivery']))) : 'TBD' ?></div>
@@ -237,6 +239,36 @@ $mapOn = live_map_enabled();
         <?php endforeach; ?>
       </div>
     </div>
+
+    <?php if (tracking_shows_history()): ?>
+      <section class="update-history">
+        <h3>Update History</h3>
+        <p class="update-history-lead">
+          Every checkpoint recorded for this shipment, newest first. Each time
+          shown is the time our staff recorded the event.
+        </p>
+        <div class="table-responsive">
+          <table class="data-table update-history-table">
+            <thead>
+              <tr><th style="width:180px;">Date &amp; time</th><th style="width:160px;">Status</th><th>Location</th><th>Remark</th></tr>
+            </thead>
+            <tbody>
+              <?php foreach (array_reverse($events) as $ev): ?>
+                <tr>
+                  <td data-label="Date &amp; time"><?= h(date('M j, Y g:i A', strtotime($ev['event_time']))) ?></td>
+                  <td data-label="Status"><span class="badge <?= status_badge_class($ev['status']) ?>"><?= h($ev['status']) ?></span></td>
+                  <td data-label="Location"><?= h($ev['location_label']) ?></td>
+                  <td data-label="Remark"><?= !empty($ev['note']) ? h($ev['note']) : '' ?></td>
+                </tr>
+              <?php endforeach; ?>
+              <?php if (!$events): ?>
+                <tr><td colspan="4" style="text-align:center;color:var(--muted);">No checkpoints recorded yet.</td></tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    <?php endif; ?>
 
     <?php if ($mapOn): ?>
     <script src="<?= h(asset_url('/assets/vendor/leaflet/leaflet.js')) ?>"></script>

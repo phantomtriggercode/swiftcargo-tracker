@@ -298,6 +298,15 @@ what a customer sees after entering a tracking number.
 - **Show the company logo above the tracked shipment**, so a printed or
   screenshotted result is clearly branded. The logo itself comes from
   **Branding**.
+- **Show the full update history** at the bottom of a tracked shipment: a
+  dated table of every checkpoint with the remark staff wrote against it.
+  The short timeline beside the map is always shown; this is the fuller
+  record.
+- **Offer shipment insurance.** With this off, insurance disappears from the
+  shipment form, the public tracking page, the booking wizard and the
+  waybill. Nothing is deleted: a shipment already marked insured keeps that
+  on record, saving that shipment while insurance is off does not wipe the
+  flag, and turning it back on shows everything again exactly as before.
 
 Both default to on, so an existing site behaves exactly as before until
 someone changes them. Both are recorded in the **Activity Log**.
@@ -386,6 +395,52 @@ whatever brand you want regardless of what domain you deploy under.
    - Adds a new row to the status timeline.
    - Emails the receiver about the change. If the note is left blank, that
      status's default message (see below) fills it in instead.
+
+### Shipment statuses (any admin)
+
+**`/admin/statuses.php`** ("Shipment Statuses" in the sidebar) is the list of
+statuses staff can choose when adding a tracking update. Add your own, for
+example **In Transit** or **At Sorting Facility**, pick the colour its badge
+shows in, and set the order they appear in.
+
+Two things are refused rather than allowed to break something:
+
+- **Pending cannot be removed.** Every new shipment is created with it.
+- **A status still used by any shipment or tracking update cannot be
+  removed.** The page says how many records use it. Move them to another
+  status first, or keep it. Deleting it would leave those records pointing
+  at a status that no longer exists.
+
+A status that *has* been removed still displays correctly on any older
+shipment that carries it, and the edit form keeps it selected rather than
+forcing that update onto a different status.
+
+Each new status can have its own default message written under **Status
+Messages**, used when staff leave the remark blank.
+
+### Editing and deleting tracking updates (any admin)
+
+From **Shipments**, the **Updates** link on any row opens
+`/admin/updates.php`, listing every checkpoint on that shipment with the
+ability to correct or delete any of them.
+
+- **The date and time are whatever staff typed**, never the moment the form
+  was submitted. That is what the customer sees on the timeline, so a
+  checkpoint recorded days late still reads correctly.
+- **The shipment's own status always follows its newest update by that
+  entered time.** Adding a backdated checkpoint does not drag the current
+  status backwards, retiming an update re-derives it, and deleting the
+  newest one falls back to whatever is now newest.
+- **Editing sends no email.** The alert went out when the update was first
+  added; re-sending it every time a typo is fixed would be worse than
+  useless to the receiver.
+- **The last remaining update cannot be deleted**, because the tracking page
+  would then have nothing to show.
+
+An impossible date is rejected rather than quietly accepted. PHP's date
+parser rolls values over by default, turning month 13 into January of the
+next year and 29 February in a non-leap year into 1 March, so the parsed
+date has to match exactly what was typed.
 
 ### Status messages
 
@@ -591,7 +646,13 @@ If you already deployed an earlier version of this project:
     it. It only touches rows that still contain the old punctuation, so any
     wording you have edited yourself under **Site Content** is left alone, and
     it is safe to run more than once.
-19. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
+19. **Custom statuses, insurance and history switches:** import
+    `sql/migrations/015_custom_statuses_and_display_toggles.sql` once. It
+    turns `shipments.status` from a fixed list into free text, adds the
+    `shipment_statuses` table seeded with the ten statuses you already have,
+    and adds the two new switches. Every existing shipment keeps the exact
+    status it had. Safe to run twice.
+20. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
     once to add the three settings rows it uses. The feature works without
     them (a missing row reads as its default), but importing it means the
     settings are stored explicitly rather than assumed. Then upload

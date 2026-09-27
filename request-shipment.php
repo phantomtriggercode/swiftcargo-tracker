@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $shippingMethod = $_POST['shipping_method'] ?? '';
     $landMethod = trim($_POST['land_method'] ?? '') ?: null;
     $serviceType = $_POST['service_type'] ?? '';
-    $insured = !empty($_POST['insured']);
+    $insured = insurance_enabled() && !empty($_POST['insured']);
     $insuranceValue = (float) ($_POST['insurance_value'] ?? 0);
     $preferredDate = trim($_POST['preferred_date'] ?? '') ?: null;
     $preferredTime = trim($_POST['preferred_time'] ?? '') ?: null;
@@ -336,6 +336,7 @@ include __DIR__ . '/includes/header.php';
               </select>
             </div>
 
+            <?php if (insurance_enabled()): ?>
             <div class="form-group">
               <label style="display:flex;align-items:center;gap:8px;font-weight:600;">
                 <input type="checkbox" name="insured" id="insured" value="1" style="width:auto;" <?= !empty($_POST['insured']) ? 'checked' : '' ?>>
@@ -346,6 +347,7 @@ include __DIR__ . '/includes/header.php';
               <label>Declared Value (USD)</label>
               <input type="number" step="0.01" min="0" id="insurance_value" name="insurance_value" value="<?= h($_POST['insurance_value'] ?? '') ?>">
             </div>
+            <?php endif; ?>
 
             <div class="wizard-nav">
               <button type="button" class="btn btn-outline wizard-back">&larr; Back</button>

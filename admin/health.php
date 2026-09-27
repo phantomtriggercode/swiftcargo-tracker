@@ -87,6 +87,7 @@ foreach ($extensions as $ext => $why) {
 $expectedTables = [
     'admins', 'couriers', 'shipments', 'tracking_events', 'settings',
     'color_palettes', 'templates', 'shipment_requests', 'login_attempts', 'admin_activity_log',
+    'shipment_statuses',
 ];
 try {
     $found = db()->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
@@ -160,6 +161,8 @@ if ($missingColumns) {
 $settingsNeeded = [
     'live_map_enabled'      => 'sql/migrations/014_contact_details_and_tracking_display.sql',
     'tracking_show_logo'    => 'sql/migrations/014_contact_details_and_tracking_display.sql',
+    'insurance_enabled'     => 'sql/migrations/015_custom_statuses_and_display_toggles.sql',
+    'tracking_show_history' => 'sql/migrations/015_custom_statuses_and_display_toggles.sql',
     'live_chat_enabled'     => 'sql/updates/002_live_chat_settings.sql',
     'live_chat_property_id' => 'sql/updates/002_live_chat_settings.sql',
     'live_chat_widget_id'   => 'sql/updates/002_live_chat_settings.sql',

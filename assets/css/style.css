@@ -1039,3 +1039,22 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
   .party-lines dd { font-size: 12px; }
   .party-arrow { font-size: 13px; }
 }
+
+/* ---------------------------------------------------------------
+   Tracking page: the full update history table at the bottom, shown
+   when a super admin has it switched on. The short timeline beside the
+   map stays either way; this is the fuller dated record.
+   --------------------------------------------------------------- */
+.update-history { margin: 28px 0 10px; }
+.update-history h3 { margin: 0 0 4px; font-size: 18px; }
+.update-history-lead { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+.update-history-table { table-layout: auto; }
+.update-history-table td { vertical-align: top; }
+/* .data-table pins its last column to 90px for a row-actions button. This
+   table's last column is the remark, which needs the room instead, so the
+   width rule is undone and the columns are shared out deliberately. */
+.update-history-table th:last-child,
+.update-history-table td:last-child { width: auto; }
+.update-history-table th:nth-child(1) { width: 170px; }
+.update-history-table th:nth-child(2) { width: 150px; }
+.update-history-table th:nth-child(3) { width: 30%; }
