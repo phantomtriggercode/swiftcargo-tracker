@@ -135,8 +135,9 @@ function live_chat_script_tag(): string
     // allowlist above, so neither can contain a quote or a slash.
     $src = live_chat_embed_url();
 
+    // No descriptive comment is emitted into the page: the public source
+    // should not advertise admin URLs to anyone who opens "view source".
     return <<<HTML
-<!-- Live chat widget. Switch it on/off or change accounts at /admin/live_chat.php -->
 <script>
   var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
   (function () {

@@ -86,7 +86,8 @@ config/         Database config (config.php is git-ignored — copy config.sampl
                 SMTP_* constants here are only the first-boot fallback — the
                 dashboard's saved settings take priority once you set them.
 sql/            schema.sql (fresh installs) + migrations/ (updates for an existing DB)
-includes/       Shared PHP: db helpers, auth, mailer, settings/CMS helper, header/footer
+includes/       Shared PHP: db helpers, auth, mailer, settings/CMS helper, header/footer,
+                image metadata stripping
 admin/          Staff panel: dashboard, shipments, tracking updates, requests,
                 content, rates, branding, SMTP settings, live chat
 api/            track.php (live map polling) + geocode.php (address lookup)
@@ -273,6 +274,33 @@ Things worth knowing:
 - **System Health** (`/admin/health.php`) reports live chat's state along with
   everything else, so you can confirm it from inside the dashboard.
 
+## Uploaded images are stripped of hidden metadata
+
+Every image uploaded through the admin panel (logos, hero photos, site
+illustrations) is cleaned before it is stored, by
+`includes/image_metadata.php`.
+
+Image files routinely carry data that has nothing to do with the picture and
+is invisible when you look at it:
+
+- **EXIF** — camera, lens, timestamps, and on anything shot with a phone, the
+  **GPS coordinates of where the photo was taken**. Publish that on a website
+  and any visitor can read the exact location out of the file.
+- **XMP / IPTC** — author, copyright, captions, and editing history.
+- **C2PA Content Credentials** — a signed record of where an image came from
+  and what was done to it, readable by anyone at
+  [contentcredentials.org/verify](https://contentcredentials.org/verify).
+
+All of it is removed. The picture itself is left **byte-for-byte identical** —
+this works on the file's structure rather than re-encoding it, so there is no
+quality loss, no colour shift, and animated GIFs and APNGs keep their frames.
+Colour profiles (ICC) are deliberately kept, since removing those would change
+how an image looks.
+
+It handles JPEG, PNG, WebP and SVG, needs no PHP extensions and no
+command-line tools, and fails safe: anything it can't parse is stored exactly
+as uploaded rather than rejected or damaged.
+
 ## Branding & white-labeling
 
 Go to **`/admin/branding.php`** to set the site name and upload a logo (PNG,
@@ -436,7 +464,12 @@ If you already deployed an earlier version of this project:
     **Admin activity log** below). Works fine before you run this too — it
     just skips logging until the table exists, the same fail-open pattern
     as login rate-limiting.
-16. **Live chat (Tawk.to):** **no migration needed.** The three settings it
+16. **Image metadata stripping:** **no migration needed.** Upload
+    `includes/image_metadata.php` and `includes/uploads.php`. From then on
+    every newly uploaded image is cleaned automatically. Images already
+    uploaded before this update keep whatever metadata they arrived with —
+    re-upload any you care about.
+17. **Live chat (Tawk.to):** **no migration needed.** The three settings it
     uses are created the first time you save the page, so just upload
     `admin/live_chat.php`, `includes/live_chat.php`, `includes/footer.php`,
     `admin/includes/admin_header.php`, `admin/health.php` and

@@ -4,6 +4,8 @@
  * site illustrations). Requires includes/settings.php to already be loaded.
  */
 
+require_once __DIR__ . '/image_metadata.php';
+
 const SITE_UPLOAD_DIR = __DIR__ . '/../assets/images/uploads/';
 const SITE_UPLOAD_URL_PREFIX = '/assets/images/uploads/';
 
@@ -72,6 +74,14 @@ function handle_image_upload(string $fieldName, string $filenamePrefix, int $max
     if (!move_uploaded_file($_FILES[$fieldName]['tmp_name'], SITE_UPLOAD_DIR . $filename)) {
         return ['ok' => false, 'error' => 'Could not save the uploaded file.'];
     }
+
+    // Remove any metadata riding along inside the file — EXIF (which can
+    // include the GPS coordinates of wherever a photo was taken), XMP/IPTC
+    // author and copyright fields, and C2PA provenance records. All of it is
+    // invisible in the picture but travels with the file to every visitor who
+    // downloads it. The picture itself is left byte-for-byte unchanged, and a
+    // file this can't clean is simply stored as-is rather than rejected.
+    strip_image_metadata(SITE_UPLOAD_DIR . $filename);
 
     return ['ok' => true, 'path' => SITE_UPLOAD_URL_PREFIX . $filename];
 }
