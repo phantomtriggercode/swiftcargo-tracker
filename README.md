@@ -306,10 +306,17 @@ are required; everything else is optional and simply left out of the display
 when empty, rather than showing a blank row.
 
 Those details appear on the public tracking page in two cards that are
-deliberately styled differently, the sender muted on the left and the
-receiver in the brand color, so nobody has to read the labels to tell which
-is which. They also appear on the waybill, and the phone numbers are added
-to the shipping label, where a courier actually needs them.
+deliberately styled differently, so nobody has to read the labels to tell
+which is which. Both are neutral grey and the difference is contrast alone:
+the sender is the lighter of the pair, the receiver darker and heavier with
+a tinted fill. Using no hue keeps the pair looking right under every colour
+palette, and it still reads for anyone who cannot distinguish colours. The
+two cards stay side by side at every screen width, down to a 320px phone,
+where the label and value stack inside each card so long addresses still
+fit without the page scrolling sideways.
+
+The same details also appear on the waybill, and the phone numbers are
+added to the shipping label, where a courier actually needs them.
 
 **Everything filled in here is shown to whoever tracks the shipment.** The
 tracking page is public to anyone holding the tracking number, so treat these

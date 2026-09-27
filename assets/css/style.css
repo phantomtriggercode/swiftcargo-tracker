@@ -922,10 +922,16 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
 /* ---------------------------------------------------------------
    Tracking page: company logo band, sender and receiver cards.
 
-   The two party cards are deliberately not identical. The sender is
-   muted and sits on the left; the receiver carries the brand color and
-   a heavier border, because the receiver is who the person tracking
-   usually is. Telling them apart at a glance matters more than symmetry.
+   The two party cards are told apart by contrast alone, not by hue. Both
+   are grey: the sender is the lighter of the pair, the receiver the darker
+   and heavier one, since the person tracking is usually the receiver. That
+   keeps the pair neutral under every colour palette, and it still reads
+   for anyone who cannot distinguish colours.
+
+   They stay side by side at every width. The columns are allowed to shrink
+   (min-width: 0) and the label/value pairs stack inside each card on small
+   screens, so two narrow columns still fit a phone without the page
+   scrolling sideways.
    --------------------------------------------------------------- */
 .tracking-brand {
   display: flex;
@@ -949,13 +955,24 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
   margin: 0 0 20px;
 }
 .party {
+  min-width: 0;                /* lets a column shrink below its content */
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px 18px;
 }
-.party-sender { border-left: 4px solid var(--muted); }
-.party-receiver { border-left: 4px solid var(--brand-red); box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+
+/* Lighter of the two. */
+.party-sender {
+  border-left: 4px solid var(--muted);
+}
+/* Darker and heavier, with a tinted fill so the difference survives even
+   when the two cards are not next to each other on screen. */
+.party-receiver {
+  background: #f9fafb;
+  border-left: 4px solid var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+}
 
 .party-tag {
   font-size: 11.5px;
@@ -965,13 +982,30 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
   margin-bottom: 6px;
   color: var(--muted);
 }
-.party-receiver .party-tag { color: var(--brand-red); }
+.party-receiver .party-tag { color: var(--ink); }
 
-.party-name { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 10px; overflow-wrap: break-word; }
+.party-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+  overflow-wrap: anywhere;
+}
 
 .party-lines { margin: 0; display: grid; grid-template-columns: 74px 1fr; gap: 4px 10px; }
-.party-lines dt { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; padding-top: 1px; }
-.party-lines dd { margin: 0; font-size: 14px; color: var(--ink); overflow-wrap: break-word; }
+.party-lines dt {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  padding-top: 1px;
+}
+.party-lines dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink);
+  overflow-wrap: anywhere;     /* long emails cannot widen the column */
+}
 
 .party-arrow {
   align-self: center;
@@ -980,10 +1014,25 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
   padding: 0 2px;
 }
 
-@media (max-width: 720px) {
-  .parties { grid-template-columns: 1fr; gap: 10px; }
-  /* Rotate the arrow so it points down the stacked cards instead of off
-     the side of the screen. */
-  .party-arrow { transform: rotate(90deg); text-align: center; padding: 2px 0; }
-  .party-lines { grid-template-columns: 68px 1fr; }
+@media (max-width: 760px) {
+  .parties { gap: 8px; }
+  .party { padding: 12px 12px; }
+  .party-tag { font-size: 10.5px; letter-spacing: .4px; }
+  .party-name { font-size: 15px; margin-bottom: 8px; }
+  /* Label above value: a 74px label column plus an address does not fit
+     two-across on a phone. */
+  .party-lines { grid-template-columns: 1fr; gap: 1px; }
+  .party-lines dt { font-size: 10.5px; padding-top: 5px; }
+  .party-lines dd { font-size: 13px; }
+  .party-arrow { font-size: 16px; padding: 0; }
+}
+
+@media (max-width: 400px) {
+  .parties { gap: 6px; }
+  .party { padding: 10px 9px; }
+  .party-tag { font-size: 9.5px; }
+  .party-name { font-size: 13.5px; }
+  .party-lines dt { font-size: 9.5px; }
+  .party-lines dd { font-size: 12px; }
+  .party-arrow { font-size: 13px; }
 }
