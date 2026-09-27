@@ -439,6 +439,54 @@ lookup. If a lookup can't find a precise match (very new addresses, unnamed
 rural roads, etc.), just enter coordinates manually, [latlong.net](https://www.latlong.net)
 is a reliable fallback for that.
 
+## How database changes are made in this project
+
+A rule worth keeping, because breaking it is what produces a blank error
+page on a live site.
+
+**Every change to the database is written down twice:**
+
+1. **`sql/schema.sql`** gets the change, so a brand new installation is
+   correct from its first import. This file is the single, complete,
+   current picture of the database.
+2. **A separate small file** gets the same change on its own, so a site that
+   already exists can be brought up to date without touching anything else.
+   This is written *even though the change is already in `schema.sql`*,
+   because an existing database is never re-imported from `schema.sql`. Its
+   tables already exist, so `CREATE TABLE IF NOT EXISTS` does nothing and
+   the change would silently never arrive.
+
+Where that second file goes:
+
+- **`sql/migrations/`** for changes to the structure: new tables, new
+  columns, changed types.
+- **`sql/updates/`** for changes to stored content only: new settings rows,
+  corrected wording.
+
+**Every new one of those files is written to be safe to run twice.**
+Columns are added only after checking `information_schema` that they are
+missing, rows use `INSERT IGNORE`, and edits to existing text are
+restricted with a `WHERE` clause so they cannot touch anything already
+changed by hand. Nobody should have to remember which files they have
+already imported.
+
+That applies to `012` onward and to everything in `sql/updates/`. The
+earlier numbered migrations, `002` through `011`, are one-time steps from
+the original release: they were written before this rule and several will
+report an error if run a second time, because they add a column or rename a
+table unconditionally. They are only needed by a site that predates them,
+and a fresh install gets all of it from `schema.sql` instead. If you are
+unsure whether an old one has already been applied, check System Health
+rather than re-running it.
+
+**System Health verifies this.** `/admin/health.php` compares the live
+database against what the code actually needs and, if anything is missing,
+names the exact file to import. Two checks cover it: "Database is up to
+date" (a missing column, which will break saving a shipment, so it reports
+as a failure) and "Settings rows" (a missing settings row, which falls back
+to its default and only reports as something to check). That means a
+forgotten import is caught by the site itself rather than by a customer.
+
 ## Updating an existing site
 
 If you already deployed an earlier version of this project:
@@ -543,8 +591,10 @@ If you already deployed an earlier version of this project:
     it. It only touches rows that still contain the old punctuation, so any
     wording you have edited yourself under **Site Content** is left alone, and
     it is safe to run more than once.
-19. **Live chat (Tawk.to):** **no migration needed.** The three settings it
-    uses are created the first time you save the page, so just upload
+19. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
+    once to add the three settings rows it uses. The feature works without
+    them (a missing row reads as its default), but importing it means the
+    settings are stored explicitly rather than assumed. Then upload
     `admin/live_chat.php`, `includes/live_chat.php`, `includes/footer.php`,
     `admin/includes/admin_header.php`, `admin/health.php` and
     `config/db.php`, then set it up at **Live Chat** in the sidebar. The

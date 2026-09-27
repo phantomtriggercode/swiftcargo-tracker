@@ -107,6 +107,91 @@ try {
     check('Database tables', 'fail', 'Could not read the table list from the database.', 'Check the database settings in config/config.php.');
 }
 
+// ---------------------------------------------------------------
+// Is the database actually up to date with this copy of the code?
+//
+// Uploading new files without importing the matching SQL is the easiest
+// mistake to make when updating, and it usually shows up later as a blank
+// error page at the worst moment. These two checks compare what the code
+// expects against what the database really has, and name the file to import.
+// ---------------------------------------------------------------
+$columnsNeeded = [
+    'shipments' => [
+        'sender_email'   => 'sql/migrations/014_contact_details_and_tracking_display.sql',
+        'sender_phone'   => 'sql/migrations/014_contact_details_and_tracking_display.sql',
+        'receiver_phone' => 'sql/migrations/014_contact_details_and_tracking_display.sql',
+    ],
+];
+$missingColumns = [];
+foreach ($columnsNeeded as $table => $columns) {
+    foreach ($columns as $column => $file) {
+        try {
+            $stmt = db()->prepare(
+                'SELECT COUNT(*) FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?'
+            );
+            $stmt->execute([$table, $column]);
+            if ((int) $stmt->fetchColumn() === 0) {
+                $missingColumns[$file][] = $table . '.' . $column;
+            }
+        } catch (PDOException $e) {
+            // Some shared hosts restrict information_schema. Skipping the
+            // check is fine: it only means this page cannot confirm either way.
+        }
+    }
+}
+if ($missingColumns) {
+    $lines = [];
+    foreach ($missingColumns as $file => $cols) {
+        $lines[] = implode(', ', $cols) . ' (from ' . $file . ')';
+    }
+    check(
+        'Database is up to date',
+        'fail',
+        'Your files are newer than your database. Missing: ' . h(implode('; ', $lines)) . '.',
+        'Import the file named above through phpMyAdmin (pick your database, click Import, choose the '
+        . 'file, press Go). Until you do, saving a shipment will fail with a blank error page. '
+        . 'The file is safe to run more than once.'
+    );
+} else {
+    check('Database is up to date', 'ok', 'Every column this version of the code needs is present in the database.', '');
+}
+
+$settingsNeeded = [
+    'live_map_enabled'      => 'sql/migrations/014_contact_details_and_tracking_display.sql',
+    'tracking_show_logo'    => 'sql/migrations/014_contact_details_and_tracking_display.sql',
+    'live_chat_enabled'     => 'sql/updates/002_live_chat_settings.sql',
+    'live_chat_property_id' => 'sql/updates/002_live_chat_settings.sql',
+    'live_chat_widget_id'   => 'sql/updates/002_live_chat_settings.sql',
+];
+try {
+    $have = db()->query('SELECT setting_key FROM settings')->fetchAll(PDO::FETCH_COLUMN);
+    $missingSettings = [];
+    foreach ($settingsNeeded as $key => $file) {
+        if (!in_array($key, $have, true)) {
+            $missingSettings[$file][] = $key;
+        }
+    }
+    if ($missingSettings) {
+        $lines = [];
+        foreach ($missingSettings as $file => $keys) {
+            $lines[] = implode(', ', $keys) . ' (from ' . $file . ')';
+        }
+        check(
+            'Settings rows',
+            'warn',
+            'These settings rows are missing: ' . h(implode('; ', $lines)) . '.',
+            'Nothing is broken: a missing row falls back to its default, so the site behaves normally. '
+            . 'Importing the file named above adds the rows so the setting is stored explicitly rather '
+            . 'than assumed. Safe to run more than once.'
+        );
+    } else {
+        check('Settings rows', 'ok', 'Every setting this version of the code uses is stored in the database.', '');
+    }
+} catch (PDOException $e) {
+    check('Settings rows', 'warn', 'Could not read the settings table.', '');
+}
+
 // Design rows the public pages read on every request.
 try {
     $paletteCount = (int) db()->query('SELECT COUNT(*) FROM color_palettes WHERE is_active = 1')->fetchColumn();
