@@ -17,11 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save'
     $logo      = !empty($_POST['tracking_show_logo']) ? '1' : '0';
     $history   = !empty($_POST['tracking_show_history']) ? '1' : '0';
     $insurance = !empty($_POST['insurance_enabled']) ? '1' : '0';
+    $coords    = !empty($_POST['collect_coordinates']) ? '1' : '0';
 
     set_setting('live_map_enabled', $map);
     set_setting('tracking_show_logo', $logo);
     set_setting('tracking_show_history', $history);
     set_setting('insurance_enabled', $insurance);
+    set_setting('collect_coordinates', $coords);
 
     log_admin_activity(
         'Changed tracking page display',
@@ -29,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save'
         . ', logo ' . ($logo === '1' ? 'on' : 'off')
         . ', history ' . ($history === '1' ? 'on' : 'off')
         . ', insurance ' . ($insurance === '1' ? 'on' : 'off')
+        . ', collect coordinates ' . ($coords === '1' ? 'on' : 'off')
     );
     flash_set('success', 'Tracking page settings saved.');
     redirect('/admin/tracking_display.php');
@@ -38,6 +41,7 @@ $mapOn       = live_map_enabled();
 $logoOn      = tracking_shows_logo();
 $historyOn   = tracking_shows_history();
 $insuranceOn = insurance_enabled();
+$coordsOn    = get_setting('collect_coordinates', '0') === '1';
 
 $activeAdminNav = 'tracking_display';
 $pageTitle = 'Tracking Page';
@@ -78,6 +82,31 @@ include __DIR__ . '/includes/admin_header.php';
         turning the map back on restores everything with nothing lost.
       </span>
     </div>
+
+    <div class="form-group" style="margin-left:24px;padding-left:14px;border-left:3px solid var(--border);">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+        <input type="checkbox" name="collect_coordinates" value="1" <?= $coordsOn ? 'checked' : '' ?>>
+        Keep asking staff for coordinates while the map is off
+      </label>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        <?php if ($mapOn): ?>
+          Only matters while the map is off. With the map on, latitude and
+          longitude are always asked for, because the map has nothing to draw
+          without them.
+        <?php elseif ($coordsOn): ?>
+          <strong>On.</strong> Staff are still asked for latitude and longitude
+          even though the map is hidden, so every shipment booked now keeps a
+          position and the map is complete the moment you switch it back on.
+        <?php else: ?>
+          <strong>Off.</strong> The coordinate fields and the "Find on map"
+          button are hidden from the New and Edit Shipment forms and from both
+          update forms. Shipments booked while the map is off will have no
+          position recorded, so they will not appear on the map if you switch
+          it back on later. Tick this if you plan to.
+        <?php endif; ?>
+      </span>
+    </div>
+
 
     <div class="form-group">
       <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
@@ -125,6 +154,7 @@ include __DIR__ . '/includes/admin_header.php';
   <ul style="color:var(--muted);font-size:14px;line-height:1.9;padding-left:20px;margin-bottom:0;">
     <li>Live map is <strong><?= $mapOn ? 'ON' : 'OFF' ?></strong><?= $mapOn ? '' : ', and coordinates are hidden everywhere on the public side' ?>.</li>
     <li>Logo above tracking results is <strong><?= $logoOn ? 'ON' : 'OFF' ?></strong>.</li>
+    <li>Staff are <strong><?= coordinates_collected() ? 'asked' : 'not asked' ?></strong> for coordinates when adding or editing a shipment.</li>
     <li>Full update history on the tracking page is <strong><?= $historyOn ? 'ON' : 'OFF' ?></strong>.</li>
     <li>Shipment insurance is <strong><?= $insuranceOn ? 'OFFERED' : 'NOT OFFERED' ?></strong>.</li>
     <li>Waybill and label PDFs are printable from the admin panel only.</li>

@@ -258,6 +258,10 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('insurance_enabled', '1'),
 ('tracking_show_history', '1'),
 ('live_map_enabled', '1'),
+-- Keep asking staff for coordinates even when the map is off, so nothing
+-- booked during that window is left without a position. Off by default, so
+-- the coordinate fields simply follow the map.
+('collect_coordinates', '0'),
 ('tracking_show_logo', '1'),
 ('live_chat_enabled', '0'),
 ('live_chat_property_id', ''),

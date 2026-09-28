@@ -28,15 +28,15 @@ $shipStmt->execute([$event['shipment_id']]);
 $shipment = $shipStmt->fetch();
 
 $statuses = get_shipment_status_names();
-// With the live map off, coordinates are not shown or asked for. The
-// checkpoint keeps whatever position it was already recorded with.
-$mapOn = live_map_enabled();
+// When coordinates are not being collected they are not shown or asked
+// for, and the checkpoint keeps whatever position it already had.
+$collectCoords = coordinates_collected();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $_POST['status'] ?? '';
     $locationLabel = trim($_POST['location_label'] ?? '');
-    if ($mapOn) {
+    if ($collectCoords) {
         $lat = $_POST['lat'] ?? '';
         $lng = $_POST['lng'] ?? '';
     } else {
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Please choose a valid status.';
     }
     if ($locationLabel === '') $errors[] = 'Location is required.';
-    if ($mapOn) {
+    if ($collectCoords) {
         if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90.';
         if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180.';
     }
@@ -127,16 +127,16 @@ include __DIR__ . '/includes/admin_header.php';
 
     <div class="form-group">
       <label>Location: Address or Place</label>
-      <div class="<?= $mapOn ? 'input-with-button' : '' ?>">
+      <div class="<?= $collectCoords ? 'input-with-button' : '' ?>">
         <input type="text" id="location_label" name="location_label" value="<?= h($_POST['location_label'] ?? $event['location_label']) ?>" required>
-        <?php if ($mapOn): ?>
+        <?php if ($collectCoords): ?>
           <button type="button" id="location-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
         <?php endif; ?>
       </div>
       <span id="location-geocode-status" class="geocode-status"></span>
     </div>
 
-    <?php if ($mapOn): ?>
+    <?php if ($collectCoords): ?>
     <div class="form-row">
       <div class="form-group">
         <label>Latitude</label>
@@ -166,7 +166,7 @@ include __DIR__ . '/includes/admin_header.php';
   <a href="/admin/updates.php?shipment=<?= (int) $event['shipment_id'] ?>" class="btn btn-outline btn-sm">Cancel</a>
 </p>
 
-<?php if ($mapOn): ?>
+<?php if ($collectCoords): ?>
 <script src="<?= h(asset_url('/assets/js/geocode.js')) ?>" defer></script>
 <?php endif; ?>
 

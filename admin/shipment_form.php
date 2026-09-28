@@ -25,11 +25,13 @@ if ($id) {
     }
 }
 
-// With the live map switched off, staff are not asked for coordinates
-// anywhere, so the whole latitude/longitude half of this form is left out
-// and nothing is stored for a new shipment. An existing shipment keeps the
-// coordinates it already has, so switching the map back on restores it.
-$mapOn = live_map_enabled();
+// Coordinates are asked for whenever the map needs them, and also when a
+// super admin has chosen to keep collecting them with the map off. When
+// they are not collected, the whole latitude/longitude half of this form is
+// left out and nothing is stored for a new shipment. An existing shipment
+// keeps the coordinates it already has, so turning either switch back on
+// restores it.
+$collectCoords = coordinates_collected();
 
 // Prefill from a public shipment request, when creating a brand-new shipment.
 $prefill = null;
@@ -74,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $originLabel = trim($_POST['origin_label'] ?? '');
     $destinationLabel = trim($_POST['destination_label'] ?? '');
 
-    if ($mapOn) {
+    if ($collectCoords) {
         $originLat = $_POST['origin_lat'] ?? '';
         $originLng = $_POST['origin_lng'] ?? '';
         $destinationLat = $_POST['destination_lat'] ?? '';
@@ -126,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Destination is required.';
     }
     // Coordinates are only asked for, and only checked, while the map is on.
-    if ($mapOn) {
+    if ($collectCoords) {
         if ($originLat === '' || $originLng === '') {
             $errors[] = 'Origin coordinates are required.';
         } elseif (!is_valid_latitude((string) $originLat) || !is_valid_longitude((string) $originLng)) {
@@ -539,15 +541,15 @@ include __DIR__ . '/includes/admin_header.php';
     <h3>Origin</h3>
     <div class="form-group">
       <label>Origin Address or Place</label>
-      <div class="<?= $mapOn ? 'input-with-button' : '' ?>">
+      <div class="<?= $collectCoords ? 'input-with-button' : '' ?>">
         <input type="text" id="origin_label" name="origin_label" value="<?= h($shipment['origin_label'] ?? ($prefill['ship_from'] ?? '')) ?>" placeholder="Paste any address: street, home, or a place name" required>
-        <?php if ($mapOn): ?>
+        <?php if ($collectCoords): ?>
           <button type="button" id="origin-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
         <?php endif; ?>
       </div>
       <span id="origin-geocode-status" class="geocode-status"></span>
     </div>
-    <?php if ($mapOn): ?>
+    <?php if ($collectCoords): ?>
     <div class="form-row">
       <div class="form-group">
         <label>Origin Latitude</label>
@@ -563,15 +565,15 @@ include __DIR__ . '/includes/admin_header.php';
     <h3>Destination</h3>
     <div class="form-group">
       <label>Destination Address or Place</label>
-      <div class="<?= $mapOn ? 'input-with-button' : '' ?>">
+      <div class="<?= $collectCoords ? 'input-with-button' : '' ?>">
         <input type="text" id="destination_label" name="destination_label" value="<?= h($shipment['destination_label'] ?? ($prefill['ship_to'] ?? '')) ?>" placeholder="Paste any address: street, home, or a place name" required>
-        <?php if ($mapOn): ?>
+        <?php if ($collectCoords): ?>
           <button type="button" id="destination-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
         <?php endif; ?>
       </div>
       <span id="destination-geocode-status" class="geocode-status"></span>
     </div>
-    <?php if ($mapOn): ?>
+    <?php if ($collectCoords): ?>
     <div class="form-row">
       <div class="form-group">
         <label>Destination Latitude</label>
@@ -602,11 +604,11 @@ include __DIR__ . '/includes/admin_header.php';
   </form>
 </div>
 
-<?php if ($mapOn): ?>
+<?php if ($collectCoords): ?>
 <script src="<?= h(asset_url('/assets/js/geocode.js')) ?>"></script>
 <?php endif; ?>
 <script>
-<?php if ($mapOn): ?>
+<?php if ($collectCoords): ?>
   attachGeocodeLookup('origin_label', 'origin_lat', 'origin_lng', 'origin-lookup-btn', 'origin-geocode-status');
   attachGeocodeLookup('destination_label', 'destination_lat', 'destination_lng', 'destination-lookup-btn', 'destination-geocode-status');
 <?php endif; ?>

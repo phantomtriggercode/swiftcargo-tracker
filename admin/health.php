@@ -164,6 +164,7 @@ $settingsNeeded = [
     'tracking_show_logo'    => 'sql/migrations/014_contact_details_and_tracking_display.sql',
     'insurance_enabled'     => 'sql/migrations/015_custom_statuses_and_display_toggles.sql',
     'tracking_show_history' => 'sql/migrations/015_custom_statuses_and_display_toggles.sql',
+    'collect_coordinates'   => 'sql/migrations/018_collect_coordinates_switch.sql',
     'live_chat_enabled'     => 'sql/updates/002_live_chat_settings.sql',
     'live_chat_property_id' => 'sql/updates/002_live_chat_settings.sql',
     'live_chat_widget_id'   => 'sql/updates/002_live_chat_settings.sql',

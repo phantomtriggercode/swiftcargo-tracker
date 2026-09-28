@@ -288,6 +288,18 @@ what a customer sees after entering a tracking number.
   shipment instead of showing it adrift there. It still shows the route by
   name, the status, the timeline and every other detail.
 
+- **Keep asking staff for coordinates while the map is off.** Sits directly
+  under the map switch, because it is the only setting it relates to. Off by
+  default, so the coordinate fields simply follow the map. Tick it if you
+  intend to switch the map back on later: staff carry on recording latitude
+  and longitude even though nothing is drawn with them, so every shipment
+  booked in the meantime keeps a position and the map is complete the moment
+  you turn it on. Customers see nothing either way while the map is off.
+
+  It deliberately has no say while the map is on. Coordinates are always
+  asked for then, because the map has nothing to draw without them, so
+  "map on, coordinates off" is not a combination worth offering.
+
   The public side also *stops mentioning a live map anywhere*, not just on
   the tracking page. The homepage hero, the
   "Live Map Tracking" feature card, the Services list, the About text, the
@@ -706,7 +718,12 @@ If you already deployed an earlier version of this project:
     a shipment booked while the live map is switched off can record that it
     has no coordinates instead of being forced to claim 0,0. No existing
     value is touched, and it is safe to run twice.
-22. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
+22. **Coordinate collection switch:** import
+    `sql/migrations/018_collect_coordinates_switch.sql` once. It adds the one
+    setting behind "Keep asking staff for coordinates while the map is off",
+    which defaults to off so nothing changes until you turn it on. Safe to
+    run twice.
+23. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
     once to add the three settings rows it uses. The feature works without
     them (a missing row reads as its default), but importing it means the
     settings are stored explicitly rather than assumed. Then upload

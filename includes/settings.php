@@ -212,3 +212,20 @@ function tracking_shows_history(): bool
 {
     return get_setting('tracking_show_history', '1') === '1';
 }
+
+/**
+ * Whether staff are asked for latitude and longitude at all.
+ *
+ * The map always needs them, so while it is on they are always collected
+ * and the switch below is irrelevant. It only has a say when the map is
+ * off: normally the coordinate fields disappear with the map, but a site
+ * that plans to switch the map back on can keep collecting them so no
+ * shipment booked in the meantime is left without a position.
+ *
+ * Deliberately not a free choice in both directions. "Map on, coordinates
+ * off" would leave the map with nothing to draw, so it is not offered.
+ */
+function coordinates_collected(): bool
+{
+    return live_map_enabled() || get_setting('collect_coordinates', '0') === '1';
+}

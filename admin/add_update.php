@@ -16,16 +16,16 @@ if (!$shipment) {
 }
 
 $statuses = get_shipment_status_names();
-// With the live map off, staff are not asked for coordinates. The new
-// checkpoint simply carries the position the shipment already had, so the
-// timeline still records where it is without inventing a point.
-$mapOn = live_map_enabled();
+// When coordinates are not being collected, the new checkpoint simply
+// carries the position the shipment already had, so the timeline still
+// records where it is without inventing a point.
+$collectCoords = coordinates_collected();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $_POST['status'] ?? '';
     $locationLabel = trim($_POST['location_label'] ?? '');
-    if ($mapOn) {
+    if ($collectCoords) {
         $lat = $_POST['lat'] ?? '';
         $lng = $_POST['lng'] ?? '';
     } else {
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($locationLabel === '') $errors[] = 'Location label is required.';
     // Range-checked, not just "is it a number", an out-of-range coordinate
     // saves fine but would break the live map for this shipment.
-    if ($mapOn) {
+    if ($collectCoords) {
         if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90: use "Find on map" to fill it in automatically.';
         if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180: use "Find on map" to fill it in automatically.';
     }
@@ -121,15 +121,15 @@ include __DIR__ . '/includes/admin_header.php';
     </div>
     <div class="form-group">
       <label>Location: Address or Place</label>
-      <div class="<?= $mapOn ? 'input-with-button' : '' ?>">
+      <div class="<?= $collectCoords ? 'input-with-button' : '' ?>">
         <input type="text" id="location_label" name="location_label" value="<?= h($_POST['location_label'] ?? '') ?>" placeholder="Paste any address: street, home, or a place name" required>
-        <?php if ($mapOn): ?>
+        <?php if ($collectCoords): ?>
           <button type="button" id="location-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
         <?php endif; ?>
       </div>
       <span id="location-geocode-status" class="geocode-status"></span>
     </div>
-    <?php if ($mapOn): ?>
+    <?php if ($collectCoords): ?>
     <div class="form-row">
       <div class="form-group">
         <label>Latitude</label>
@@ -175,7 +175,7 @@ include __DIR__ . '/includes/admin_header.php';
   </form>
 </div>
 
-<?php if ($mapOn): ?>
+<?php if ($collectCoords): ?>
 <script src="<?= h(asset_url('/assets/js/geocode.js')) ?>"></script>
 <script>
   attachGeocodeLookup('location_label', 'lat', 'lng', 'location-lookup-btn', 'location-geocode-status');
