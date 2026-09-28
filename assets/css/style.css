@@ -1058,3 +1058,10 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
 .update-history-table th:nth-child(1) { width: 170px; }
 .update-history-table th:nth-child(2) { width: 150px; }
 .update-history-table th:nth-child(3) { width: 30%; }
+
+/* The tracking number in the Shipments list is a link into Add Update.
+   Styled as ordinary text until hovered, so the table does not turn into a
+   wall of blue, but with an underline on hover so it is discoverable. */
+.tracking-link { color: inherit; text-decoration: none; }
+.tracking-link:hover,
+.tracking-link:focus { color: var(--brand-red); text-decoration: underline; }

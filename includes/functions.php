@@ -19,8 +19,9 @@ function h(?string $value): string
  * database problem must never leave the status dropdown empty.
  */
 const DEFAULT_SHIPMENT_STATUSES = [
-    'Pending', 'Picked Up', 'En Route', 'Customs Clearance', 'Insurance Clearance',
-    'Out for Delivery', 'Delivered', 'On Hold', 'Delayed', 'Exception',
+    'Pending', 'Picked Up', 'In Transit', 'En Route', 'Customs Clearance',
+    'Insurance Clearance', 'Out for Delivery', 'Delivered', 'On Hold',
+    'Delayed', 'Exception',
 ];
 
 /**
@@ -68,9 +69,42 @@ function get_shipment_status_names(): array
 }
 
 /** Settings key holding the admin-editable default message for a status (see /admin/status_messages.php). */
+/**
+ * The estimated delivery, as one readable line for the tracking page and
+ * the waybill. Shared so the two can never word it differently.
+ *
+ * The time is optional: a shipment usually has a delivery day well before
+ * anyone can promise an hour, so it is left out until one is set.
+ */
+function estimated_delivery_label(array $shipment): string
+{
+    $date = $shipment['estimated_delivery'] ?? null;
+    if (!$date) {
+        return 'TBD';
+    }
+
+    $label = date('M j, Y', strtotime($date));
+    $time = $shipment['estimated_delivery_time'] ?? null;
+
+    if ($time) {
+        $ts = strtotime($date . ' ' . $time);
+        if ($ts !== false) {
+            $label .= ' at ' . date('g:i A', $ts);
+        }
+    }
+
+    return $label;
+}
+
 function status_message_key(string $status): string
 {
-    return 'status_message_' . strtolower(str_replace(' ', '_', $status));
+    // Spaces become underscores and anything else is dropped, so a status
+    // named with punctuation still produces a clean settings key. Every
+    // status shipped so far is plain words, so existing keys are unchanged.
+    $slug = strtolower(str_replace(' ', '_', trim($status)));
+    $slug = preg_replace('/[^a-z0-9_]/', '', $slug);
+
+    return 'status_message_' . substr($slug, 0, 60);
 }
 
 function get_status_message(string $status): string

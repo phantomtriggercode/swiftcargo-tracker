@@ -52,8 +52,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $next = (int) db()->query('SELECT COALESCE(MAX(sort_order), 0) + 10 FROM shipment_statuses')->fetchColumn();
                 $ins = db()->prepare('INSERT INTO shipment_statuses (name, badge_class, sort_order) VALUES (?, ?, ?)');
                 $ins->execute([$name, $badge, $next]);
+
+                // Give it a starter message so Status Messages has something
+                // to show and send, rather than an empty box that quietly
+                // means the receiver's email arrives with no explanation.
+                if (get_status_message($name) === '') {
+                    set_setting(
+                        status_message_key($name),
+                        'Your shipment status is now "' . $name . '".'
+                    );
+                }
+
                 log_admin_activity('Added shipment status', $name);
-                flash_set('success', 'Status "' . $name . '" added. Staff can pick it when adding an update, and you can write its default message under Status Messages.');
+                flash_set('success', 'Status "' . $name . '" added, with a starter message you can reword under Status Messages.');
             }
         }
         redirect('/admin/statuses.php');

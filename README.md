@@ -415,8 +415,34 @@ A status that *has* been removed still displays correctly on any older
 shipment that carries it, and the edit form keeps it selected rather than
 forcing that update onto a different status.
 
-Each new status can have its own default message written under **Status
-Messages**, used when staff leave the remark blank.
+Adding a status also creates a starter message for it under **Status
+Messages**, so the receiver's email is never sent with nothing to say. Reword
+it there whenever you like.
+
+The list ships with **In Transit** alongside En Route, since the two mean
+different things to most carriers: one is "moving between our facilities",
+the other "on the leg toward the destination". Use either, both, or rename
+them to whatever your operation actually says.
+
+### Changing a shipment's status from the edit form
+
+The **Edit Shipment** form has a **Current Status** dropdown listing every
+status from **Shipment Statuses**. Changing it there does not just move the
+badge: it records a real tracking update, at the shipment's last reported
+location, carrying that status's default message. Without one the timeline
+and the shipment would disagree, and the next edit or deletion would
+re-derive the status from the history and quietly undo the change.
+
+Only an existing shipment shows the dropdown. A new one always starts at
+Pending with its own opening update.
+
+### Estimated delivery time
+
+Next to **Estimated Delivery Date** is an optional **Estimated Delivery
+Time**, with the same click-to-open picker. Leave it blank while only the
+day is known and the tracking page shows just the date; set it and the page
+and the waybill both read "Oct 2, 2026 at 2:30 PM". A time without a date is
+refused, since it says nothing on its own.
 
 ### Editing and deleting tracking updates (any admin)
 
@@ -658,7 +684,12 @@ If you already deployed an earlier version of this project:
     `shipment_statuses` table seeded with the ten statuses you already have,
     and adds the two new switches. Every existing shipment keeps the exact
     status it had. Safe to run twice.
-20. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
+20. **In Transit status and delivery time:** import
+    `sql/migrations/016_in_transit_status_and_delivery_time.sql` once. It adds
+    the "In Transit" status with its default message, and the optional
+    estimated delivery time column. Safe to run twice, and it leaves any
+    status or wording you have already changed alone.
+21. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
     once to add the three settings rows it uses. The feature works without
     them (a missing row reads as its default), but importing it means the
     settings are stored explicitly rather than assumed. Then upload

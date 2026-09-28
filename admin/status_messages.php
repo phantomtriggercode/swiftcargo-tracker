@@ -36,6 +36,11 @@ include __DIR__ . '/includes/admin_header.php';
   this. Editing a message here only affects updates made after you save;
   past updates keep whatever wording was sent at the time.
 </p>
+<p style="color:var(--muted);font-size:14px;max-width:720px;">
+  There is one box below for every status in the list. Add a status under
+  <a href="/admin/statuses.php" style="color:var(--brand-red);">Shipment Statuses</a>
+  and it appears here straight away with a starter message you can reword.
+</p>
 
 <div class="form-card" style="max-width:720px;">
   <form method="post">

@@ -72,6 +72,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $destinationLat = $_POST['destination_lat'] ?? '';
     $destinationLng = $_POST['destination_lng'] ?? '';
     $estimatedDelivery = trim($_POST['estimated_delivery'] ?? '') ?: null;
+    $estimatedDeliveryTime = trim($_POST['estimated_delivery_time'] ?? '') ?: null;
+
+    // A delivery time on its own says nothing without a day to attach it to.
+    if ($estimatedDeliveryTime !== null && $estimatedDelivery === null) {
+        $errors[] = 'Pick an estimated delivery date as well, or clear the time.';
+    }
+    if ($estimatedDeliveryTime !== null && !preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $estimatedDeliveryTime)) {
+        $errors[] = 'The estimated delivery time is not a valid time.';
+    }
+
+    // Only an existing shipment shows the status dropdown; a new one always
+    // starts at Pending with its own opening tracking update.
+    $newStatus = null;
+    if ($shipment) {
+        $picked = $_POST['status'] ?? '';
+        $allowed = get_shipment_status_names();
+        if ($picked !== '' && $picked !== $shipment['status']) {
+            if (!in_array($picked, $allowed, true)) {
+                $errors[] = 'Please choose a valid status.';
+            } else {
+                $newStatus = $picked;
+            }
+        }
+    }
 
     if ($senderName === '') $errors[] = 'Sender name is required.';
     if ($receiverName === '') $errors[] = 'Receiver name is required.';
@@ -138,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   payment_type = ?, payment_price = ?, payment_initial_amount = ?, payment_amount_paid = ?,
                   origin_label = ?, origin_lat = ?, origin_lng = ?,
                   destination_label = ?, destination_lat = ?, destination_lng = ?,
-                  estimated_delivery = ?
+                  estimated_delivery = ?, estimated_delivery_time = ?
                 WHERE id = ?
             ');
             $stmt->execute([
@@ -149,8 +173,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $paymentType, $dbPaymentPrice, $dbPaymentInitial, $dbPaymentPaid,
                 $originLabel, $originLat, $originLng,
                 $destinationLabel, $destinationLat, $destinationLng,
-                $estimatedDelivery, $shipment['id'],
+                $estimatedDelivery, $estimatedDeliveryTime, $shipment['id'],
             ]);
+
+            // Changing the status here records a real tracking update rather
+            // than only moving the badge. Without one the timeline and the
+            // shipment would disagree, and the next edit or delete would
+            // re-derive the status from the history and undo this change.
+            if ($newStatus !== null) {
+                // Reuse wherever the shipment was last reported, so the new
+                // checkpoint does not silently move it back to its origin.
+                $whereStmt = db()->prepare(
+                    'SELECT location_label FROM tracking_events
+                     WHERE shipment_id = ? ORDER BY event_time DESC, id DESC LIMIT 1'
+                );
+                $whereStmt->execute([$shipment['id']]);
+                $lastPlace = (string) ($whereStmt->fetchColumn() ?: $shipment['origin_label']);
+
+                $statusNote = get_status_message($newStatus) ?: ('Status updated to ' . $newStatus . '.');
+                $eventStmt = db()->prepare('
+                    INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note, event_time)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ');
+                $eventStmt->execute([
+                    $shipment['id'],
+                    $newStatus,
+                    $lastPlace,
+                    $shipment['current_lat'],
+                    $shipment['current_lng'],
+                    $statusNote,
+                    date('Y-m-d H:i:s'),
+                ]);
+                resync_shipment_from_events((int) $shipment['id']);
+                log_admin_activity('Changed shipment status', $shipment['tracking_number'] . ' to ' . $newStatus);
+            }
 
             // Insurance status changed: let the receiver know either way
             // (newly insured, or insurance removed), not just silently.
@@ -186,8 +242,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   payment_type, payment_price, payment_initial_amount, payment_amount_paid, status,
                   origin_label, origin_lat, origin_lng,
                   destination_label, destination_lat, destination_lng,
-                  current_lat, current_lng, estimated_delivery
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  current_lat, current_lng, estimated_delivery, estimated_delivery_time
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ');
             $stmt->execute([
                 $trackingNumber,
@@ -198,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $paymentType, $dbPaymentPrice, $dbPaymentInitial, $dbPaymentPaid,
                 $originLabel, $originLat, $originLng,
                 $destinationLabel, $destinationLat, $destinationLng,
-                $originLat, $originLng, $estimatedDelivery,
+                $originLat, $originLng, $estimatedDelivery, $estimatedDeliveryTime,
             ]);
             $newId = (int) db()->lastInsertId();
 
@@ -336,6 +392,35 @@ include __DIR__ . '/includes/admin_header.php';
         <label>Estimated Delivery Date</label>
         <input type="date" name="estimated_delivery" value="<?= h($shipment['estimated_delivery'] ?? '') ?>">
       </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Estimated Delivery Time</label>
+        <input type="time" name="estimated_delivery_time" value="<?= h(substr((string) ($shipment['estimated_delivery_time'] ?? ''), 0, 5)) ?>">
+        <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
+          Optional. Leave it blank while only the day is known, and the
+          tracking page shows just the date.
+        </span>
+      </div>
+      <?php if ($shipment): ?>
+      <div class="form-group">
+        <label>Current Status</label>
+        <?php $curStatus = $_POST['status'] ?? $shipment['status']; ?>
+        <select name="status">
+          <?php foreach (get_shipment_status_names() as $opt): ?>
+            <option value="<?= h($opt) ?>" <?= $curStatus === $opt ? 'selected' : '' ?>><?= h($opt) ?></option>
+          <?php endforeach; ?>
+          <?php if (!in_array($shipment['status'], get_shipment_status_names(), true)): ?>
+            <option value="<?= h($shipment['status']) ?>" selected><?= h($shipment['status']) ?> (no longer in the status list)</option>
+          <?php endif; ?>
+        </select>
+        <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
+          Changing this records a tracking update at the shipment's current
+          position, so the customer's timeline stays truthful. Add or remove
+          the options under <a href="/admin/statuses.php" style="color:var(--brand-red);">Shipment Statuses</a>.
+        </span>
+      </div>
+      <?php endif; ?>
     </div>
     <div class="form-row">
       <div class="form-group">

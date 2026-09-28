@@ -121,6 +121,7 @@ $columnsNeeded = [
         'sender_email'   => 'sql/migrations/014_contact_details_and_tracking_display.sql',
         'sender_phone'   => 'sql/migrations/014_contact_details_and_tracking_display.sql',
         'receiver_phone' => 'sql/migrations/014_contact_details_and_tracking_display.sql',
+        'estimated_delivery_time' => 'sql/migrations/016_in_transit_status_and_delivery_time.sql',
     ],
 ];
 $missingColumns = [];

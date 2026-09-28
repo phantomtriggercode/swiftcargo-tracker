@@ -210,7 +210,7 @@ $mapOn = live_map_enabled();
           <?php endif; ?>
           <div class="meta-box">
             <div class="meta-label">Estimated Delivery</div>
-            <div class="meta-value"><?= $shipment['estimated_delivery'] ? h(date('M j, Y', strtotime($shipment['estimated_delivery']))) : 'TBD' ?></div>
+            <div class="meta-value"><?= h(estimated_delivery_label($shipment)) ?></div>
           </div>
           <div class="meta-box">
             <div class="meta-label">Payment</div>

@@ -47,7 +47,11 @@ include __DIR__ . '/includes/admin_header.php';
     <?php endif; ?>
     <?php foreach ($shipments as $s): ?>
       <tr>
-        <td data-label="Tracking #"><strong><?= h($s['tracking_number']) ?></strong><?php if ($s['courier_name']): ?><br><span style="color:var(--muted);font-size:12px;"><?= h($s['courier_name']) ?></span><?php endif; ?></td>
+        <td data-label="Tracking #">
+          <?php // The tracking number is the obvious thing to click, so it opens straight into adding an update. ?>
+          <a href="/admin/add_update.php?id=<?= (int) $s['id'] ?>" class="tracking-link" title="Add a tracking update for <?= h($s['tracking_number']) ?>"><strong><?= h($s['tracking_number']) ?></strong></a>
+          <?php if ($s['courier_name']): ?><br><span style="color:var(--muted);font-size:12px;"><?= h($s['courier_name']) ?></span><?php endif; ?>
+        </td>
         <td data-label="Receiver"><?= h($s['receiver_name']) ?><br><span style="color:var(--muted);font-size:12.5px;"><?= h($s['receiver_email']) ?></span></td>
         <td data-label="Route" style="font-size:13px;"><?= h($s['origin_label']) ?> &rarr; <?= h($s['destination_label']) ?></td>
         <td data-label="Status"><span class="badge <?= status_badge_class($s['status']) ?>"><?= h($s['status']) ?></span></td>

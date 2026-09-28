@@ -128,6 +128,10 @@ CREATE TABLE IF NOT EXISTS shipments (
   current_lng DECIMAL(10,7) NOT NULL,
 
   estimated_delivery DATE DEFAULT NULL,
+  -- Kept separate from the date rather than folded into a DATETIME, so a
+  -- shipment can have a delivery date with no time yet, which is the normal
+  -- case when it is first booked.
+  estimated_delivery_time TIME NULL DEFAULT NULL,
 
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -178,6 +182,7 @@ CREATE TABLE IF NOT EXISTS shipment_statuses (
 INSERT IGNORE INTO shipment_statuses (name, badge_class, sort_order, is_protected) VALUES
 ('Pending',              'badge-pending',   10, 1),
 ('Picked Up',            'badge-pending',   20, 0),
+('In Transit',           'badge-transit',   25, 0),
 ('En Route',             'badge-transit',   30, 0),
 ('Customs Clearance',    'badge-hold',      40, 0),
 ('Insurance Clearance',  'badge-hold',      50, 0),
@@ -226,6 +231,7 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('tracking_number_suffix', ''),
 ('status_message_pending', 'Your shipment has been booked and a shipping label has been created. We are preparing it for pickup.'),
 ('status_message_picked_up', 'Your shipment has been picked up and is now in our network.'),
+('status_message_in_transit', 'Your shipment is in transit and on its way to the next stop in our network.'),
 ('status_message_en_route', 'Your shipment is on the move and heading toward its next stop.'),
 ('status_message_customs_clearance', 'Your shipment has arrived at a customs checkpoint and is being cleared for onward transport. This can take 1-2 business days.'),
 ('status_message_insurance_clearance', 'Your shipment is undergoing an insurance review before continuing its journey.'),

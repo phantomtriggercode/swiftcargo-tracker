@@ -47,7 +47,7 @@ $methodLabel = h($shipment['shipping_method']) . ($shipment['land_method'] ? ' &
 $insuranceLabel = $shipment['insured']
     ? 'Insured' . ($shipment['insurance_value'] ? ' &mdash; $' . number_format((float) $shipment['insurance_value'], 2) . ' declared value' : '')
     : 'Not insured';
-$estDelivery = $shipment['estimated_delivery'] ? date('F j, Y', strtotime($shipment['estimated_delivery'])) : 'TBD';
+$estDelivery = estimated_delivery_label($shipment);
 $createdDate = date('F j, Y', strtotime($shipment['created_at']));
 
 // Colors follow the active site theme (see includes/theme.php) so this
