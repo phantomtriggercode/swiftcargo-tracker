@@ -28,13 +28,21 @@ $shipStmt->execute([$event['shipment_id']]);
 $shipment = $shipStmt->fetch();
 
 $statuses = get_shipment_status_names();
+// With the live map off, coordinates are not shown or asked for. The
+// checkpoint keeps whatever position it was already recorded with.
+$mapOn = live_map_enabled();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $_POST['status'] ?? '';
     $locationLabel = trim($_POST['location_label'] ?? '');
-    $lat = $_POST['lat'] ?? '';
-    $lng = $_POST['lng'] ?? '';
+    if ($mapOn) {
+        $lat = $_POST['lat'] ?? '';
+        $lng = $_POST['lng'] ?? '';
+    } else {
+        $lat = $event['lat'];
+        $lng = $event['lng'];
+    }
     $note = trim($_POST['note'] ?? '');
     $eventTimeSql = parse_admin_date_and_time($_POST['event_date'] ?? '', $_POST['event_time'] ?? '');
 
@@ -45,8 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Please choose a valid status.';
     }
     if ($locationLabel === '') $errors[] = 'Location is required.';
-    if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90.';
-    if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180.';
+    if ($mapOn) {
+        if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90.';
+        if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180.';
+    }
     if ($eventTimeSql === null) $errors[] = 'Pick a real date and time for this update.';
 
     if (!$errors) {
@@ -117,13 +127,16 @@ include __DIR__ . '/includes/admin_header.php';
 
     <div class="form-group">
       <label>Location: Address or Place</label>
-      <div class="input-with-button">
+      <div class="<?= $mapOn ? 'input-with-button' : '' ?>">
         <input type="text" id="location_label" name="location_label" value="<?= h($_POST['location_label'] ?? $event['location_label']) ?>" required>
-        <button type="button" id="location-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+        <?php if ($mapOn): ?>
+          <button type="button" id="location-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+        <?php endif; ?>
       </div>
       <span id="location-geocode-status" class="geocode-status"></span>
     </div>
 
+    <?php if ($mapOn): ?>
     <div class="form-row">
       <div class="form-group">
         <label>Latitude</label>
@@ -134,6 +147,7 @@ include __DIR__ . '/includes/admin_header.php';
         <input type="text" id="lng" name="lng" value="<?= h($_POST['lng'] ?? $event['lng']) ?>" required>
       </div>
     </div>
+    <?php endif; ?>
 
     <div class="form-group">
       <label>Remark or comment (optional)</label>
@@ -152,6 +166,8 @@ include __DIR__ . '/includes/admin_header.php';
   <a href="/admin/updates.php?shipment=<?= (int) $event['shipment_id'] ?>" class="btn btn-outline btn-sm">Cancel</a>
 </p>
 
+<?php if ($mapOn): ?>
 <script src="<?= h(asset_url('/assets/js/geocode.js')) ?>" defer></script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>

@@ -16,13 +16,22 @@ if (!$shipment) {
 }
 
 $statuses = get_shipment_status_names();
+// With the live map off, staff are not asked for coordinates. The new
+// checkpoint simply carries the position the shipment already had, so the
+// timeline still records where it is without inventing a point.
+$mapOn = live_map_enabled();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $_POST['status'] ?? '';
     $locationLabel = trim($_POST['location_label'] ?? '');
-    $lat = $_POST['lat'] ?? '';
-    $lng = $_POST['lng'] ?? '';
+    if ($mapOn) {
+        $lat = $_POST['lat'] ?? '';
+        $lng = $_POST['lng'] ?? '';
+    } else {
+        $lat = $shipment['current_lat'];
+        $lng = $shipment['current_lng'];
+    }
     $note = trim($_POST['note'] ?? '');
     if (!in_array($status, $statuses, true)) $errors[] = 'Please choose a valid status.';
     // The timeline shows exactly what staff picked here, never the moment
@@ -32,8 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($locationLabel === '') $errors[] = 'Location label is required.';
     // Range-checked, not just "is it a number", an out-of-range coordinate
     // saves fine but would break the live map for this shipment.
-    if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90: use "Find on map" to fill it in automatically.';
-    if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180: use "Find on map" to fill it in automatically.';
+    if ($mapOn) {
+        if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90: use "Find on map" to fill it in automatically.';
+        if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180: use "Find on map" to fill it in automatically.';
+    }
 
     if (!$errors) {
         // Staff left the note blank: fall back to that status's editable
@@ -110,20 +121,23 @@ include __DIR__ . '/includes/admin_header.php';
     </div>
     <div class="form-group">
       <label>Location: Address or Place</label>
-      <div class="input-with-button">
-        <input type="text" id="location_label" name="location_label" placeholder="Paste any address: street, home, or a place name" required>
-        <button type="button" id="location-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+      <div class="<?= $mapOn ? 'input-with-button' : '' ?>">
+        <input type="text" id="location_label" name="location_label" value="<?= h($_POST['location_label'] ?? '') ?>" placeholder="Paste any address: street, home, or a place name" required>
+        <?php if ($mapOn): ?>
+          <button type="button" id="location-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+        <?php endif; ?>
       </div>
       <span id="location-geocode-status" class="geocode-status"></span>
     </div>
+    <?php if ($mapOn): ?>
     <div class="form-row">
       <div class="form-group">
         <label>Latitude</label>
-        <input type="text" id="lat" name="lat" placeholder="e.g. 39.7392" required>
+        <input type="text" id="lat" name="lat" value="<?= h($_POST['lat'] ?? '') ?>" placeholder="e.g. 39.7392" required>
       </div>
       <div class="form-group">
         <label>Longitude</label>
-        <input type="text" id="lng" name="lng" placeholder="e.g. -104.9903" required>
+        <input type="text" id="lng" name="lng" value="<?= h($_POST['lng'] ?? '') ?>" placeholder="e.g. -104.9903" required>
       </div>
     </div>
     <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
@@ -131,6 +145,7 @@ include __DIR__ . '/includes/admin_header.php';
       by hand instead: open <strong>Google Maps</strong>, right-click the spot,
       and click the numbers at the top of the menu to copy them.
     </p>
+    <?php endif; ?>
     <div class="form-row">
       <div class="form-group">
         <label>Date of this update</label>
@@ -160,9 +175,11 @@ include __DIR__ . '/includes/admin_header.php';
   </form>
 </div>
 
+<?php if ($mapOn): ?>
 <script src="<?= h(asset_url('/assets/js/geocode.js')) ?>"></script>
 <script>
   attachGeocodeLookup('location_label', 'lat', 'lng', 'location-lookup-btn', 'location-geocode-status');
 </script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>

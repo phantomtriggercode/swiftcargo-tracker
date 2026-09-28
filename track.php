@@ -28,6 +28,15 @@ include __DIR__ . '/includes/header.php';
 // to the browser: no stylesheet, no library, and no coordinates anywhere
 // in the page or in the feed it polls.
 $mapOn = live_map_enabled();
+
+// A shipment booked while the map was switched off has no coordinates at
+// all. Casting those to a float would send 0,0 to Leaflet, which is a real
+// place in the Atlantic, so the map is left out for that shipment and the
+// reason is shown instead.
+$hasCoordinates = $shipment
+    && $shipment['origin_lat'] !== null && $shipment['origin_lng'] !== null
+    && $shipment['destination_lat'] !== null && $shipment['destination_lng'] !== null;
+$mapOn = $mapOn && $hasCoordinates;
 ?>
 <?php if ($mapOn): ?>
   <!-- Leaflet is served from this site, not a CDN. The live map is the most
@@ -276,8 +285,8 @@ $mapOn = live_map_enabled();
       window.SHIPMENT_INIT = <?= json_encode([
           'tracking_number' => $shipment['tracking_number'],
           'status' => $shipment['status'],
-          'current_lat' => (float) $shipment['current_lat'],
-          'current_lng' => (float) $shipment['current_lng'],
+          'current_lat' => (float) ($shipment['current_lat'] ?? $shipment['origin_lat']),
+          'current_lng' => (float) ($shipment['current_lng'] ?? $shipment['origin_lng']),
           'current_location_label' => $events ? end($events)['location_label'] : $shipment['origin_label'],
           'origin_label' => $shipment['origin_label'],
           'origin_lat' => (float) $shipment['origin_lat'],
@@ -285,7 +294,7 @@ $mapOn = live_map_enabled();
           'destination_label' => $shipment['destination_label'],
           'destination_lat' => (float) $shipment['destination_lat'],
           'destination_lng' => (float) $shipment['destination_lng'],
-          'events' => array_map(static function (array $e) {
+          'events' => array_values(array_map(static function (array $e) {
               return [
                   'id' => (int) $e['id'],
                   'status' => $e['status'],
@@ -295,7 +304,7 @@ $mapOn = live_map_enabled();
                   'note' => $e['note'],
                   'event_time' => $e['event_time'],
               ];
-          }, $events),
+          }, array_filter($events, static fn(array $e) => $e['lat'] !== null && $e['lng'] !== null))),
       ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     </script>
     <script src="<?= h(asset_url('/assets/js/map.js')) ?>"></script>

@@ -42,21 +42,26 @@ $payload = [
     'map_enabled' => $mapOn,
 ];
 
+// A shipment booked while the map was off has no coordinates. Casting
+// those to a float would report 0,0, a real place in the Atlantic, so they
+// are sent as null and the map leaves the point out.
+$coord = static fn($value) => $value === null ? null : (float) $value;
+
 if ($mapOn) {
     $payload += [
-        'current_lat' => (float) $shipment['current_lat'],
-        'current_lng' => (float) $shipment['current_lng'],
-        'origin_lat' => (float) $shipment['origin_lat'],
-        'origin_lng' => (float) $shipment['origin_lng'],
-        'destination_lat' => (float) $shipment['destination_lat'],
-        'destination_lng' => (float) $shipment['destination_lng'],
+        'current_lat' => $coord($shipment['current_lat'] ?? $shipment['origin_lat']),
+        'current_lng' => $coord($shipment['current_lng'] ?? $shipment['origin_lng']),
+        'origin_lat' => $coord($shipment['origin_lat']),
+        'origin_lng' => $coord($shipment['origin_lng']),
+        'destination_lat' => $coord($shipment['destination_lat']),
+        'destination_lng' => $coord($shipment['destination_lng']),
     ];
 }
 
 echo json_encode([
     'ok' => true,
     'shipment' => $payload,
-    'events' => array_map(static function (array $e) use ($mapOn) {
+    'events' => array_map(static function (array $e) use ($mapOn, $coord) {
         $out = [
             'id' => (int) $e['id'],
             'status' => $e['status'],
@@ -65,8 +70,8 @@ echo json_encode([
             'event_time' => $e['event_time'],
         ];
         if ($mapOn) {
-            $out['lat'] = (float) $e['lat'];
-            $out['lng'] = (float) $e['lng'];
+            $out['lat'] = $coord($e['lat']);
+            $out['lng'] = $coord($e['lng']);
         }
         return $out;
     }, $events),

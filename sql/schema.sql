@@ -117,15 +117,18 @@ CREATE TABLE IF NOT EXISTS shipments (
   status VARCHAR(50) NOT NULL DEFAULT 'Pending',
 
   origin_label VARCHAR(150) NOT NULL,
-  origin_lat DECIMAL(10,7) NOT NULL,
-  origin_lng DECIMAL(10,7) NOT NULL,
+  -- Coordinates are optional: with the live map switched off staff are not
+  -- asked for them, and NULL records that honestly. Storing 0,0 instead
+  -- would put the shipment in the Atlantic the moment the map came back on.
+  origin_lat DECIMAL(10,7) NULL DEFAULT NULL,
+  origin_lng DECIMAL(10,7) NULL DEFAULT NULL,
 
   destination_label VARCHAR(150) NOT NULL,
-  destination_lat DECIMAL(10,7) NOT NULL,
-  destination_lng DECIMAL(10,7) NOT NULL,
+  destination_lat DECIMAL(10,7) NULL DEFAULT NULL,
+  destination_lng DECIMAL(10,7) NULL DEFAULT NULL,
 
-  current_lat DECIMAL(10,7) NOT NULL,
-  current_lng DECIMAL(10,7) NOT NULL,
+  current_lat DECIMAL(10,7) NULL DEFAULT NULL,
+  current_lng DECIMAL(10,7) NULL DEFAULT NULL,
 
   estimated_delivery DATE DEFAULT NULL,
   -- Kept separate from the date rather than folded into a DATETIME, so a
@@ -149,8 +152,8 @@ CREATE TABLE IF NOT EXISTS tracking_events (
   shipment_id INT UNSIGNED NOT NULL,
   status VARCHAR(50) NOT NULL,
   location_label VARCHAR(150) NOT NULL,
-  lat DECIMAL(10,7) NOT NULL,
-  lng DECIMAL(10,7) NOT NULL,
+  lat DECIMAL(10,7) NULL DEFAULT NULL,
+  lng DECIMAL(10,7) NULL DEFAULT NULL,
   note VARCHAR(255) DEFAULT NULL,
   event_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   email_sent TINYINT(1) NOT NULL DEFAULT 0,

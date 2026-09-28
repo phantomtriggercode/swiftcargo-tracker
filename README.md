@@ -276,8 +276,20 @@ Things worth knowing:
 **`/admin/tracking_display.php`** ("Tracking Page" in the sidebar) controls
 what a customer sees after entering a tracking number.
 
-- **Show the live map.** With this off, *the public site stops mentioning a
-  live map anywhere*, not just on the tracking page. The homepage hero, the
+- **Show the live map.** With this off, *the whole site stops dealing in
+  coordinates*, admin panel included. Latitude, longitude and the "Find on
+  map" button disappear from the New/Edit Shipment form and from both update
+  forms, so staff are never asked for something the site will not use. An
+  existing shipment keeps the coordinates it already has, and adding an
+  update carries the last known position forward, so switching the map back
+  on restores everything. A shipment booked while the map was off simply has
+  no coordinates: those are stored as NULL rather than 0,0, which is a real
+  place in the Atlantic, and the tracking page leaves the map out for that
+  shipment instead of showing it adrift there. It still shows the route by
+  name, the status, the timeline and every other detail.
+
+  The public side also *stops mentioning a live map anywhere*, not just on
+  the tracking page. The homepage hero, the
   "Live Map Tracking" feature card, the Services list, the About text, the
   search prompts and the shared meta description all switch to map-free
   wording, so the site never advertises something it no longer does. Copy
@@ -689,7 +701,12 @@ If you already deployed an earlier version of this project:
     the "In Transit" status with its default message, and the optional
     estimated delivery time column. Safe to run twice, and it leaves any
     status or wording you have already changed alone.
-21. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
+21. **Optional coordinates:** import `sql/migrations/017_optional_coordinates.sql`
+    once. It only makes the latitude and longitude columns accept NULL, so
+    a shipment booked while the live map is switched off can record that it
+    has no coordinates instead of being forced to claim 0,0. No existing
+    value is touched, and it is safe to run twice.
+22. **Live chat (Tawk.to):** import `sql/updates/002_live_chat_settings.sql`
     once to add the three settings rows it uses. The feature works without
     them (a missing row reads as its default), but importing it means the
     settings are stored explicitly rather than assumed. Then upload

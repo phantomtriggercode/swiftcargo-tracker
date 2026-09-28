@@ -25,6 +25,12 @@ if ($id) {
     }
 }
 
+// With the live map switched off, staff are not asked for coordinates
+// anywhere, so the whole latitude/longitude half of this form is left out
+// and nothing is stored for a new shipment. An existing shipment keeps the
+// coordinates it already has, so switching the map back on restores it.
+$mapOn = live_map_enabled();
+
 // Prefill from a public shipment request, when creating a brand-new shipment.
 $prefill = null;
 $fromRequestId = isset($_GET['from_request']) ? (int) $_GET['from_request'] : (isset($_POST['from_request_id']) ? (int) $_POST['from_request_id'] : null);
@@ -66,11 +72,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paymentInitialAmount = trim($_POST['payment_initial_amount'] ?? '');
     $paymentAmountPaid = trim($_POST['payment_amount_paid'] ?? '');
     $originLabel = trim($_POST['origin_label'] ?? '');
-    $originLat = $_POST['origin_lat'] ?? '';
-    $originLng = $_POST['origin_lng'] ?? '';
     $destinationLabel = trim($_POST['destination_label'] ?? '');
-    $destinationLat = $_POST['destination_lat'] ?? '';
-    $destinationLng = $_POST['destination_lng'] ?? '';
+
+    if ($mapOn) {
+        $originLat = $_POST['origin_lat'] ?? '';
+        $originLng = $_POST['origin_lng'] ?? '';
+        $destinationLat = $_POST['destination_lat'] ?? '';
+        $destinationLng = $_POST['destination_lng'] ?? '';
+    } else {
+        // The coordinate fields are not on the form, so an existing shipment
+        // keeps what it already had and a new one simply has none. Reading
+        // the absent inputs would blank coordinates already recorded.
+        $originLat = $shipment['origin_lat'] ?? null;
+        $originLng = $shipment['origin_lng'] ?? null;
+        $destinationLat = $shipment['destination_lat'] ?? null;
+        $destinationLng = $shipment['destination_lng'] ?? null;
+    }
     $estimatedDelivery = trim($_POST['estimated_delivery'] ?? '') ?: null;
     $estimatedDeliveryTime = trim($_POST['estimated_delivery_time'] ?? '') ?: null;
 
@@ -102,15 +119,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!filter_var($receiverEmail, FILTER_VALIDATE_EMAIL)) $errors[] = 'A valid receiver email is required.';
     if ($packageDescription === '') $errors[] = 'Package description is required.';
     if (!in_array($packagingType, $packagingTypes, true)) $errors[] = 'Please choose a valid packaging type.';
-    if ($originLabel === '' || $originLat === '' || $originLng === '') {
-        $errors[] = 'Origin (label + coordinates) is required.';
-    } elseif (!is_valid_latitude((string) $originLat) || !is_valid_longitude((string) $originLng)) {
-        $errors[] = 'Origin coordinates look wrong: latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
+    if ($originLabel === '') {
+        $errors[] = 'Origin is required.';
     }
-    if ($destinationLabel === '' || $destinationLat === '' || $destinationLng === '') {
-        $errors[] = 'Destination (label + coordinates) is required.';
-    } elseif (!is_valid_latitude((string) $destinationLat) || !is_valid_longitude((string) $destinationLng)) {
-        $errors[] = 'Destination coordinates look wrong: latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
+    if ($destinationLabel === '') {
+        $errors[] = 'Destination is required.';
+    }
+    // Coordinates are only asked for, and only checked, while the map is on.
+    if ($mapOn) {
+        if ($originLat === '' || $originLng === '') {
+            $errors[] = 'Origin coordinates are required.';
+        } elseif (!is_valid_latitude((string) $originLat) || !is_valid_longitude((string) $originLng)) {
+            $errors[] = 'Origin coordinates look wrong: latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
+        }
+        if ($destinationLat === '' || $destinationLng === '') {
+            $errors[] = 'Destination coordinates are required.';
+        } elseif (!is_valid_latitude((string) $destinationLat) || !is_valid_longitude((string) $destinationLng)) {
+            $errors[] = 'Destination coordinates look wrong: latitude must be between -90 and 90, longitude between -180 and 180. Use "Find on map" to fill them in automatically.';
+        }
     }
     if (!in_array($serviceType, $serviceTypes, true)) $errors[] = 'Invalid service type.';
     if (!in_array($shippingMethod, $shippingMethods, true)) $errors[] = 'Invalid shipping method.';
@@ -513,12 +539,15 @@ include __DIR__ . '/includes/admin_header.php';
     <h3>Origin</h3>
     <div class="form-group">
       <label>Origin Address or Place</label>
-      <div class="input-with-button">
+      <div class="<?= $mapOn ? 'input-with-button' : '' ?>">
         <input type="text" id="origin_label" name="origin_label" value="<?= h($shipment['origin_label'] ?? ($prefill['ship_from'] ?? '')) ?>" placeholder="Paste any address: street, home, or a place name" required>
-        <button type="button" id="origin-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+        <?php if ($mapOn): ?>
+          <button type="button" id="origin-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+        <?php endif; ?>
       </div>
       <span id="origin-geocode-status" class="geocode-status"></span>
     </div>
+    <?php if ($mapOn): ?>
     <div class="form-row">
       <div class="form-group">
         <label>Origin Latitude</label>
@@ -529,16 +558,20 @@ include __DIR__ . '/includes/admin_header.php';
         <input type="text" id="origin_lng" name="origin_lng" value="<?= h($shipment['origin_lng'] ?? '') ?>" placeholder="e.g. -118.2437" required>
       </div>
     </div>
+    <?php endif; ?>
 
     <h3>Destination</h3>
     <div class="form-group">
       <label>Destination Address or Place</label>
-      <div class="input-with-button">
+      <div class="<?= $mapOn ? 'input-with-button' : '' ?>">
         <input type="text" id="destination_label" name="destination_label" value="<?= h($shipment['destination_label'] ?? ($prefill['ship_to'] ?? '')) ?>" placeholder="Paste any address: street, home, or a place name" required>
-        <button type="button" id="destination-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+        <?php if ($mapOn): ?>
+          <button type="button" id="destination-lookup-btn" class="btn btn-outline btn-sm">Find on map</button>
+        <?php endif; ?>
       </div>
       <span id="destination-geocode-status" class="geocode-status"></span>
     </div>
+    <?php if ($mapOn): ?>
     <div class="form-row">
       <div class="form-group">
         <label>Destination Latitude</label>
@@ -558,15 +591,25 @@ include __DIR__ . '/includes/admin_header.php';
       the numbers at the top of the menu to copy them, paste the first into
       Latitude and the second into Longitude.
     </p>
+    <?php else: ?>
+    <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
+      The live map is switched off, so only the place names above are needed.
+      Coordinates are not asked for and are not stored for this shipment.
+    </p>
+    <?php endif; ?>
 
     <button type="submit" class="btn btn-primary btn-block"><?= $shipment ? 'Save Changes' : 'Create Shipment' ?></button>
   </form>
 </div>
 
+<?php if ($mapOn): ?>
 <script src="<?= h(asset_url('/assets/js/geocode.js')) ?>"></script>
+<?php endif; ?>
 <script>
+<?php if ($mapOn): ?>
   attachGeocodeLookup('origin_label', 'origin_lat', 'origin_lng', 'origin-lookup-btn', 'origin-geocode-status');
   attachGeocodeLookup('destination_label', 'destination_lat', 'destination_lng', 'destination-lookup-btn', 'destination-geocode-status');
+<?php endif; ?>
 
   (function () {
     var methodSelect = document.getElementById('shipping_method_admin');
