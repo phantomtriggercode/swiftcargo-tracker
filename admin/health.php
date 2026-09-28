@@ -196,6 +196,7 @@ $settingsNeeded = [
     'seo_noindex_site'      => 'sql/migrations/019_security_and_seo.sql',
     'seo_google_verification' => 'sql/migrations/019_security_and_seo.sql',
     'header_tagline'        => 'sql/updates/003_header_tagline.sql',
+    'logo_includes_name'    => 'sql/updates/004_logo_includes_name.sql',
 ];
 try {
     $have = db()->query('SELECT setting_key FROM settings')->fetchAll(PDO::FETCH_COLUMN);

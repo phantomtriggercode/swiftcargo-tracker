@@ -98,22 +98,34 @@ $bingVerification = seo_verification_token('seo_bing_verification');
 
 <header class="site-header">
   <div class="container">
-    <?php /* The name's ceiling size comes from its length (see
-             brand_name_max_font_size), so a short name reads large and a
-             24-character one still fits on one line beside the navigation.
-             The stylesheet shrinks it further on narrow screens. */ ?>
-    <a href="/index.php" class="logo">
-      <?php if ($logoUrl = get_logo_url()): ?>
-        <img src="<?= h($logoUrl) ?>" alt="" width="46" height="46" class="mark-img">
-      <?php else: ?>
-        <img src="/assets/images/logo-mark.svg" alt="" width="46" height="46" class="mark-img">
+    <?php
+      // A logo that already has the company name written into it is shown
+      // on its own and given the whole brand area to be legible in.
+      // Anything else is a badge: it sits beside the name as a mark, and
+      // the name's own size comes from its length (see
+      // brand_name_max_font_size), so a short name reads large and a
+      // 24-character one still fits on one line beside the navigation.
+      $logoIsLockup = logo_includes_name();
+    ?>
+    <a href="/index.php" class="logo <?= $logoIsLockup ? 'logo-lockup' : '' ?>">
+      <?= logo_img_tag(
+            $logoIsLockup ? 68 : 56,
+            $logoIsLockup ? 300 : 100,
+            'mark-img',
+            // With no text beside it the picture is the only thing naming
+            // the company, so it carries that name for anyone using a
+            // screen reader. Beside the text it is decoration and is left
+            // unlabelled, so the name is not announced twice.
+            $logoIsLockup ? get_site_name() : ''
+          ) ?>
+      <?php if (!$logoIsLockup): ?>
+        <span class="brand-text" style="--brand-min:<?= brand_name_min_font_size() ?>px;--brand-max:<?= brand_name_max_font_size() ?>px;">
+          <span class="word-brand"><?= h(get_site_name()) ?></span>
+          <?php if ($headerTagline = get_header_tagline()): ?>
+            <span class="brand-tagline"><?= h($headerTagline) ?></span>
+          <?php endif; ?>
+        </span>
       <?php endif; ?>
-      <span class="brand-text" style="--brand-min:<?= brand_name_min_font_size() ?>px;--brand-max:<?= brand_name_max_font_size() ?>px;">
-        <span class="word-brand"><?= h(get_site_name()) ?></span>
-        <?php if ($headerTagline = get_header_tagline()): ?>
-          <span class="brand-tagline"><?= h($headerTagline) ?></span>
-        <?php endif; ?>
-      </span>
     </a>
     <nav class="main-nav">
       <a href="/index.php" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>

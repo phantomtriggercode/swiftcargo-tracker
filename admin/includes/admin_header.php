@@ -19,14 +19,19 @@ $__navAdmin = current_admin();
 </head>
 <body>
 
+<?php
+  // Same rule as the public site: a logo that already carries the company
+  // name is shown on its own, and gets the room the name would have taken.
+  // Without this the name runs off the edge of the narrow sidebar.
+  $adminLockup = logo_includes_name();
+  $adminPlate  = logo_is_custom() ? ' logo-plate' : '';
+?>
 <div class="admin-mobile-bar">
   <a href="/admin/dashboard.php" class="logo">
-    <?php if ($logoUrl = get_logo_url()): ?>
-      <img src="<?= h($logoUrl) ?>" alt="" width="28" height="28" class="mark-img">
-    <?php else: ?>
-      <img src="/assets/images/logo-mark.svg" alt="" width="28" height="28" class="mark-img">
+    <?= logo_img_tag($adminLockup ? 40 : 34, $adminLockup ? 180 : 60, 'mark-img' . $adminPlate, $adminLockup ? get_site_name() : '') ?>
+    <?php if (!$adminLockup): ?>
+      <span class="word-cargo"><?= h(get_site_name()) ?></span>
     <?php endif; ?>
-    <span class="word-cargo"><?= h(get_site_name()) ?></span>
   </a>
   <button type="button" class="admin-menu-btn" id="admin-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="admin-sidebar">&#9776;</button>
 </div>
@@ -35,12 +40,10 @@ $__navAdmin = current_admin();
 <div class="admin-wrap">
   <aside class="admin-sidebar" id="admin-sidebar">
     <a href="/admin/dashboard.php" class="logo">
-      <?php if ($logoUrl = get_logo_url()): ?>
-        <img src="<?= h($logoUrl) ?>" alt="" width="34" height="34" class="mark-img">
-      <?php else: ?>
-        <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
+      <?= logo_img_tag($adminLockup ? 46 : 38, $adminLockup ? 172 : 64, 'mark-img' . $adminPlate, $adminLockup ? get_site_name() : '') ?>
+      <?php if (!$adminLockup): ?>
+        <span class="word-cargo"><?= h(get_site_name()) ?></span>
       <?php endif; ?>
-      <span class="word-cargo"><?= h(get_site_name()) ?></span>
     </a>
     <nav>
       <a href="/admin/dashboard.php" class="<?= $activeAdminNav === 'dashboard' ? 'active' : '' ?>">Shipments</a>

@@ -599,7 +599,11 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('seo_bing_verification', ''),
 -- The short line under the company name in the header, shown in capitals.
 -- Blank hides it rather than leaving a gap.
-('header_tagline', 'Fast, secure and reliable');
+('header_tagline', 'Fast, secure and reliable'),
+-- Whether the logo picture already has the company name written into it.
+-- 'auto' works it out from the shape (wider than tall means yes), which is
+-- right almost always; 'yes' and 'no' override that either way.
+('logo_includes_name', 'auto');
 
 -- ---------------------------------------------------------------
 -- Site-wide color palettes (managed only by super admins, at

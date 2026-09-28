@@ -67,6 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = $upload['error'];
     }
 
+    $logoIncludesName = $_POST['logo_includes_name'] ?? 'auto';
+    if (!in_array($logoIncludesName, ['auto', 'yes', 'no'], true)) {
+        $logoIncludesName = 'auto';
+    }
+
     $headerTagline = trim($_POST['header_tagline'] ?? '');
     if (mb_strlen($headerTagline) > 40) {
         $errors[] = 'The tagline has to be 40 characters or fewer, or it will not fit under the name.';
@@ -75,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         set_setting('site_name', $siteName);
         set_setting('header_tagline', $headerTagline);
+        set_setting('logo_includes_name', $logoIncludesName);
         if ($upload['path'] !== null) {
             $oldLogo = get_setting('logo_path', '');
             set_setting('logo_path', $upload['path']);
@@ -137,19 +143,81 @@ include __DIR__ . '/includes/admin_header.php';
       </span>
     </div>
 
+    <?php
+      $logoDims = logo_file_dimensions(active_logo_url());
+      $logoRatio = logo_aspect_ratio();
+      $logoShape = $logoDims === null
+        ? 'unknown'
+        : ($logoRatio >= 1.6 ? 'wide' : ($logoRatio <= 0.7 ? 'tall' : 'square'));
+    ?>
     <div class="form-group">
       <label>Logo</label>
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-        <?php if ($logoUrl = get_logo_url()): ?>
-          <img src="<?= h($logoUrl) ?>" alt="Current logo" style="height:44px;width:auto;border:1px solid var(--border);border-radius:8px;padding:4px;">
-        <?php else: ?>
-          <img src="/assets/images/logo-mark.svg" alt="Default logo mark" style="height:44px;width:44px;">
-        <?php endif; ?>
-        <span style="font-size:12.5px;color:var(--muted);">Current logo</span>
+        <?php // Shown at its own proportions, so what you see here is the
+              // shape the site is actually working with. ?>
+        <span style="display:inline-flex;align-items:center;justify-content:center;height:64px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-soft);">
+          <?= logo_img_tag(52, 240, '', 'Current logo') ?>
+        </span>
+        <span style="font-size:12.5px;color:var(--muted);line-height:1.6;">
+          Current logo<br>
+          <?php if ($logoDims !== null): ?>
+            <strong><?= (int) $logoDims['width'] ?> &times; <?= (int) $logoDims['height'] ?></strong>
+            <?php if ($logoShape === 'wide'): ?>
+              &mdash; a wide name-plate
+            <?php elseif ($logoShape === 'tall'): ?>
+              &mdash; taller than it is wide
+            <?php else: ?>
+              &mdash; a square badge
+            <?php endif; ?>
+          <?php endif; ?>
+        </span>
       </div>
       <input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp,.gif,.svg">
-      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">PNG, JPG, WEBP, GIF, or SVG. Max 2MB.</span>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        PNG, JPG, WEBP, GIF, or SVG. Max 2MB. Any shape works: the site
+        measures the file and gives it the room it needs, so a wide logo is
+        never squashed into a square and a square one is never stranded in a
+        wide gap.
+      </span>
     </div>
+
+    <div class="form-group">
+      <label>Does the logo already include the company name?</label>
+      <select name="logo_includes_name">
+        <?php $lin = get_setting('logo_includes_name', 'auto'); ?>
+        <option value="auto" <?= $lin === 'auto' ? 'selected' : '' ?>>
+          Work it out from the shape (currently: <?= logo_is_wide() ? 'yes' : 'no' ?>)
+        </option>
+        <option value="yes" <?= $lin === 'yes' ? 'selected' : '' ?>>Yes, the name is in the picture</option>
+        <option value="no" <?= $lin === 'no' ? 'selected' : '' ?>>No, it is just a symbol</option>
+      </select>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        When the name is already written into the logo, printing it again
+        beside the picture says everything twice. Answer <strong>yes</strong>
+        and the logo is shown on its own, larger, with the whole brand area
+        to itself. Answer <strong>no</strong> and it sits as a small mark
+        beside the name and tagline. Left on the first option, a logo wider
+        than it is tall is assumed to carry the name, which is right almost
+        always.
+      </span>
+    </div>
+
+    <?php if ($logoShape === 'square'): ?>
+      <div class="alert alert-error" style="font-size:13px;">
+        <strong>About small print inside a square logo.</strong>
+        This logo is roughly square, so in a page header it can only ever be
+        about as tall as a line of text. Any wording drawn inside it, a
+        tagline under the company initials for instance, will be a few
+        pixels high there and will not be readable, at any size that still
+        leaves room for the menu. That is a limit of the shape, not a
+        setting. Two things that do work: the <strong>Header Tagline</strong>
+        above says the same thing in real text right beside the logo, at a
+        size that reads on a phone; and a <strong>wide</strong> version of
+        the logo, with the name and tagline set alongside the symbol rather
+        than under it, is shown far larger and stays legible. If you have
+        both, upload the wide one here.
+      </div>
+    <?php endif; ?>
 
     <button type="submit" class="btn btn-primary btn-block">Save Branding</button>
   </form>

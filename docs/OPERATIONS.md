@@ -444,6 +444,56 @@ RELIABLE" by default. Type it normally; it is shown in capitals. Leaving it
 blank hides it completely rather than leaving an empty line, so it is
 optional in the real sense.
 
+### Logo shape
+
+Upload any shape. The site reads the file's real dimensions and gives it
+the room it needs, so a wide logo is never squeezed into a square and a
+square one is never stranded in a wide gap. The Branding page shows the
+measured size and what it made of it.
+
+Two shapes behave differently, on purpose:
+
+- **A square or round badge** sits beside the company name as a mark, with
+  the name and tagline in text next to it.
+- **A wide name-plate** (wider than about 8:5) is treated as already
+  carrying the company name, so it is shown on its own, larger, with the
+  whole brand area to itself. Printing the name again beside it would say
+  everything twice.
+
+The guess comes from the shape and is right almost always. **Does the logo
+already include the company name?** overrides it either way for the logo
+that proves the rule.
+
+On the dark surfaces, the site footer and the staff sidebar, an uploaded
+logo is given a light plate to sit on. A logo drawn with dark lettering on
+a transparent background disappears completely on a dark panel, and there
+is no way to know from the file which way round it was drawn.
+
+### Wording drawn inside a logo
+
+A tagline set *inside* a square logo, under the company initials say,
+cannot be read in a page header at any size that still leaves room for the
+menu: at header scale it is a few pixels high. That is the shape, not a
+setting.
+
+What does work:
+
+- The **Header Tagline** above says the same words in real text beside the
+  logo, at a size that reads on a phone.
+- A **wide** version of the logo, with the name and tagline set alongside
+  the symbol rather than under it, is shown several times larger and stays
+  legible. If you have both versions, upload the wide one.
+
+### Logo file size
+
+The logo loads on every page, so its file size is felt on every page. A
+picture around 600px on its longest side is more than enough for anywhere
+it is shown, and a 1600px original is usually several times larger than it
+needs to be. The waybill and label PDFs embed the logo too, so an
+oversized file makes every PDF bigger as well. If the logo is over about
+150KB, resizing it to roughly 600px wide (and saving as WebP or an
+optimised PNG) is worth doing before uploading.
+
 
 Go to **`/admin/branding.php`** to set the site name and upload a logo (PNG,
 JPG, WEBP, GIF, or SVG). This name and logo appear in the header, footer,

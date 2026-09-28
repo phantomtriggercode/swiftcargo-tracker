@@ -87,6 +87,192 @@ function get_site_name(): string
 }
 
 /**
+ * The real pixel dimensions of a logo file on disk, or null if they cannot
+ * be worked out.
+ *
+ * This is what lets the site lay out a logo it has never seen. A square
+ * badge and a wide name-plate are both "the logo", and they need entirely
+ * different room: forcing both into the same box either squashes the wide
+ * one or strands the square one in a wide gap.
+ *
+ * Fails open to null on anything unreadable, and every caller falls back
+ * to treating the logo as square, which is what the built-in marks are.
+ */
+function logo_file_dimensions(string $url): ?array
+{
+    static $cache = [];
+    if (array_key_exists($url, $cache)) {
+        return $cache[$url];
+    }
+    $cache[$url] = null;
+
+    // Only ever look at files inside this site. A logo path comes from the
+    // database, and a path that had escaped the web root would otherwise
+    // let this read anything on the server.
+    // rawurldecode first: a logo dropped onto the server by hand can have
+    // spaces in its name, and the stored path may carry them either raw or
+    // percent-encoded. Both have to find the same file on disk.
+    $path = realpath(__DIR__ . '/..' . rawurldecode((string) parse_url($url, PHP_URL_PATH)));
+    $root = realpath(__DIR__ . '/..');
+    if ($path === false || $root === false || !str_starts_with($path, $root . DIRECTORY_SEPARATOR) || !is_file($path)) {
+        return null;
+    }
+
+    if (strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'svg') {
+        // An SVG has no pixels, so its proportions come from the viewBox
+        // (or from width/height when there is no viewBox). Only the opening
+        // tag is read, never the whole file.
+        $head = (string) file_get_contents($path, false, null, 0, 2048);
+        if (preg_match('/viewBox\s*=\s*["\']\s*[\d.eE+-]+[,\s]+[\d.eE+-]+[,\s]+([\d.eE+-]+)[,\s]+([\d.eE+-]+)/i', $head, $m)) {
+            $w = (float) $m[1];
+            $h = (float) $m[2];
+        } elseif (preg_match('/\bwidth\s*=\s*["\']([\d.]+)/i', $head, $mw)
+            && preg_match('/\bheight\s*=\s*["\']([\d.]+)/i', $head, $mh)) {
+            $w = (float) $mw[1];
+            $h = (float) $mh[1];
+        } else {
+            return null;
+        }
+        if ($w <= 0 || $h <= 0) {
+            return null;
+        }
+        $cache[$url] = ['width' => $w, 'height' => $h, 'ratio' => $w / $h];
+        return $cache[$url];
+    }
+
+    // getimagesize reads only the header of a JPEG/PNG/GIF/WebP, not the
+    // whole picture, so this stays cheap even for a large upload.
+    $size = @getimagesize($path);
+    if (!is_array($size) || empty($size[0]) || empty($size[1])) {
+        return null;
+    }
+
+    $cache[$url] = ['width' => $size[0], 'height' => $size[1], 'ratio' => $size[0] / $size[1]];
+    return $cache[$url];
+}
+
+/**
+ * True when the logo is one the site owner uploaded, rather than a mark
+ * that ships with this codebase.
+ *
+ * It matters for the dark surfaces, the footer and the admin sidebar. The
+ * built-in marks were drawn to sit on them; an uploaded logo was drawn for
+ * whatever background its designer had in mind, and a logo with dark
+ * lettering and a transparent background simply disappears on a dark
+ * panel. Those places give an uploaded logo a light plate to sit on, which
+ * is legible whatever the logo turns out to be.
+ */
+function logo_is_custom(): bool
+{
+    return get_setting('logo_path', '') !== '';
+}
+
+/** The logo actually in use, including the built-in fallback. */
+function active_logo_url(): string
+{
+    return get_logo_url() ?: '/assets/images/logo-mark.svg';
+}
+
+/**
+ * The same logo, as a URL safe to put in a src attribute.
+ *
+ * Uploads are given generated names with nothing awkward in them, but a
+ * logo copied onto the server by hand can easily be called something like
+ * "horizontal logo.png", and a raw space in a URL is not something every
+ * browser and proxy handles the same way. Each path segment is encoded,
+ * and an already-encoded path is left as it is rather than being encoded
+ * twice.
+ */
+function logo_src_url(): string
+{
+    $url = active_logo_url();
+    if (str_contains($url, '://')) {
+        return $url;
+    }
+
+    $segments = array_map(
+        static fn(string $segment): string => rawurlencode(rawurldecode($segment)),
+        explode('/', $url)
+    );
+
+    return implode('/', $segments);
+}
+
+/** Width divided by height. 1.0 (square) when the file cannot be measured. */
+function logo_aspect_ratio(): float
+{
+    $dims = logo_file_dimensions(active_logo_url());
+    return $dims === null ? 1.0 : $dims['ratio'];
+}
+
+/**
+ * True for a logo noticeably wider than it is tall: a name-plate rather
+ * than a badge.
+ *
+ * 1.6 is the dividing line because it sits well clear of both cases in
+ * practice. A badge is 1:1, or close to it once a little padding is
+ * baked in. A name-plate carrying a company name alongside a graphic is
+ * rarely under 2:1.
+ */
+function logo_is_wide(): bool
+{
+    return logo_aspect_ratio() >= 1.6;
+}
+
+/**
+ * Whether the logo picture already has the company name written in it.
+ *
+ * When it does, printing the name again beside it says everything twice.
+ * The site guesses from the shape, because a wide logo is nearly always a
+ * name-plate, and /admin/branding.php lets that guess be overridden either
+ * way for the logo that proves the rule.
+ */
+function logo_includes_name(): bool
+{
+    $setting = get_setting('logo_includes_name', 'auto');
+
+    if ($setting === 'yes') {
+        return true;
+    }
+    if ($setting === 'no') {
+        return false;
+    }
+
+    return logo_is_wide();
+}
+
+/**
+ * An <img> tag for the logo, sized to the space it is being put in without
+ * ever distorting it.
+ *
+ * $maxHeight is the room available, and $maxWidth the most it may spread
+ * sideways before it starts crowding whatever sits next to it. A tall
+ * narrow logo uses the height; a very wide one gives height back so it
+ * stays inside the width. The result is written into the width and height
+ * attributes, so the browser reserves exactly the right space and the page
+ * never jumps as the image arrives.
+ */
+function logo_img_tag(int $maxHeight, int $maxWidth, string $class = '', string $alt = ''): string
+{
+    $url = logo_src_url();
+    $ratio = logo_aspect_ratio();
+
+    $height = $maxHeight;
+    $width = (int) round($height * $ratio);
+
+    if ($width > $maxWidth) {
+        $width = $maxWidth;
+        $height = (int) round($width / $ratio);
+    }
+
+    return '<img src="' . h($url) . '"'
+        . ' alt="' . h($alt) . '"'
+        . ' width="' . $width . '" height="' . $height . '"'
+        . ($class !== '' ? ' class="' . h($class) . '"' : '')
+        . '>';
+}
+
+/**
  * The short line under the company name in the header, e.g.
  * "Fast, secure and reliable". Set at /admin/branding.php; blank hides it
  * entirely rather than leaving a gap.

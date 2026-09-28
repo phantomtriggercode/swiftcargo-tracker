@@ -80,14 +80,24 @@ $mapOn = $mapOn && $hasCoordinates;
   <?php elseif ($shipment): ?>
 
     <?php if (tracking_shows_logo()): ?>
+      <?php
+        // This band has far more room than the site header, and it is what
+        // a customer screenshots or prints, so the logo is shown as large
+        // as the row sensibly allows. Where the logo already carries the
+        // company name, the name is not repeated beside it.
+        $trackLockup = logo_includes_name();
+      ?>
       <div class="tracking-brand">
-        <?php if ($trackLogo = get_logo_url()): ?>
-          <img src="<?= h($trackLogo) ?>" alt="" width="46" height="46">
-        <?php else: ?>
-          <img src="/assets/images/logo-mark.svg" alt="" width="46" height="46">
-        <?php endif; ?>
+        <?= logo_img_tag(
+              $trackLockup ? 88 : 72,
+              $trackLockup ? 360 : 120,
+              '',
+              $trackLockup ? get_site_name() : ''
+            ) ?>
         <div>
-          <strong><?= h(get_site_name()) ?></strong>
+          <?php if (!$trackLockup): ?>
+            <strong><?= h(get_site_name()) ?></strong>
+          <?php endif; ?>
           <span>Shipment tracking</span>
         </div>
       </div>

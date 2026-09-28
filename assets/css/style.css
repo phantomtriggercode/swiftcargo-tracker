@@ -97,7 +97,44 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
      this the flex row would rather squash the image than the text. */
   min-width: 0;
 }
-.logo .mark-img { display: block; flex: none; }
+/* The width and height attributes on the tag already hold the correct,
+   undistorted size for the space (see logo_img_tag). These rules only stop
+   anything else in the page squashing it: `flex: none` keeps the flex row
+   from shrinking the picture instead of the text, `height: auto` keeps the
+   proportions if the width is ever constrained, and object-fit is the
+   belt-and-braces guarantee that a logo is never stretched out of shape. */
+.logo .mark-img {
+  display: block;
+  flex: none;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Dark surfaces: the footer, and the admin sidebar.
+   An uploaded logo may have been drawn with dark lettering on a
+   transparent background, which vanishes completely on a dark panel. A
+   light plate behind it is legible whatever the logo turns out to be, and
+   reads as deliberate rather than as a mistake. The marks that ship with
+   this codebase were drawn for these surfaces and are left alone. */
+.logo.logo-on-dark .mark-img,
+.mark-img.logo-plate {
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px;
+  box-sizing: content-box;
+}
+
+/* A logo that already carries the company name gets the brand area to
+   itself, so it can be large enough to read. */
+.logo.logo-lockup { gap: 0; }
+.logo.logo-lockup .mark-img { max-height: 68px; width: auto; }
+@media (max-width: 560px) {
+  .logo.logo-lockup .mark-img { max-height: 50px; }
+}
+@media (max-width: 380px) {
+  .logo.logo-lockup .mark-img { max-height: 44px; }
+}
 .logo .word-cargo { color: var(--header-ink); }
 
 /* ---------- Brand block: company name + tagline ----------
@@ -195,7 +232,9 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
    the gaps tighten. Checked at 320px with a 24-character name. */
 @media (max-width: 560px) {
   .logo { gap: 8px; }
-  .logo .mark-img { width: 38px; height: 38px; }
+  /* Height only: the width follows from the logo's own proportions, so a
+     wide name-plate is not squeezed into a square. */
+  .logo:not(.logo-lockup) .mark-img { height: 44px; width: auto; }
   .header-actions { gap: 8px; }
   .header-track-btn { padding: 9px 14px; font-size: 13.5px; }
 }
@@ -203,7 +242,7 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
    file), which hands the name back most of the row. The mark gives up a
    little more so even the longest name keeps its full size. */
 @media (max-width: 380px) {
-  .logo .mark-img { width: 34px; height: 34px; }
+  .logo:not(.logo-lockup) .mark-img { height: 38px; width: auto; }
 }
 @media (min-width: 1025px) {
   .mobile-nav-dropdown, .mobile-nav-backdrop { display: none !important; }
@@ -1005,7 +1044,13 @@ html[data-template="dark-header"] .home-sec-gallery { order: 1; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-.tracking-brand img { border-radius: 6px; flex: none; }
+.tracking-brand img {
+  border-radius: 6px;
+  flex: none;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
 .tracking-brand strong { display: block; font-size: 17px; color: var(--ink); line-height: 1.25; }
 .tracking-brand span { display: block; font-size: 12.5px; color: var(--muted); }
 

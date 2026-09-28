@@ -50,12 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-page">
   <div class="form-card">
     <a href="/index.php" class="logo" style="justify-content:center;margin-bottom:22px;">
-      <?php if ($logoUrl = get_logo_url()): ?>
-        <img src="<?= h($logoUrl) ?>" alt="" width="36" height="36" class="mark-img">
-      <?php else: ?>
-        <img src="/assets/images/logo-mark.svg" alt="" width="36" height="36" class="mark-img">
+      <?php $authLockup = logo_includes_name(); ?>
+      <?= logo_img_tag($authLockup ? 54 : 46, $authLockup ? 230 : 84, 'mark-img', $authLockup ? get_site_name() : '') ?>
+      <?php if (!$authLockup): ?>
+        <span><?= h(get_site_name()) ?></span>
       <?php endif; ?>
-      <span><?= h(get_site_name()) ?></span>
     </a>
     <h3 style="text-align:center;margin:0 0 8px;">Set a New Password</h3>
     <p style="text-align:center;color:var(--muted);font-size:13.5px;margin:0 0 20px;">

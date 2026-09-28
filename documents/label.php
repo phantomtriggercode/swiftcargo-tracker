@@ -102,8 +102,10 @@ ob_start();
       <table>
         <tr>
           <td class="brand-cell">
-            <?php if ($logoDataUri): ?><img src="<?= $logoDataUri ?>" style="height:18pt;vertical-align:middle;margin-right:5pt;"><?php endif; ?>
-            <?= h($siteName) ?>
+            <?php // As on the waybill: height only, and the name is not
+                  // repeated when the logo already carries it. ?>
+            <?php if ($logoDataUri): ?><img src="<?= $logoDataUri ?>" style="height:<?= logo_includes_name() ? 24 : 21 ?>pt;vertical-align:middle;margin-right:5pt;"><?php endif; ?>
+            <?php if (!$logoDataUri || !logo_includes_name()): ?><?= h($siteName) ?><?php endif; ?>
           </td>
           <td style="text-align:right;">
             <span class="service-badge" style="background:<?= $isExpress ? $primary : '#374151' ?>;">

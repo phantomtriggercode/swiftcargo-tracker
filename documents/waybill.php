@@ -106,8 +106,13 @@ ob_start();
   <table class="header-table">
     <tr>
       <td style="width:60%;">
-        <?php if ($logoDataUri): ?><img src="<?= $logoDataUri ?>" style="height:32px;vertical-align:middle;margin-right:8px;"><?php endif; ?>
-        <span class="brand"><?= h($siteName) ?></span>
+        <?php // Height only, so the logo keeps its own proportions whatever
+              // shape it is. A logo with the company name already in it is
+              // not followed by the name in text as well. ?>
+        <?php if ($logoDataUri): ?><img src="<?= $logoDataUri ?>" style="height:<?= logo_includes_name() ? 42 : 36 ?>px;vertical-align:middle;margin-right:8px;"><?php endif; ?>
+        <?php if (!$logoDataUri || !logo_includes_name()): ?>
+          <span class="brand"><?= h($siteName) ?></span>
+        <?php endif; ?>
       </td>
       <td class="doc-title">
         <div class="t1">SHIPPING WAYBILL</div>

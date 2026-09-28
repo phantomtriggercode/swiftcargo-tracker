@@ -2,13 +2,17 @@
   <div class="container">
     <div class="footer-grid">
       <div>
-        <a href="/index.php" class="logo" style="margin-bottom:14px;">
-          <?php if ($logoUrl = get_logo_url()): ?>
-            <img src="<?= h($logoUrl) ?>" alt="" width="34" height="34" class="mark-img">
-          <?php else: ?>
-            <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
+        <?php $footerLockup = logo_includes_name(); ?>
+        <a href="/index.php" class="logo <?= $footerLockup ? 'logo-lockup' : '' ?> <?= logo_is_custom() ? 'logo-on-dark' : '' ?>" style="margin-bottom:14px;">
+          <?= logo_img_tag(
+                $footerLockup ? 52 : 42,
+                $footerLockup ? 220 : 76,
+                'mark-img',
+                $footerLockup ? get_site_name() : ''
+              ) ?>
+          <?php if (!$footerLockup): ?>
+            <span style="color:#fff;"><?= h(get_site_name()) ?></span>
           <?php endif; ?>
-          <span style="color:#fff;"><?= h(get_site_name()) ?></span>
         </a>
         <p style="color:#9ca3af;font-size:14px;max-width:320px;">
           <?= h(get_setting('footer_tagline')) ?>
