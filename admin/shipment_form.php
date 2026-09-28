@@ -287,24 +287,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 . ($trackingChanged ? ' Its tracking number changed from ' . $shipment['tracking_number'] . '; the old number no longer tracks.' : ''));
             redirect('/admin/dashboard.php');
         } else {
-            if ($trackingInput !== '') {
-                // The admin typed one. It was already checked for shape and
-                // for uniqueness above, so use it as given.
-                $trackingNumber = $trackingInput;
-            } else {
-                // No number supplied: generate one, retrying on the rare
-                // chance the random value is already taken.
-                $trackingNumber = generate_tracking_number();
-                $check = db()->prepare('SELECT id FROM shipments WHERE tracking_number = ?');
-                do {
-                    $check->execute([$trackingNumber]);
-                    if ($check->fetch()) {
-                        $trackingNumber = generate_tracking_number();
-                    } else {
-                        break;
-                    }
-                } while (true);
-            }
+            // Normally the form arrives with a number in it (one is
+            // generated and shown when the form opens). If the admin cleared
+            // the field entirely, fall back to a fresh generated one so a
+            // shipment is never created without a number.
+            $trackingNumber = $trackingInput !== '' ? $trackingInput : generate_unique_tracking_number();
 
             $stmt = db()->prepare('
                 INSERT INTO shipments (
@@ -375,16 +362,29 @@ include __DIR__ . '/includes/admin_header.php';
     <?= csrf_field() ?>
     <?php if ($fromRequestId): ?><input type="hidden" name="from_request_id" value="<?= (int) $fromRequestId ?>"><?php endif; ?>
 
-    <?php // Keep what was typed on a failed submit; otherwise the current
-          // number when editing, or blank when creating. ?>
-    <?php $trackingValue = $_POST['tracking_number'] ?? ($shipment['tracking_number'] ?? ''); ?>
+    <?php
+      // Order of preference for what fills the field:
+      //   1. what was typed, if a submit bounced back with errors;
+      //   2. the shipment's current number, when editing;
+      //   3. a freshly generated, unique number, when creating: shown so the
+      //      admin can keep it or edit a letter or two before saving.
+      $trackingValue = $_POST['tracking_number']
+          ?? ($shipment['tracking_number'] ?? generate_unique_tracking_number());
+    ?>
     <h3 style="margin-top:0;">Tracking Number</h3>
     <div class="form-group">
       <label>Tracking Number</label>
-      <input type="text" name="tracking_number" value="<?= h($trackingValue) ?>"
-             maxlength="32" autocomplete="off" spellcheck="false"
-             placeholder="<?= $shipment ? '' : 'Leave blank to generate one automatically' ?>"
-             style="font-family:ui-monospace,monospace;letter-spacing:0.5px;">
+      <div style="display:flex;gap:8px;align-items:stretch;">
+        <input type="text" name="tracking_number" id="tracking_number" value="<?= h($trackingValue) ?>"
+               maxlength="32" autocomplete="off" spellcheck="false" required
+               style="font-family:ui-monospace,monospace;letter-spacing:0.5px;flex:1;min-width:0;">
+        <?php if (!$shipment): ?>
+          <button type="button" id="regenerate-tracking" class="btn btn-outline"
+                  data-prefix="<?= h(strtoupper(get_setting('tracking_number_prefix', 'SC'))) ?>"
+                  data-suffix="<?= h(strtoupper(get_setting('tracking_number_suffix', ''))) ?>"
+                  style="flex:none;white-space:nowrap;">New one</button>
+        <?php endif; ?>
+      </div>
       <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
         <?php if ($shipment): ?>
           This is the number customers track with. Change it to anything you
@@ -393,9 +393,10 @@ include __DIR__ . '/includes/admin_header.php';
           and any email or link already sent out still carries it, so change
           it only when you mean to.
         <?php else: ?>
-          Leave this blank and the site generates one for you. Or set your
-          own: 3 to 32 letters, digits, dashes or underscores, no spaces. It
-          must not already belong to another shipment.
+          A number has been generated for you. Keep it, change a letter or
+          two, or type your own (3 to 32 letters, digits, dashes or
+          underscores, no spaces). <strong>New one</strong> generates a
+          fresh suggestion. It must not already belong to another shipment.
         <?php endif; ?>
       </span>
     </div>
@@ -725,6 +726,29 @@ include __DIR__ . '/includes/admin_header.php';
     initialInput.addEventListener('input', updateBalance);
     paidInput.addEventListener('input', updateBalance);
     togglePaymentFields();
+  })();
+</script>
+
+<script>
+  /* "New one" builds a fresh suggestion in the same format the server uses
+     (prefix + 7 digits + 2 letters + suffix). It is only a convenience: the
+     server generates the number when the form opens, and checks whatever is
+     submitted for shape and uniqueness, so a client-side clash is caught on
+     save. */
+  (function () {
+    var btn = document.getElementById('regenerate-tracking');
+    var field = document.getElementById('tracking_number');
+    if (!btn || !field) return;
+    btn.addEventListener('click', function () {
+      var rand = new Uint32Array(9);
+      (window.crypto || window.msCrypto).getRandomValues(rand);
+      var digits = '';
+      for (var i = 0; i < 7; i++) { digits += (rand[i] % 10); }
+      var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      var suffix2 = letters[rand[7] % 26] + letters[rand[8] % 26];
+      field.value = (btn.dataset.prefix || '') + digits + suffix2 + (btn.dataset.suffix || '');
+      field.focus();
+    });
   })();
 </script>
 

@@ -537,11 +537,13 @@ whatever brand you want regardless of what domain you deploy under.
    package details, and origin/destination. Creating a shipment sends an initial
    "Pending" confirmation email.
 
-   **Tracking number.** Leave the Tracking Number field blank and the site
-   generates one in the usual format. Or type your own: 3 to 32 letters,
-   digits, dashes or underscores, no spaces, not already used by another
-   shipment. Anything accepted here is guaranteed to work in the public
-   tracking box.
+   **Tracking number.** The field opens with a number already generated for
+   you, in the usual format. Keep it, change a letter or two, or type your
+   own; **New one** puts a fresh suggestion in the field. Your own number
+   must be 3 to 32 letters, digits, dashes or underscores, no spaces, and
+   not already used by another shipment. Anything accepted here is
+   guaranteed to work in the public tracking box. (Clear the field entirely
+   and a fresh number is generated on save, so a shipment always has one.)
 
    The number can also be changed later from **Edit Shipment**. The whole
    history stays attached, since updates belong to the shipment rather than

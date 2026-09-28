@@ -164,6 +164,32 @@ function generate_tracking_number(): string
 }
 
 /**
+ * A generated tracking number guaranteed not to already be in use.
+ *
+ * The format has ten million number combinations before the two random
+ * letters, so a clash is rare, but "rare" is not "never" once a site has
+ * shipped a lot: this retries until it finds a free one. Falls back to the
+ * plain generator (which may, very occasionally, collide and be caught by
+ * the uniqueness check on save) only if the database cannot be reached.
+ */
+function generate_unique_tracking_number(): string
+{
+    try {
+        $check = db()->prepare('SELECT 1 FROM shipments WHERE tracking_number = ? LIMIT 1');
+        for ($i = 0; $i < 20; $i++) {
+            $candidate = generate_tracking_number();
+            $check->execute([$candidate]);
+            if (!$check->fetchColumn()) {
+                return $candidate;
+            }
+        }
+    } catch (PDOException $e) {
+        // Fall through to a plain generated number.
+    }
+    return generate_tracking_number();
+}
+
+/**
  * True if this string is shaped like a tracking number at all.
  *
  * The database column holds up to 32 characters and every number this site
