@@ -220,25 +220,133 @@ function logo_is_wide(): bool
 }
 
 /**
- * Whether the logo picture already has the company name written in it.
+ * Whether the header shows the company name as text, and whether it shows
+ * the tagline under it.
  *
- * When it does, printing the name again beside it says everything twice.
- * The site guesses from the shape, because a wide logo is nearly always a
- * name-plate, and /admin/branding.php lets that guess be overridden either
- * way for the logo that proves the rule.
+ * Both are plain switches on /admin/branding.php, on by default, because
+ * whether a logo "already says the name" is a judgement about a picture
+ * that only a person can make. The site points out when a logo looks like
+ * it carries its own name, and then leaves the decision alone: guessing
+ * silently means someone types a company name, sees no change on the site,
+ * and has no way of knowing why.
+ */
+function header_shows_title(): bool
+{
+    return get_setting('header_show_title', '1') === '1';
+}
+
+function header_shows_tagline(): bool
+{
+    return get_setting('header_show_tagline', '1') === '1';
+}
+
+/**
+ * True when no text sits beside the logo, so the logo has the whole brand
+ * area to itself and is shown considerably larger.
+ */
+function logo_stands_alone(): bool
+{
+    return !header_shows_title() && !header_shows_tagline();
+}
+
+/**
+ * Kept for anything still calling it: the old single switch is now the two
+ * switches above. A logo "includes the name" exactly when the site has
+ * been told not to print the name beside it.
  */
 function logo_includes_name(): bool
 {
-    $setting = get_setting('logo_includes_name', 'auto');
+    return logo_stands_alone();
+}
 
-    if ($setting === 'yes') {
-        return true;
-    }
-    if ($setting === 'no') {
-        return false;
+// ---------------------------------------------------------------
+// Picking a logo from images already on the server.
+//
+// Uploading is not always what someone wants: the picture is often already
+// there, put in place over FTP or uploaded earlier for something else, and
+// asking for it again is busywork.
+// ---------------------------------------------------------------
+
+/** Folders offered in the logo picker, in the order they are shown. */
+function logo_library_folders(): array
+{
+    return [
+        '/assets/images/uploads' => 'Uploaded through the panel',
+        '/assets/images' => 'In the site\'s image folder',
+        '/assets/images/template-logos' => 'Marks that came with the site',
+    ];
+}
+
+/**
+ * Every image in those folders that could reasonably be a logo.
+ *
+ * Only the folders above are read, never a path from the request, and the
+ * listing is capped so a folder someone has filled with hundreds of files
+ * cannot make this page enormous.
+ */
+function site_image_library(): array
+{
+    $allowed = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'];
+    $root = realpath(__DIR__ . '/..');
+    $groups = [];
+
+    foreach (logo_library_folders() as $folder => $label) {
+        $dir = realpath($root . $folder);
+        if ($dir === false || !is_dir($dir)) {
+            continue;
+        }
+
+        $files = [];
+        foreach ((array) scandir($dir) as $entry) {
+            if ($entry === '.' || $entry === '..' || str_starts_with($entry, '.')) {
+                continue;
+            }
+            $full = $dir . DIRECTORY_SEPARATOR . $entry;
+            if (!is_file($full)) {
+                continue;
+            }
+            if (!in_array(strtolower(pathinfo($entry, PATHINFO_EXTENSION)), $allowed, true)) {
+                continue;
+            }
+
+            $path = $folder . '/' . $entry;
+            $files[] = [
+                'path' => $path,
+                'name' => $entry,
+                'size' => filesize($full),
+                'dims' => logo_file_dimensions($path),
+            ];
+            if (count($files) >= 60) {
+                break;
+            }
+        }
+
+        if ($files) {
+            usort($files, static fn($a, $b) => strnatcasecmp($a['name'], $b['name']));
+            $groups[$label] = $files;
+        }
     }
 
-    return logo_is_wide();
+    return $groups;
+}
+
+/**
+ * True if this path is one of the images the picker actually offered.
+ *
+ * The chosen path arrives in a form submission, so it is checked against
+ * the real listing rather than merely inspected. Comparing against what
+ * was offered means no pattern has to be trusted to be airtight.
+ */
+function is_allowed_library_image(string $path): bool
+{
+    foreach (site_image_library() as $files) {
+        foreach ($files as $file) {
+            if ($file['path'] === $path) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 /**

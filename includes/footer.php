@@ -2,7 +2,7 @@
   <div class="container">
     <div class="footer-grid">
       <div>
-        <?php $footerLockup = logo_includes_name(); ?>
+        <?php $footerLockup = logo_stands_alone(); ?>
         <a href="/index.php" class="logo <?= $footerLockup ? 'logo-lockup' : '' ?> <?= logo_is_custom() ? 'logo-on-dark' : '' ?>" style="margin-bottom:14px;">
           <?= logo_img_tag(
                 $footerLockup ? 52 : 42,
@@ -10,7 +10,7 @@
                 'mark-img',
                 $footerLockup ? get_site_name() : ''
               ) ?>
-          <?php if (!$footerLockup): ?>
+          <?php if (!$footerLockup && header_shows_title()): ?>
             <span style="color:#fff;"><?= h(get_site_name()) ?></span>
           <?php endif; ?>
         </a>

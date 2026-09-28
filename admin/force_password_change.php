@@ -50,9 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-page">
   <div class="form-card">
     <a href="/index.php" class="logo" style="justify-content:center;margin-bottom:22px;">
-      <?php $authLockup = logo_includes_name(); ?>
+      <?php $authLockup = logo_stands_alone(); ?>
       <?= logo_img_tag($authLockup ? 54 : 46, $authLockup ? 230 : 84, 'mark-img', $authLockup ? get_site_name() : '') ?>
-      <?php if (!$authLockup): ?>
+      <?php if (!$authLockup && header_shows_title()): ?>
         <span><?= h(get_site_name()) ?></span>
       <?php endif; ?>
     </a>

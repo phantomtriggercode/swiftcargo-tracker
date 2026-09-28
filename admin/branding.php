@@ -67,9 +67,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = $upload['error'];
     }
 
-    $logoIncludesName = $_POST['logo_includes_name'] ?? 'auto';
-    if (!in_array($logoIncludesName, ['auto', 'yes', 'no'], true)) {
-        $logoIncludesName = 'auto';
+    $showTitle = !empty($_POST['header_show_title']) ? '1' : '0';
+    $showTagline = !empty($_POST['header_show_tagline']) ? '1' : '0';
+
+    // Picking an image already on the server, instead of uploading one.
+    // The path is checked against the listing the picker actually offered,
+    // not merely pattern-matched, so nothing outside those folders can be
+    // set as the logo by editing the form.
+    $chosenLogo = trim($_POST['logo_choice'] ?? '');
+    if ($chosenLogo !== '' && !is_allowed_library_image($chosenLogo)) {
+        $errors[] = 'That image is not one of the pictures on this site, so it was not used.';
+        $chosenLogo = '';
     }
 
     $headerTagline = trim($_POST['header_tagline'] ?? '');
@@ -80,11 +88,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         set_setting('site_name', $siteName);
         set_setting('header_tagline', $headerTagline);
-        set_setting('logo_includes_name', $logoIncludesName);
+        set_setting('header_show_title', $showTitle);
+        set_setting('header_show_tagline', $showTagline);
         if ($upload['path'] !== null) {
+            // A freshly uploaded file always wins: choosing one from the
+            // list and also picking a file to upload means the upload is
+            // the more deliberate of the two.
             $oldLogo = get_setting('logo_path', '');
             set_setting('logo_path', $upload['path']);
             delete_uploaded_image($oldLogo);
+        } elseif ($chosenLogo !== '' && $chosenLogo !== get_setting('logo_path', '')) {
+            // Nothing is deleted here. The previous logo may be a picture
+            // that is in use elsewhere on the site, or one the owner put on
+            // the server themselves, and removing it because the logo
+            // changed would be destroying a file nobody asked to lose.
+            set_setting('logo_path', $chosenLogo);
         }
         flash_set('success', 'Branding updated.');
         redirect('/admin/branding.php');
@@ -138,10 +156,39 @@ include __DIR__ . '/includes/admin_header.php';
              maxlength="40" placeholder="Fast, secure and reliable">
       <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
         The small line under the company name in the header. Shown in capitals
-        whatever you type here, so write it normally. Leave it blank to show
-        nothing at all rather than an empty line.
+        whatever you type here, so write it normally.
       </span>
     </div>
+
+    <div class="form-group">
+      <label>What the header shows beside the logo</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-top:8px;">
+        <input type="checkbox" name="header_show_title" value="1" <?= header_shows_title() ? 'checked' : '' ?>>
+        Show the company name
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-top:8px;">
+        <input type="checkbox" name="header_show_tagline" value="1" <?= header_shows_tagline() ? 'checked' : '' ?>>
+        Show the tagline
+      </label>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:8px;">
+        Untick both and the logo gets the whole brand area to itself and is
+        shown considerably larger, which is what you want when the logo
+        already has the company name written into it. The name above stays
+        editable either way: it is still used in the page title, in emails,
+        on the waybill and everywhere else, so it is worth keeping right
+        even when the header does not show it.
+      </span>
+    </div>
+
+    <?php if (logo_is_wide() && header_shows_title()): ?>
+      <div class="alert alert-success" style="font-size:13px;">
+        This logo is wider than it is tall, which usually means the company
+        name is already written into the picture. If it is, untick
+        <strong>Show the company name</strong> above: the name will stop
+        appearing twice and the logo will be shown larger. If the logo is
+        just a wide symbol, leave it ticked.
+      </div>
+    <?php endif; ?>
 
     <?php
       $logoDims = logo_file_dimensions(active_logo_url());
@@ -149,10 +196,12 @@ include __DIR__ . '/includes/admin_header.php';
       $logoShape = $logoDims === null
         ? 'unknown'
         : ($logoRatio >= 1.6 ? 'wide' : ($logoRatio <= 0.7 ? 'tall' : 'square'));
+      $currentLogo = get_setting('logo_path', '');
+      $library = site_image_library();
     ?>
     <div class="form-group">
       <label>Logo</label>
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
         <?php // Shown at its own proportions, so what you see here is the
               // shape the site is actually working with. ?>
         <span style="display:inline-flex;align-items:center;justify-content:center;height:64px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-soft);">
@@ -172,33 +221,52 @@ include __DIR__ . '/includes/admin_header.php';
           <?php endif; ?>
         </span>
       </div>
+
+      <?php if ($library): ?>
+        <p style="margin:0 0 8px;font-size:13px;color:var(--ink-soft);">
+          <strong>Pick one that is already on the site</strong>, or upload a
+          new one below.
+        </p>
+        <div style="max-height:320px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:14px;">
+          <?php foreach ($library as $groupLabel => $files): ?>
+            <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin:6px 0 8px;"><?= h($groupLabel) ?></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-bottom:14px;">
+              <?php foreach ($files as $file): ?>
+                <?php $isCurrent = $file['path'] === $currentLogo; ?>
+                <label style="display:block;cursor:pointer;border:2px solid <?= $isCurrent ? 'var(--brand-red)' : 'var(--border)' ?>;border-radius:8px;padding:6px;text-align:center;background:var(--white);">
+                  <input type="radio" name="logo_choice" value="<?= h($file['path']) ?>" <?= $isCurrent ? 'checked' : '' ?> style="margin-bottom:6px;">
+                  <?php // A chequered backdrop so a transparent logo is
+                        // visibly transparent rather than looking white. ?>
+                  <span style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:5px;
+                               background-color:#f3f4f6;
+                               background-image:linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%),linear-gradient(45deg,#e5e7eb 25%,transparent 25%,transparent 75%,#e5e7eb 75%);
+                               background-size:12px 12px;background-position:0 0,6px 6px;">
+                    <img src="<?= h(str_replace('%2F', '/', rawurlencode($file['path']))) ?>" alt=""
+                         style="max-height:50px;max-width:96px;width:auto;height:auto;object-fit:contain;">
+                  </span>
+                  <span style="display:block;font-size:10.5px;color:var(--muted);margin-top:5px;word-break:break-all;line-height:1.3;">
+                    <?= h(mb_strimwidth($file['name'], 0, 26, '...')) ?><br>
+                    <?php if ($file['dims'] !== null): ?>
+                      <?= (int) $file['dims']['width'] ?>&times;<?= (int) $file['dims']['height'] ?>,
+                    <?php endif; ?>
+                    <?= $file['size'] > 1024 * 100 ? '<strong style="color:#b45309;">' . (int) round($file['size'] / 1024) . 'KB</strong>' : (int) round($file['size'] / 1024) . 'KB' ?>
+                  </span>
+                </label>
+              <?php endforeach; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+
+      <label style="font-size:13px;">Or upload a new one</label>
       <input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp,.gif,.svg">
       <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
         PNG, JPG, WEBP, GIF, or SVG. Max 2MB. Any shape works: the site
         measures the file and gives it the room it needs, so a wide logo is
         never squashed into a square and a square one is never stranded in a
-        wide gap.
-      </span>
-    </div>
-
-    <div class="form-group">
-      <label>Does the logo already include the company name?</label>
-      <select name="logo_includes_name">
-        <?php $lin = get_setting('logo_includes_name', 'auto'); ?>
-        <option value="auto" <?= $lin === 'auto' ? 'selected' : '' ?>>
-          Work it out from the shape (currently: <?= logo_is_wide() ? 'yes' : 'no' ?>)
-        </option>
-        <option value="yes" <?= $lin === 'yes' ? 'selected' : '' ?>>Yes, the name is in the picture</option>
-        <option value="no" <?= $lin === 'no' ? 'selected' : '' ?>>No, it is just a symbol</option>
-      </select>
-      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
-        When the name is already written into the logo, printing it again
-        beside the picture says everything twice. Answer <strong>yes</strong>
-        and the logo is shown on its own, larger, with the whole brand area
-        to itself. Answer <strong>no</strong> and it sits as a small mark
-        beside the name and tagline. Left on the first option, a logo wider
-        than it is tall is assumed to carry the name, which is right almost
-        always.
+        wide gap. Around 600px on the longest side is plenty; anything much
+        larger only slows every page down. Uploading a file overrides a
+        picture picked above.
       </span>
     </div>
 
@@ -215,7 +283,7 @@ include __DIR__ . '/includes/admin_header.php';
         size that reads on a phone; and a <strong>wide</strong> version of
         the logo, with the name and tagline set alongside the symbol rather
         than under it, is shown far larger and stays legible. If you have
-        both, upload the wide one here.
+        both, use the wide one.
       </div>
     <?php endif; ?>
 

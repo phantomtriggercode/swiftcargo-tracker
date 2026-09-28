@@ -99,29 +99,35 @@ $bingVerification = seo_verification_token('seo_bing_verification');
 <header class="site-header">
   <div class="container">
     <?php
-      // A logo that already has the company name written into it is shown
-      // on its own and given the whole brand area to be legible in.
-      // Anything else is a badge: it sits beside the name as a mark, and
-      // the name's own size comes from its length (see
-      // brand_name_max_font_size), so a short name reads large and a
+      // Both switches off means the logo is the whole brand area and is
+      // shown considerably larger. Otherwise it is a mark beside the text,
+      // and the name's size comes from its length (see
+      // brand_name_max_font_size) so a short name reads large and a
       // 24-character one still fits on one line beside the navigation.
-      $logoIsLockup = logo_includes_name();
+      $logoAlone   = logo_stands_alone();
+      $showTitle   = header_shows_title();
+      $headerTagline = header_shows_tagline() ? get_header_tagline() : '';
+      // A wide logo squeezed in beside text would end up tiny, so it is
+      // allowed more width there than a square mark would be.
+      $markMaxWidth = logo_is_wide() ? 170 : 100;
     ?>
-    <a href="/index.php" class="logo <?= $logoIsLockup ? 'logo-lockup' : '' ?>">
+    <a href="/index.php" class="logo <?= $logoAlone ? 'logo-lockup' : '' ?>">
       <?= logo_img_tag(
-            $logoIsLockup ? 68 : 56,
-            $logoIsLockup ? 300 : 100,
+            $logoAlone ? 68 : 56,
+            $logoAlone ? 300 : $markMaxWidth,
             'mark-img',
             // With no text beside it the picture is the only thing naming
             // the company, so it carries that name for anyone using a
             // screen reader. Beside the text it is decoration and is left
             // unlabelled, so the name is not announced twice.
-            $logoIsLockup ? get_site_name() : ''
+            $logoAlone ? get_site_name() : ''
           ) ?>
-      <?php if (!$logoIsLockup): ?>
+      <?php if (!$logoAlone): ?>
         <span class="brand-text" style="--brand-min:<?= brand_name_min_font_size() ?>px;--brand-max:<?= brand_name_max_font_size() ?>px;">
-          <span class="word-brand"><?= h(get_site_name()) ?></span>
-          <?php if ($headerTagline = get_header_tagline()): ?>
+          <?php if ($showTitle): ?>
+            <span class="word-brand"><?= h(get_site_name()) ?></span>
+          <?php endif; ?>
+          <?php if ($headerTagline !== ''): ?>
             <span class="brand-tagline"><?= h($headerTagline) ?></span>
           <?php endif; ?>
         </span>

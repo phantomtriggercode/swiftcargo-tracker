@@ -85,7 +85,7 @@ $mapOn = $mapOn && $hasCoordinates;
         // a customer screenshots or prints, so the logo is shown as large
         // as the row sensibly allows. Where the logo already carries the
         // company name, the name is not repeated beside it.
-        $trackLockup = logo_includes_name();
+        $trackLockup = logo_stands_alone();
       ?>
       <div class="tracking-brand">
         <?= logo_img_tag(
@@ -95,7 +95,7 @@ $mapOn = $mapOn && $hasCoordinates;
               $trackLockup ? get_site_name() : ''
             ) ?>
         <div>
-          <?php if (!$trackLockup): ?>
+          <?php if (!$trackLockup && header_shows_title()): ?>
             <strong><?= h(get_site_name()) ?></strong>
           <?php endif; ?>
           <span>Shipment tracking</span>

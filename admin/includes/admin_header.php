@@ -23,13 +23,13 @@ $__navAdmin = current_admin();
   // Same rule as the public site: a logo that already carries the company
   // name is shown on its own, and gets the room the name would have taken.
   // Without this the name runs off the edge of the narrow sidebar.
-  $adminLockup = logo_includes_name();
+  $adminLockup = logo_stands_alone();
   $adminPlate  = logo_is_custom() ? ' logo-plate' : '';
 ?>
 <div class="admin-mobile-bar">
   <a href="/admin/dashboard.php" class="logo">
     <?= logo_img_tag($adminLockup ? 40 : 34, $adminLockup ? 180 : 60, 'mark-img' . $adminPlate, $adminLockup ? get_site_name() : '') ?>
-    <?php if (!$adminLockup): ?>
+    <?php if (!$adminLockup && header_shows_title()): ?>
       <span class="word-cargo"><?= h(get_site_name()) ?></span>
     <?php endif; ?>
   </a>
@@ -41,7 +41,7 @@ $__navAdmin = current_admin();
   <aside class="admin-sidebar" id="admin-sidebar">
     <a href="/admin/dashboard.php" class="logo">
       <?= logo_img_tag($adminLockup ? 46 : 38, $adminLockup ? 172 : 64, 'mark-img' . $adminPlate, $adminLockup ? get_site_name() : '') ?>
-      <?php if (!$adminLockup): ?>
+      <?php if (!$adminLockup && header_shows_title()): ?>
         <span class="word-cargo"><?= h(get_site_name()) ?></span>
       <?php endif; ?>
     </a>

@@ -600,10 +600,13 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 -- The short line under the company name in the header, shown in capitals.
 -- Blank hides it rather than leaving a gap.
 ('header_tagline', 'Fast, secure and reliable'),
--- Whether the logo picture already has the company name written into it.
--- 'auto' works it out from the shape (wider than tall means yes), which is
--- right almost always; 'yes' and 'no' override that either way.
-('logo_includes_name', 'auto');
+-- What the header shows beside the logo. Both on by default. Turning both
+-- off gives the logo the whole brand area and shows it considerably
+-- larger, which is what a logo with the company name already written into
+-- it wants. The company name itself is still used in the page title, in
+-- emails and on the waybill whatever these are set to.
+('header_show_title', '1'),
+('header_show_tagline', '1');
 
 -- ---------------------------------------------------------------
 -- Site-wide color palettes (managed only by super admins, at

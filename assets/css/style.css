@@ -614,6 +614,20 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
   font-size: 14.5px;
   font-family: inherit;
 }
+/* The rule above is written for text boxes, and a checkbox is not one.
+   Left to inherit it, every tick box and radio button in the panel was
+   stretched to the full width of the form with 11px of padding and a
+   border around it, which is why they sat marooned in the middle of their
+   own row with the wording pushed to the far edge. They size themselves. */
+.form-group input[type="checkbox"],
+.form-group input[type="radio"] {
+  width: auto;
+  flex: none;
+  padding: 0;
+  border: none;
+  margin: 0;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus { outline: none; border-color: var(--brand-red); }

@@ -444,25 +444,54 @@ RELIABLE" by default. Type it normally; it is shown in capitals. Leaving it
 blank hides it completely rather than leaving an empty line, so it is
 optional in the real sense.
 
+### Choosing the logo
+
+Two ways, both on the Branding page:
+
+- **Pick one already on the site.** Every image in `assets/images/`, in
+  `assets/images/uploads/` and in the set of marks that shipped with the
+  site is listed with a thumbnail, its dimensions and its file size, on a
+  chequered backdrop so a transparent logo looks transparent rather than
+  white. Anything over 100KB has its size flagged, since the logo loads on
+  every page. Picking one and saving is all it takes; no file needs
+  uploading, and nothing is deleted when you switch, because the picture
+  you switched away from may be in use somewhere else.
+- **Upload a new one.** As before. If you pick one from the list *and*
+  choose a file to upload in the same save, the upload wins.
+
 ### Logo shape
 
-Upload any shape. The site reads the file's real dimensions and gives it
-the room it needs, so a wide logo is never squeezed into a square and a
-square one is never stranded in a wide gap. The Branding page shows the
-measured size and what it made of it.
+Any shape works. The site reads the file's real dimensions and gives it the
+room it needs, so a wide logo is never squeezed into a square and a square
+one is never stranded in a wide gap. Branding shows the measured size and
+says whether it read it as a badge or a name-plate.
 
-Two shapes behave differently, on purpose:
+### What the header shows beside the logo
 
-- **A square or round badge** sits beside the company name as a mark, with
-  the name and tagline in text next to it.
-- **A wide name-plate** (wider than about 8:5) is treated as already
-  carrying the company name, so it is shown on its own, larger, with the
-  whole brand area to itself. Printing the name again beside it would say
-  everything twice.
+Two switches, both on by default:
 
-The guess comes from the shape and is right almost always. **Does the logo
-already include the company name?** overrides it either way for the logo
-that proves the rule.
+- **Show the company name**
+- **Show the tagline**
+
+Untick both and the logo gets the whole brand area to itself and is shown
+considerably larger. That is what you want when the logo already has the
+company name written into it: leaving the name on as well prints it twice,
+once in the picture and once in text beside it.
+
+These are switches rather than something the site decides, on purpose.
+Whether a picture "already says the name" is a judgement only a person can
+make, and a site that quietly hid the name would mean someone types a
+company name, sees no change, and has no way of knowing why. When a wide
+logo is uploaded Branding points out that it probably carries its own name,
+and then leaves the decision alone.
+
+**The company name stays editable whatever these are set to**, and stays
+in use: it is the page title in a browser tab and in search results, the
+sender name on every email alert, the name on the waybill and the shipping
+label, and the name in the structured data search engines read. The
+switches only govern whether it is also drawn beside the logo. So if the
+header looks crowded with both the logo and the name, turn the name off in
+the header and leave the field itself correct.
 
 On the dark surfaces, the site footer and the staff sidebar, an uploaded
 logo is given a light plate to sit on. A logo drawn with dark lettering on
