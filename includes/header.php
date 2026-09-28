@@ -98,13 +98,22 @@ $bingVerification = seo_verification_token('seo_bing_verification');
 
 <header class="site-header">
   <div class="container">
+    <?php /* The name's ceiling size comes from its length (see
+             brand_name_max_font_size), so a short name reads large and a
+             24-character one still fits on one line beside the navigation.
+             The stylesheet shrinks it further on narrow screens. */ ?>
     <a href="/index.php" class="logo">
       <?php if ($logoUrl = get_logo_url()): ?>
-        <img src="<?= h($logoUrl) ?>" alt="" width="34" height="34" class="mark-img">
+        <img src="<?= h($logoUrl) ?>" alt="" width="46" height="46" class="mark-img">
       <?php else: ?>
-        <img src="/assets/images/logo-mark.svg" alt="" width="34" height="34" class="mark-img">
+        <img src="/assets/images/logo-mark.svg" alt="" width="46" height="46" class="mark-img">
       <?php endif; ?>
-      <span class="word-brand"><?= h(get_site_name()) ?></span>
+      <span class="brand-text" style="--brand-min:<?= brand_name_min_font_size() ?>px;--brand-max:<?= brand_name_max_font_size() ?>px;">
+        <span class="word-brand"><?= h(get_site_name()) ?></span>
+        <?php if ($headerTagline = get_header_tagline()): ?>
+          <span class="brand-tagline"><?= h($headerTagline) ?></span>
+        <?php endif; ?>
+      </span>
     </a>
     <nav class="main-nav">
       <a href="/index.php" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>

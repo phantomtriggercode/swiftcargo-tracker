@@ -11,6 +11,7 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $subject = trim($_POST['subject'] ?? '');
     $message = trim($_POST['message'] ?? '');
     $honeypot = (string) ($_POST['website'] ?? '');
 
@@ -33,23 +34,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
         if ($message === '') $errors[] = 'Please enter a message.';
         if (strlen($message) > 5000) $errors[] = 'Please keep your message under 5000 characters.';
+        // The subject is optional on purpose. It is there so the email
+        // arriving in the office inbox says what it is about at a glance,
+        // which is worth a lot when several come in at once; it is not
+        // worth turning someone away over.
+        if (mb_strlen($subject) > 150) $errors[] = 'Please keep the subject under 150 characters.';
     }
 
     if (!$errors) {
         $supportEmail = get_setting('contact_email');
         $siteName = get_site_name();
 
+        // What the office sees in its inbox list. Their own subject when
+        // they wrote one, so a list of enquiries can be triaged without
+        // opening any of them, and the sender's name either way so it is
+        // always obvious who it came from.
+        $subjectLine = $subject !== ''
+            ? $subject . ' (' . $name . ')'
+            : 'Contact form: ' . $name;
+
         $theme = get_active_palette();
         $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . h($theme['color_ink']) . ';">'
             . '<p><strong>New message from the ' . h($siteName) . ' contact form</strong></p>'
             . '<p><strong>Name:</strong> ' . h($name) . '<br>'
-            . '<strong>Email:</strong> ' . h($email) . '</p>'
+            . '<strong>Email:</strong> ' . h($email)
+            . ($subject !== '' ? '<br><strong>Subject:</strong> ' . h($subject) : '') . '</p>'
             . '<p style="white-space:pre-wrap;border-left:3px solid ' . h($theme['color_primary']) . ';padding-left:12px;">' . h($message) . '</p>'
             . '</div>';
-        $altBody = "New message from the {$siteName} contact form\n\nName: {$name}\nEmail: {$email}\n\n{$message}";
+        $altBody = "New message from the {$siteName} contact form\n\nName: {$name}\nEmail: {$email}\n"
+            . ($subject !== '' ? "Subject: {$subject}\n" : '')
+            . "\n{$message}";
 
         $result = filter_var($supportEmail, FILTER_VALIDATE_EMAIL)
-            ? send_smtp_mail($supportEmail, $siteName . ' Support', 'Contact form: ' . $name, $htmlBody, $altBody, $email, $name)
+            ? send_smtp_mail($supportEmail, $siteName . ' Support', $subjectLine, $htmlBody, $altBody, $email, $name)
             : ['ok' => false, 'error' => 'No support email address is configured.'];
 
         if ($result['ok']) {
@@ -116,6 +133,12 @@ include __DIR__ . '/includes/header.php';
           <div class="form-group">
             <label for="email">Email Address</label>
             <input type="email" id="email" name="email" value="<?= h($_POST['email'] ?? '') ?>" required>
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject <span style="font-weight:normal;color:var(--muted);">(optional)</span></label>
+            <input type="text" id="subject" name="subject" maxlength="150"
+                   value="<?= h($_POST['subject'] ?? '') ?>"
+                   placeholder="e.g. Quote for a pallet to Berlin">
           </div>
           <div class="form-group">
             <label for="message">Message</label>

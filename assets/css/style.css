@@ -89,14 +89,57 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.5px;
+  /* The name and its tagline may shrink; the logo mark may not. Without
+     this the flex row would rather squash the image than the text. */
+  min-width: 0;
 }
 .logo .mark-img { display: block; flex: none; }
-.logo .word-brand { color: var(--header-ink); }
 .logo .word-cargo { color: var(--header-ink); }
+
+/* ---------- Brand block: company name + tagline ----------
+   The header has to hold a four-letter company name and a twenty-four
+   letter one equally well, on every screen, without wrapping onto a
+   second line or pushing the navigation off the edge.
+
+   Two things do that together. The ceiling (--brand-max) is worked out
+   from the name's length in PHP, because CSS cannot count characters, and
+   doing it in JavaScript would resize the header after the page is
+   already on screen. The clamp() below then shrinks it further as the
+   viewport narrows. The result is the right size in the first paint, at
+   any width, for any length of name. */
+.logo .brand-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+}
+.logo .word-brand {
+  color: var(--header-ink);
+  /* Floor, fluid middle, ceiling. The ceiling is the per-name value; the
+     fluid term is what keeps a long name inside a narrow screen. */
+  font-size: clamp(var(--brand-min, 13px), 3.6vw, var(--brand-max, 22px));
+  line-height: 1.1;
+  /* Never break a company name across two lines: a wrapped name reads as
+     two different things. It shrinks instead. */
+  white-space: nowrap;
+}
+.logo .brand-tagline {
+  display: block;
+  color: var(--muted);
+  font-size: clamp(8.5px, 1.5vw, 10.5px);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  white-space: nowrap;
+  /* Sits under the name, so it must not inherit the name's tight
+     tracking, which would close the letters up at this size. */
+}
 
 .main-nav { display: flex; align-items: center; gap: 20px; }
 .main-nav a {
@@ -145,6 +188,22 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
 @media (max-width: 1024px) {
   .main-nav { display: none; }
   .nav-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+}
+
+/* On a phone the row is logo mark, name, "Track Now", menu button. A long
+   company name has the least room here, so the mark gives some back and
+   the gaps tighten. Checked at 320px with a 24-character name. */
+@media (max-width: 560px) {
+  .logo { gap: 8px; }
+  .logo .mark-img { width: 38px; height: 38px; }
+  .header-actions { gap: 8px; }
+  .header-track-btn { padding: 9px 14px; font-size: 13.5px; }
+}
+/* Below 420px the "Track Now" button is already hidden (further down this
+   file), which hands the name back most of the row. The mark gives up a
+   little more so even the longest name keeps its full size. */
+@media (max-width: 380px) {
+  .logo .mark-img { width: 34px; height: 34px; }
 }
 @media (min-width: 1025px) {
   .mobile-nav-dropdown, .mobile-nav-backdrop { display: none !important; }

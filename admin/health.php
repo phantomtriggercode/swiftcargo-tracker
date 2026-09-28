@@ -195,6 +195,7 @@ $settingsNeeded = [
     'live_chat_widget_id'   => 'sql/updates/002_live_chat_settings.sql',
     'seo_noindex_site'      => 'sql/migrations/019_security_and_seo.sql',
     'seo_google_verification' => 'sql/migrations/019_security_and_seo.sql',
+    'header_tagline'        => 'sql/updates/003_header_tagline.sql',
 ];
 try {
     $have = db()->query('SELECT setting_key FROM settings')->fetchAll(PDO::FETCH_COLUMN);

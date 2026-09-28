@@ -206,7 +206,7 @@ $mapOn = $mapOn && $hasCoordinates;
             </div>
           </div>
           <div class="meta-box">
-            <div class="meta-label">Package</div>
+            <div class="meta-label">Description</div>
             <div class="meta-value"><?= h($shipment['package_description']) ?></div>
           </div>
           <div class="meta-box">

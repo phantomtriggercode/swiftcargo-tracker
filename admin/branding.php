@@ -67,8 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = $upload['error'];
     }
 
+    $headerTagline = trim($_POST['header_tagline'] ?? '');
+    if (mb_strlen($headerTagline) > 40) {
+        $errors[] = 'The tagline has to be 40 characters or fewer, or it will not fit under the name.';
+    }
+
     if (!$errors) {
         set_setting('site_name', $siteName);
+        set_setting('header_tagline', $headerTagline);
         if ($upload['path'] !== null) {
             $oldLogo = get_setting('logo_path', '');
             set_setting('logo_path', $upload['path']);
@@ -110,7 +116,25 @@ include __DIR__ . '/includes/admin_header.php';
     <input type="hidden" name="action" value="save">
     <div class="form-group">
       <label>Site / Company Name</label>
-      <input type="text" name="site_name" value="<?= h(get_site_name()) ?>" required>
+      <input type="text" name="site_name" value="<?= h(get_site_name()) ?>" maxlength="60" required>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        The header is built to hold up to <strong>24 characters</strong> on one
+        line, at any screen size, and a short name is shown larger to fill the
+        same space. Your name is
+        <strong><?= (int) mb_strlen(get_site_name()) ?> characters</strong>.
+        Longer than 24 still shows in full, just at the smallest size.
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label>Header Tagline</label>
+      <input type="text" name="header_tagline" value="<?= h(get_header_tagline()) ?>"
+             maxlength="40" placeholder="Fast, secure and reliable">
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        The small line under the company name in the header. Shown in capitals
+        whatever you type here, so write it normally. Leave it blank to show
+        nothing at all rather than an empty line.
+      </span>
     </div>
 
     <div class="form-group">

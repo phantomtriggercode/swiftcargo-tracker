@@ -87,6 +87,62 @@ function get_site_name(): string
 }
 
 /**
+ * The short line under the company name in the header, e.g.
+ * "Fast, secure and reliable". Set at /admin/branding.php; blank hides it
+ * entirely rather than leaving a gap.
+ */
+function get_header_tagline(): string
+{
+    return trim(get_setting('header_tagline', 'Fast, secure and reliable'));
+}
+
+/**
+ * The largest the company name is allowed to be in the header, in pixels.
+ *
+ * The header has a fixed amount of room: the logo, the name, and then the
+ * navigation. A four-letter name and a twenty-four-letter one both have to
+ * sit in it and stay readable, and a name long enough to collide with the
+ * navigation would otherwise either wrap onto a second line or push the
+ * menu off the edge.
+ *
+ * Working the size out from the length here, in PHP, rather than leaving
+ * it to CSS, is deliberate: CSS cannot count the characters in a name, and
+ * doing it in JavaScript would mean the header visibly resizes itself
+ * after the page has already been drawn. This way the right size is in the
+ * first paint. The stylesheet still shrinks it further on narrow screens,
+ * so this is the ceiling, not the fixed size.
+ *
+ * 24 characters is the design target: anything longer still renders in
+ * full, just at the smallest size.
+ */
+function brand_name_max_font_size(): int
+{
+    $length = mb_strlen(get_site_name());
+
+    if ($length <= 8)  return 27;
+    if ($length <= 12) return 24;
+    if ($length <= 16) return 21;
+    if ($length <= 20) return 18;
+    if ($length <= 24) return 16;
+
+    return 15;
+}
+
+/**
+ * The smallest the company name may shrink to on a narrow screen.
+ *
+ * Up to the 24-character design target, 13px is comfortably readable and
+ * the name fits a 320px screen at that size. A name longer than the target
+ * still has to be shown in full rather than cut off half way through a
+ * word, so it is allowed to go smaller instead. Shrinking is a poor
+ * outcome; clipping a company's own name is a worse one.
+ */
+function brand_name_min_font_size(): int
+{
+    return mb_strlen(get_site_name()) <= 24 ? 13 : 11;
+}
+
+/**
  * A custom uploaded logo (set at /admin/branding.php) always wins. With
  * none uploaded, falls back to the active template's own default logo
  * mark (see includes/design.php), so switching templates can change the

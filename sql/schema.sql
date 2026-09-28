@@ -596,7 +596,10 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('seo_noindex_site', '0'),
 ('seo_google_verification', ''),
 ('seo_google_verification_file', ''),
-('seo_bing_verification', '');
+('seo_bing_verification', ''),
+-- The short line under the company name in the header, shown in capitals.
+-- Blank hides it rather than leaving a gap.
+('header_tagline', 'Fast, secure and reliable');
 
 -- ---------------------------------------------------------------
 -- Site-wide color palettes (managed only by super admins, at

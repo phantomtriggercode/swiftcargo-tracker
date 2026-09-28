@@ -426,6 +426,25 @@ as uploaded rather than rejected or damaged.
 
 ## Branding & white-labeling
 
+### Company name and header tagline
+
+Both are set at `/admin/branding.php`.
+
+The header is built to hold a company name of **up to 24 characters** on one
+line, at every screen size, and it shows a short name larger so a
+four-letter abbreviation and a twenty-four-character name fill the same
+space rather than one of them looking lost. The size is worked out from the
+length of the name when the page is built, so it is right in the first
+paint rather than jumping after the page loads. A name longer than 24
+characters still shows in full, at the smallest size, rather than being cut
+off. The Branding page shows your name's current length next to the field.
+
+The **header tagline** is the small line under the name, "FAST, SECURE AND
+RELIABLE" by default. Type it normally; it is shown in capitals. Leaving it
+blank hides it completely rather than leaving an empty line, so it is
+optional in the real sense.
+
+
 Go to **`/admin/branding.php`** to set the site name and upload a logo (PNG,
 JPG, WEBP, GIF, or SVG). This name and logo appear in the header, footer,
 staff login, browser tab, and outgoing emails, everywhere the brand shows up
