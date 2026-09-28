@@ -45,6 +45,9 @@ if (!$shipment && $fromRequestId) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senderName = trim($_POST['sender_name'] ?? '');
     $senderEmail = trim($_POST['sender_email'] ?? '');
+    // A member of staff may set the tracking number by hand, overriding the
+    // generated one. Blank on a new shipment means "generate one for me".
+    $trackingInput = trim($_POST['tracking_number'] ?? '');
     $senderPhone = trim($_POST['sender_phone'] ?? '');
     $senderAddress = trim($_POST['sender_address'] ?? '');
     $receiverName = trim($_POST['receiver_name'] ?? '');
@@ -116,6 +119,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Validate a hand-entered tracking number: shape, then that no other
+    // shipment already has it. A blank field is allowed here (a new
+    // shipment then gets a generated number); the edit form pre-fills it,
+    // so blank there means the admin cleared it, which is treated as
+    // "generate a fresh one".
+    $trackingError = null;
+    if ($trackingInput !== '') {
+        if (!is_valid_manual_tracking_number($trackingInput)) {
+            $trackingError = 'The tracking number must be 3 to 32 letters, digits, dashes or underscores, with no spaces.';
+        } else {
+            $dupStmt = db()->prepare('SELECT id FROM shipments WHERE tracking_number = ? AND id != ?');
+            $dupStmt->execute([$trackingInput, $shipment['id'] ?? 0]);
+            if ($dupStmt->fetch()) {
+                $trackingError = 'That tracking number is already used by another shipment. Choose a different one.';
+            }
+        }
+        if ($trackingError !== null) {
+            $errors[] = $trackingError;
+        }
+    }
+
     if ($senderName === '') $errors[] = 'Sender name is required.';
     if ($receiverName === '') $errors[] = 'Receiver name is required.';
     if (!filter_var($receiverEmail, FILTER_VALIDATE_EMAIL)) $errors[] = 'A valid receiver email is required.';
@@ -181,8 +205,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errors) {
         if ($shipment) {
+            // Keep the current number when the field is left as it was;
+            // use the typed one when it differs. Changing it is real: the
+            // old number stops tracking and any email or link already sent
+            // out carries the old one, so it is the admin's deliberate act.
+            $effectiveTracking = $trackingInput !== '' ? $trackingInput : $shipment['tracking_number'];
+            $trackingChanged = $effectiveTracking !== $shipment['tracking_number'];
+
             $stmt = db()->prepare('
                 UPDATE shipments SET
+                  tracking_number = ?,
                   sender_name = ?, sender_email = ?, sender_phone = ?, sender_address = ?,
                   receiver_name = ?, receiver_email = ?, receiver_phone = ?, receiver_address = ?,
                   package_description = ?, packaging_type = ?, weight_kg = ?, dimensions = ?,
@@ -194,6 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 WHERE id = ?
             ');
             $stmt->execute([
+                $effectiveTracking,
                 $senderName, $senderEmail ?: null, $senderPhone ?: null, $senderAddress,
                 $receiverName, $receiverEmail, $receiverPhone ?: null, $receiverAddress,
                 $packageDescription, $packagingType, $weightKg, $dimensions ?: null,
@@ -203,6 +236,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $destinationLabel, $destinationLat, $destinationLng,
                 $estimatedDelivery, $estimatedDeliveryTime, $shipment['id'],
             ]);
+
+            if ($trackingChanged) {
+                log_admin_activity('Changed tracking number', $shipment['tracking_number'] . ' to ' . $effectiveTracking);
+            }
 
             // Changing the status here records a real tracking update rather
             // than only moving the badge. Without one the timeline and the
@@ -246,19 +283,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ], $insured, $insuranceValue);
             }
 
-            flash_set('success', 'Shipment ' . $shipment['tracking_number'] . ' updated.');
+            flash_set('success', 'Shipment ' . $effectiveTracking . ' updated.'
+                . ($trackingChanged ? ' Its tracking number changed from ' . $shipment['tracking_number'] . '; the old number no longer tracks.' : ''));
             redirect('/admin/dashboard.php');
         } else {
-            $trackingNumber = generate_tracking_number();
-            $check = db()->prepare('SELECT id FROM shipments WHERE tracking_number = ?');
-            do {
-                $check->execute([$trackingNumber]);
-                if ($check->fetch()) {
-                    $trackingNumber = generate_tracking_number();
-                } else {
-                    break;
-                }
-            } while (true);
+            if ($trackingInput !== '') {
+                // The admin typed one. It was already checked for shape and
+                // for uniqueness above, so use it as given.
+                $trackingNumber = $trackingInput;
+            } else {
+                // No number supplied: generate one, retrying on the rare
+                // chance the random value is already taken.
+                $trackingNumber = generate_tracking_number();
+                $check = db()->prepare('SELECT id FROM shipments WHERE tracking_number = ?');
+                do {
+                    $check->execute([$trackingNumber]);
+                    if ($check->fetch()) {
+                        $trackingNumber = generate_tracking_number();
+                    } else {
+                        break;
+                    }
+                } while (true);
+            }
 
             $stmt = db()->prepare('
                 INSERT INTO shipments (
@@ -328,6 +374,31 @@ include __DIR__ . '/includes/admin_header.php';
   <form method="post">
     <?= csrf_field() ?>
     <?php if ($fromRequestId): ?><input type="hidden" name="from_request_id" value="<?= (int) $fromRequestId ?>"><?php endif; ?>
+
+    <?php // Keep what was typed on a failed submit; otherwise the current
+          // number when editing, or blank when creating. ?>
+    <?php $trackingValue = $_POST['tracking_number'] ?? ($shipment['tracking_number'] ?? ''); ?>
+    <h3 style="margin-top:0;">Tracking Number</h3>
+    <div class="form-group">
+      <label>Tracking Number</label>
+      <input type="text" name="tracking_number" value="<?= h($trackingValue) ?>"
+             maxlength="32" autocomplete="off" spellcheck="false"
+             placeholder="<?= $shipment ? '' : 'Leave blank to generate one automatically' ?>"
+             style="font-family:ui-monospace,monospace;letter-spacing:0.5px;">
+      <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
+        <?php if ($shipment): ?>
+          This is the number customers track with. Change it to anything you
+          like (3 to 32 letters, digits, dashes or underscores, no spaces).
+          <strong>The old number stops working</strong> the moment you save,
+          and any email or link already sent out still carries it, so change
+          it only when you mean to.
+        <?php else: ?>
+          Leave this blank and the site generates one for you. Or set your
+          own: 3 to 32 letters, digits, dashes or underscores, no spaces. It
+          must not already belong to another shipment.
+        <?php endif; ?>
+      </span>
+    </div>
 
     <h3 style="margin-top:0;">Sender</h3>
     <p style="margin:0 0 12px;color:var(--muted);font-size:13px;">

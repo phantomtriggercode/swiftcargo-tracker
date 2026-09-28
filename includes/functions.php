@@ -182,6 +182,21 @@ function is_valid_tracking_number(string $value): bool
 }
 
 /**
+ * True if this is acceptable as a tracking number an admin typed in by
+ * hand, overriding the generated one.
+ *
+ * Stricter than is_valid_tracking_number() on purpose: no spaces, so the
+ * number always sits cleanly in a tracking URL and an email. Three to
+ * thirty-two characters of letters, digits, dash and underscore, which is
+ * a subset of what the public lookup accepts, so any number this allows is
+ * guaranteed to be trackable.
+ */
+function is_valid_manual_tracking_number(string $value): bool
+{
+    return (bool) preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]{2,31}$/', $value);
+}
+
+/**
  * Active couriers/carriers for the shipment form dropdown, in the order
  * admins arranged them at /admin/couriers.php.
  */

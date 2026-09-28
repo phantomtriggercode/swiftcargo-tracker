@@ -536,6 +536,19 @@ whatever brand you want regardless of what domain you deploy under.
 2. **New Shipment**: fill in sender, receiver (their email is where alerts go),
    package details, and origin/destination. Creating a shipment sends an initial
    "Pending" confirmation email.
+
+   **Tracking number.** Leave the Tracking Number field blank and the site
+   generates one in the usual format. Or type your own: 3 to 32 letters,
+   digits, dashes or underscores, no spaces, not already used by another
+   shipment. Anything accepted here is guaranteed to work in the public
+   tracking box.
+
+   The number can also be changed later from **Edit Shipment**. The whole
+   history stays attached, since updates belong to the shipment rather than
+   to its number, but **the old number stops tracking the moment you save**,
+   and any email or link already sent out still carries it. The change is
+   recorded in the activity log. Leaving the field as it was keeps the
+   current number.
 3. **Add Update** (from the dashboard): pick a new status, enter the current
    location, add an optional note, and save. This instantly:
    - Updates the shipment's live position (shown on the public tracking map).
