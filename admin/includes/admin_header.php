@@ -45,36 +45,77 @@ $__navAdmin = current_admin();
         <span class="word-cargo"><?= h(get_site_name()) ?></span>
       <?php endif; ?>
     </a>
+    <?php
+      $__isSuper = $__navAdmin && $__navAdmin['is_super_admin'];
+
+      // The menu as data: sections, each with a heading and its links.
+      // 'super' marks a link only a super admin sees, which is also drawn
+      // in its own colour with a small badge, so a super admin can tell at
+      // a glance which controls are theirs alone. 'reg' marks a link only a
+      // regular admin sees. Everything else is shown to every admin.
+      $__nav = [
+        'Shipments' => [
+          ['dashboard', '/admin/dashboard.php', 'All Shipments'],
+          ['new', '/admin/shipment_form.php', 'New Shipment'],
+          ['requests', '/admin/requests.php', 'Shipment Requests'],
+        ],
+        'Shipment setup' => [
+          ['couriers', '/admin/couriers.php', 'Couriers & Carriers'],
+          ['statuses', '/admin/statuses.php', 'Shipment Statuses'],
+          ['status_messages', '/admin/status_messages.php', 'Status Messages'],
+        ],
+        'Site content' => [
+          ['content', '/admin/content.php', 'Site Content'],
+          ['images', '/admin/images.php', 'Site Images'],
+          ['seo', '/admin/seo.php', 'Search Engines'],
+          ['rates', '/admin/rates.php', 'Calculator Rates'],
+          ['branding', '/admin/branding.php', 'Branding'],
+        ],
+        'Site controls' => [
+          ['smtp', '/admin/smtp_settings.php', 'Email (SMTP)'],
+          ['live_chat', '/admin/live_chat.php', 'Live Chat', 'super'],
+          ['tracking_display', '/admin/tracking_display.php', 'Tracking Page &amp; Switches', 'super'],
+          ['my_theme', '/admin/my_theme.php', 'Site Color', 'reg'],
+          ['themes', '/admin/themes.php', 'Colors', 'super'],
+          ['templates', '/admin/templates.php', 'Templates', 'super'],
+        ],
+        'Administration' => [
+          ['admins', '/admin/admins.php', 'Admin Accounts', 'super'],
+          ['activity_log', '/admin/activity_log.php', 'Activity Log', 'super'],
+          ['health', '/admin/health.php', 'System Health', 'super'],
+        ],
+        'Your account' => [
+          ['profile', '/admin/profile.php', 'My Profile'],
+        ],
+      ];
+    ?>
     <nav>
-      <a href="/admin/dashboard.php" class="<?= $activeAdminNav === 'dashboard' ? 'active' : '' ?>">Shipments</a>
-      <a href="/admin/shipment_form.php" class="<?= $activeAdminNav === 'new' ? 'active' : '' ?>">New Shipment</a>
-      <a href="/admin/requests.php" class="<?= $activeAdminNav === 'requests' ? 'active' : '' ?>">Shipment Requests</a>
-      <a href="/admin/couriers.php" class="<?= $activeAdminNav === 'couriers' ? 'active' : '' ?>">Couriers &amp; Carriers</a>
-      <a href="/admin/statuses.php" class="<?= $activeAdminNav === 'statuses' ? 'active' : '' ?>">Shipment Statuses</a>
-      <a href="/admin/status_messages.php" class="<?= $activeAdminNav === 'status_messages' ? 'active' : '' ?>">Status Messages</a>
-      <a href="/admin/content.php" class="<?= $activeAdminNav === 'content' ? 'active' : '' ?>">Site Content</a>
-      <a href="/admin/images.php" class="<?= $activeAdminNav === 'images' ? 'active' : '' ?>">Site Images</a>
-      <a href="/admin/seo.php" class="<?= $activeAdminNav === 'seo' ? 'active' : '' ?>">Search Engines</a>
-      <a href="/admin/rates.php" class="<?= $activeAdminNav === 'rates' ? 'active' : '' ?>">Calculator Rates</a>
-      <a href="/admin/branding.php" class="<?= $activeAdminNav === 'branding' ? 'active' : '' ?>">Branding</a>
-      <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>
-      <?php if ($__navAdmin && $__navAdmin['is_super_admin']): ?>
-        <a href="/admin/live_chat.php" class="<?= $activeAdminNav === 'live_chat' ? 'active' : '' ?>">Live Chat</a>
-        <a href="/admin/tracking_display.php" class="<?= $activeAdminNav === 'tracking_display' ? 'active' : '' ?>">Tracking Page</a>
-      <?php endif; ?>
-      <a href="/admin/profile.php" class="<?= $activeAdminNav === 'profile' ? 'active' : '' ?>">My Profile</a>
-      <?php if ($__navAdmin && !$__navAdmin['is_super_admin']): ?>
-        <a href="/admin/my_theme.php" class="<?= $activeAdminNav === 'my_theme' ? 'active' : '' ?>">Site Color</a>
-      <?php endif; ?>
-      <?php if ($__navAdmin && $__navAdmin['is_super_admin']): ?>
-        <a href="/admin/themes.php" class="<?= $activeAdminNav === 'themes' ? 'active' : '' ?>">Colors</a>
-        <a href="/admin/templates.php" class="<?= $activeAdminNav === 'templates' ? 'active' : '' ?>">Templates</a>
-        <a href="/admin/admins.php" class="<?= $activeAdminNav === 'admins' ? 'active' : '' ?>">Admin Accounts</a>
-        <a href="/admin/activity_log.php" class="<?= $activeAdminNav === 'activity_log' ? 'active' : '' ?>">Activity Log</a>
-        <a href="/admin/health.php" class="<?= $activeAdminNav === 'health' ? 'active' : '' ?>">System Health</a>
-      <?php endif; ?>
-      <a href="/track.php" target="_blank">View Public Site &#8599;</a>
-      <a href="/admin/logout.php">Logout</a>
+      <?php foreach ($__nav as $__section => $__links): ?>
+        <?php
+          // Skip a whole section if nothing in it is visible to this admin.
+          $__visible = array_filter($__links, function ($l) use ($__isSuper) {
+            $scope = $l[3] ?? '';
+            if ($scope === 'super') return $__isSuper;
+            if ($scope === 'reg') return !$__isSuper;
+            return true;
+          });
+        ?>
+        <?php if ($__visible): ?>
+          <div class="nav-section-title"><?= h($__section) ?></div>
+          <?php foreach ($__visible as $__l): ?>
+            <?php $__isSuperLink = ($__l[3] ?? '') === 'super'; ?>
+            <a href="<?= h($__l[1]) ?>"
+               class="<?= $activeAdminNav === $__l[0] ? 'active' : '' ?><?= $__isSuperLink ? ' nav-super' : '' ?>">
+              <span><?= $__l[2] ?></span>
+              <?php if ($__isSuperLink): ?><span class="nav-super-badge" title="Only super admins can see this">SUPER</span><?php endif; ?>
+            </a>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      <?php endforeach; ?>
+
+      <div class="nav-section-divider"></div>
+      <a href="/track.php" target="_blank" rel="noopener">View Public Site &#8599;</a>
+      <a href="/admin/logout.php" class="nav-logout">Logout</a>
     </nav>
   </aside>
   <main class="admin-main">

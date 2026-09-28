@@ -5,6 +5,8 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
 require_once __DIR__ . '/../includes/mailer.php';
 
+enforce_admin_gate();
+
 if (admin_logged_in()) {
     redirect('/admin/dashboard.php');
 }
@@ -35,7 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         record_login_attempt($ip, 'reset:' . strtolower($email), false);
         $token = create_password_reset($email);
         if ($token !== null) {
-            $resetUrl = get_site_url() . '/admin/reset_password.php?token=' . $token;
+            // The reset link carries the access key when one is set, so a
+            // locked-out admin's emailed link passes the gate; the key
+            // lives only in that person's own inbox.
+            $__k = admin_access_key();
+            $resetUrl = get_site_url() . '/admin/reset_password.php?token=' . $token
+                . ($__k !== '' ? '&k=' . rawurlencode($__k) : '');
             $siteName = get_site_name();
             $theme = get_active_palette();
             $htmlBody = '<div style="font-family:Arial,sans-serif;font-size:14px;color:' . h($theme['color_ink']) . ';">'

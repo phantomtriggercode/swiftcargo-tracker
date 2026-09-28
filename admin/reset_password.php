@@ -4,6 +4,8 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
 
+enforce_admin_gate();
+
 if (admin_logged_in()) {
     redirect('/admin/dashboard.php');
 }

@@ -4,6 +4,11 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/settings.php';
 
+// If an access key is set, this page does not exist for anyone who has not
+// presented it: they get the ordinary 404, so a scanner never learns the
+// panel is here. No key set means the page behaves normally.
+enforce_admin_gate();
+
 if (admin_logged_in()) {
     redirect('/admin/dashboard.php');
 }

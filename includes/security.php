@@ -654,7 +654,7 @@ function security_suspicious_patterns(): array
         '/\bor\b\s+["\']?\d+["\']?\s*=\s*["\']?\d+/i',
         '/(%27|\')\s*(or|and)\s*(%27|\')?\d/i',
         '/<\s*script\b/i',
-        '/\bon(error|load|click)\s*=\s*["\']/i',
+        '/\bon(error|load|click|mouseover|focus|toggle|animationstart)\s*=/i',
         '/javascript\s*:/i',
         '/(\.\.[\/\\\\]){2,}/',
         '/\/etc\/(passwd|shadow)\b/i',

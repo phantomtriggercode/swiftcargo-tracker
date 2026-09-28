@@ -1,8 +1,12 @@
-# Uploaded images only — never execute PHP from here, even if a bad file slips through.
+# Uploaded images only. Three independent locks, because this folder holds
+# files a member of staff chose, and the logo among them is served to every
+# public visitor.
+
+# 1. Never run PHP from here, even if a .php file somehow lands in the folder.
 <IfModule mod_php.c>
   php_flag engine off
 </IfModule>
-<FilesMatch "\.(php|phtml|php\d?)$">
+<FilesMatch "\.(php|phtml|php\d?|phar)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -11,3 +15,19 @@
     Deny from all
   </IfModule>
 </FilesMatch>
+
+# 2. Neutralise an uploaded file even if it is a crafted SVG that slipped
+#    the content check on upload. An SVG opened at its own URL renders as a
+#    document and can run script; a static file gets none of the site's
+#    normal Content-Security-Policy, because that is sent by PHP and these
+#    files are served straight off disk. So the policy is attached here,
+#    at the folder, where it covers every file served from it:
+#      - default-src 'none' and script-src 'none' stop any script running,
+#        so a filter bypass cannot become stored cross-site scripting;
+#      - nosniff stops a browser second-guessing the declared type;
+#      - the sandbox flag drops the file into a null origin with no script,
+#        no forms and no popups, whatever it turns out to contain.
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; sandbox"
+  Header always set X-Content-Type-Options "nosniff"
+</IfModule>

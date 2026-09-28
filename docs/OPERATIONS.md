@@ -933,6 +933,49 @@ So someone can copy how the site looks. They cannot copy how it works, get
 into it, or take what is in it. That is the realistic boundary, and it is
 the same one every website operates under.
 
+## Hiding the staff sign-in page
+
+Two optional controls, both set by a super admin on the Branding page under
+**Staff sign-in access**. Neither replaces the password and the lockout;
+they take the sign-in page out of sight so automated scanners never find it
+to attack.
+
+- **The header sign-in link is hidden by default.** The public site no
+  longer carries a "Login" link on every page. A super admin can turn it
+  back on with the checkbox if they want a visible way in.
+
+- **An access key turns the sign-in page into a 404.** Set a key (six to
+  sixty-four letters, digits, dashes or underscores; the page can suggest a
+  strong one) and `\/admin\/login.php` answers "not found" to anyone who does
+  not present the key. You reach it once at
+  `https:\/\/yourdomain\/admin\/login.php?k=YOURKEY`, which the page shows you
+  to bookmark; after that a cookie remembers it so you visit the plain
+  address normally. A wrong key is treated exactly like no key. The
+  password-reset email carries the key automatically, so a locked-out admin
+  is not stranded.
+
+  **If you lose the key**, clear the Access key field from any signed-in
+  session, or empty the `admin_access_key` row in the `settings` table
+  through phpMyAdmin, and the sign-in page is reachable normally again.
+
+With no key set (the default), the sign-in page behaves exactly as it
+always did, so a fresh install is never locked out.
+
+## The admin menu
+
+The sidebar is grouped into labelled sections (Shipments, Shipment setup,
+Site content, Site controls, Administration, Your account) so a long list
+of links reads as a few short ones.
+
+Controls only a super admin can reach are drawn in **amber with a SUPER
+badge**, and the pages behind them carry a matching amber marker. A regular
+admin never sees those links at all, so the colour is there to tell a super
+admin at a glance which controls a regular member of staff does not have:
+the site's colours and templates, live chat, the tracking-page switches,
+the admin accounts, the activity log and the system health page. The site
+on/off switches all live together on the **Tracking Page & Switches** entry
+under Site controls.
+
 ## Login security
 
 The login form (`/admin/login.php`) is hardened against bots and brute

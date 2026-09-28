@@ -230,6 +230,33 @@ function logo_is_wide(): bool
  * silently means someone types a company name, sees no change on the site,
  * and has no way of knowing why.
  */
+/** The secret that unlocks the sign-in page, or '' when the gate is off. */
+function admin_access_key(): string
+{
+    return trim(get_setting('admin_access_key', ''));
+}
+
+/** True if the public header should show a sign-in link. Off by default. */
+function header_shows_login(): bool
+{
+    return get_setting('header_show_login', '0') === '1';
+}
+
+/**
+ * The address of the sign-in page, carrying the access key when one is
+ * set, so any link the owner chooses to expose actually works. Used by the
+ * header link and by the password-reset email.
+ */
+function admin_login_url(bool $absolute = false): string
+{
+    $url = '/admin/login.php';
+    $key = admin_access_key();
+    if ($key !== '') {
+        $url .= '?k=' . rawurlencode($key);
+    }
+    return $absolute ? get_site_url() . $url : $url;
+}
+
 function header_shows_title(): bool
 {
     return get_setting('header_show_title', '1') === '1';

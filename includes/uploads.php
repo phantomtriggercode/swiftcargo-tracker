@@ -42,19 +42,43 @@ function handle_image_upload(string $fieldName, string $filenamePrefix, int $max
         // any of them rather than trying to sanitize, since this is admin
         // upload input that ends up served back to any visitor who opens the
         // logo's own URL.
+        // An SVG really is a program: markup, CSS and script in one file,
+        // rendered as a document when opened at its own URL. This rejects
+        // the ways it can carry script. It is a blocklist, so it is the
+        // first of two defences, not the only one: the uploads folder also
+        // serves every file under a locked-down Content-Security-Policy
+        // (see assets/images/uploads/.htaccess), so a crafted file that
+        // slips a pattern here still cannot run anything.
         $dangerousPatterns = [
             '/<\s*script/i',
-            '/\bon[a-z]+\s*=/i',
+            '/\bon[a-z]+\s*=/i',          // event handler attributes
             '/javascript\s*:/i',
             '/<\s*foreignobject/i',
             '/<\s*iframe/i',
             '/<\s*embed/i',
+            '/<\s*use\b/i',               // <use> can pull in external refs
+            '/<\s*set\b/i',               // <set attributeName="on...">
+            '/<\s*animate/i',              // <animate> onbegin/onend
+            '/@import/i',                   // CSS @import fetches a URL
             '/data\s*:\s*text\/html/i',
+            '/data\s*:\s*image\/svg/i',  // nested SVG data URI
+            '/&#x?\d+;?/',                 // numeric entities used to hide the above
         ];
         foreach ($dangerousPatterns as $pattern) {
             if (preg_match($pattern, $svgContents) === 1) {
-                return ['ok' => false, 'error' => 'SVG file rejected. It contains executable content (scripts or event handlers) that isn\'t allowed in an uploaded image.'];
+                return ['ok' => false, 'error' => 'SVG file rejected. It contains content (scripts, event handlers, external references or encoded markup) that isn\'t allowed in an uploaded image. Save it as a PNG instead.'];
             }
+        }
+
+        // It must actually be an SVG, with nothing before the root but a
+        // declaration or a comment, so a file cannot smuggle other markup
+        // in ahead of the <svg> and still be accepted as an image.
+        $trimmed = preg_replace('/^\xEF\xBB\xBF/', '', trim($svgContents));
+        $trimmed = preg_replace('/^<\?xml.*?\?>/is', '', (string) $trimmed);
+        $trimmed = preg_replace('/^<!DOCTYPE[^>]*>/is', '', trim((string) $trimmed));
+        $trimmed = preg_replace('/^(?:<!--.*?-->\s*)+/is', '', trim((string) $trimmed));
+        if (stripos(trim((string) $trimmed), '<svg') !== 0) {
+            return ['ok' => false, 'error' => 'That does not look like a plain SVG image. Save it as a PNG instead.'];
         }
     } elseif (@getimagesize($_FILES[$fieldName]['tmp_name']) === false) {
         return ['ok' => false, 'error' => 'That file does not look like a valid image.'];

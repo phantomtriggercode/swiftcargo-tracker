@@ -91,7 +91,14 @@ $bingVerification = seo_verification_token('seo_bing_verification');
     <div>Customer Service: <a href="tel:<?= h(preg_replace('/[^0-9+]/', '', get_setting('contact_phone', '+18005550199'))) ?>"><?= h(get_setting('contact_phone', '+1 (800) 555-0199')) ?></a></div>
     <div class="topbar-links">
       <a href="/contact.php">Support</a>
-      <a href="/admin/login.php">Login</a>
+      <?php // The staff sign-in link is hidden by default so the panel is
+            // not advertised on every public page; a super admin can turn
+            // it back on under Branding. When an access key is set the link
+            // carries it, so whoever the owner shows it to can actually get
+            // in. ?>
+      <?php if (header_shows_login()): ?>
+        <a href="<?= h(admin_login_url()) ?>">Staff Login</a>
+      <?php endif; ?>
     </div>
   </div>
 </div>

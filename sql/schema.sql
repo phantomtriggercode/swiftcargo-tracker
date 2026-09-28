@@ -606,7 +606,12 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 -- it wants. The company name itself is still used in the page title, in
 -- emails and on the waybill whatever these are set to.
 ('header_show_title', '1'),
-('header_show_tagline', '1');
+('header_show_tagline', '1'),
+-- How the staff sign-in page is reached (super admin, at Branding). The
+-- header link is hidden by default; an access key, when set, turns the
+-- sign-in page into a 404 for anyone who does not present it as ?k=KEY.
+('header_show_login', '0'),
+('admin_access_key', '');
 
 -- ---------------------------------------------------------------
 -- Site-wide color palettes (managed only by super admins, at

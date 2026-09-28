@@ -646,10 +646,49 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
 .admin-sidebar .logo { color: var(--white); margin-bottom: 30px; }
 .admin-sidebar .logo .word-cargo { color: var(--white); }
 .admin-sidebar nav a {
-  display: block; padding: 10px 12px; border-radius: 6px;
-  color: #d1d5db; font-weight: 600; font-size: 14px; margin-bottom: 4px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 9px 12px; border-radius: 6px;
+  color: #d1d5db; font-weight: 600; font-size: 14px; margin-bottom: 2px;
 }
 .admin-sidebar nav a:hover, .admin-sidebar nav a.active { background: rgba(255,255,255,0.08); color: var(--white); }
+
+/* Section headings group the menu so a long list of links reads as a few
+   short ones. Quiet by design: they label, they are not clickable. */
+.admin-sidebar .nav-section-title {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+  color: #6b7280; padding: 0 12px; margin: 18px 0 7px;
+}
+.admin-sidebar .nav-section-title:first-of-type { margin-top: 4px; }
+.admin-sidebar .nav-section-divider {
+  height: 1px; background: rgba(255,255,255,0.10); margin: 16px 8px 12px;
+}
+
+/* Super-admin-only links carry their own colour and a small badge, so a
+   super admin can see at a glance which controls a regular admin will
+   never have. Amber, distinct from the red used for the active item, and
+   from the greys of the ordinary links. Regular admins never see these
+   links at all, so the colour is information for the super admin, not
+   decoration. */
+.admin-sidebar nav a.nav-super { color: #fcd34d; }
+.admin-sidebar nav a.nav-super:hover,
+.admin-sidebar nav a.nav-super.active { background: rgba(252,211,77,0.14); color: #fde68a; }
+.admin-sidebar nav a.nav-super .nav-super-badge {
+  font-size: 8.5px; font-weight: 800; letter-spacing: 0.06em;
+  background: rgba(252,211,77,0.18); color: #fcd34d;
+  padding: 2px 5px; border-radius: 4px; flex: none;
+}
+.admin-sidebar nav a.nav-logout { color: #fca5a5; margin-top: 2px; }
+.admin-sidebar nav a.nav-logout:hover { background: rgba(248,113,113,0.14); color: #fecaca; }
+
+/* A card holding controls only a super admin can reach, so the same amber
+   cue carries over from the menu to the page. */
+.form-card.form-card--super { border-left: 3px solid #f59e0b; }
+.form-card.form-card--super > h3:first-child::after {
+  content: 'SUPER ADMIN';
+  font-size: 9px; font-weight: 800; letter-spacing: 0.06em; vertical-align: middle;
+  background: rgba(245,158,11,0.14); color: #b45309;
+  padding: 2px 6px; border-radius: 4px; margin-left: 8px;
+}
 .admin-main { padding: 30px 36px; background: var(--bg-soft); min-width: 0; }
 .admin-topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 26px; }
 .admin-topbar h1 { font-size: 22px; margin: 0; }

@@ -57,6 +57,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/admin/branding.php');
     }
 
+    if ($action === 'signin_access') {
+        if (!$__canManageDeployAlert) {
+            redirect('/admin/branding.php');
+        }
+
+        $showLogin = !empty($_POST['header_show_login']) ? '1' : '0';
+
+        // A key of letters, digits, dash and underscore, long enough to be
+        // unguessable. Blank turns the gate off, so the sign-in page is
+        // reachable normally again.
+        $rawKey = trim($_POST['admin_access_key'] ?? '');
+        if ($rawKey !== '' && !preg_match('/^[A-Za-z0-9_-]{6,64}$/', $rawKey)) {
+            flash_set('error', 'The access key must be 6 to 64 letters, digits, dashes or underscores, and nothing else.');
+            redirect('/admin/branding.php');
+        }
+
+        set_setting('header_show_login', $showLogin);
+        set_setting('admin_access_key', $rawKey);
+        log_admin_activity(
+            'Changed staff sign-in access',
+            'Header link ' . ($showLogin === '1' ? 'shown' : 'hidden')
+            . ', access key ' . ($rawKey === '' ? 'off' : 'set')
+        );
+        flash_set('success', $rawKey === ''
+            ? 'Sign-in access saved. The sign-in page is reachable at its normal address.'
+            : 'Sign-in access saved. Bookmark the sign-in link shown below: without its key the page now returns "not found".');
+        redirect('/admin/branding.php');
+    }
+
     $siteName = trim($_POST['site_name'] ?? '');
     if ($siteName === '') {
         $errors[] = 'Site name cannot be empty.';
@@ -326,7 +355,76 @@ include __DIR__ . '/includes/admin_header.php';
 </div>
 
 <?php if ($__canManageDeployAlert): ?>
-<div class="form-card" style="max-width:560px;margin-top:16px;">
+<div class="form-card form-card--super" style="max-width:560px;margin-top:16px;">
+  <h3 style="margin-top:0;">Staff sign-in access</h3>
+  <p style="margin-top:0;color:var(--muted);font-size:14px;">
+    Controls how the staff sign-in page is reached. The sign-in link is
+    hidden from the public site by default. Setting an access key removes
+    the page from view entirely: without the key it answers
+    <strong>"not found"</strong>, so automated scanners looking for a login
+    page never find one. The real protection is still the password and the
+    lockout; this just takes the door off the street.
+  </p>
+  <form method="post">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="signin_access">
+
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+        <input type="checkbox" name="header_show_login" value="1" <?= header_shows_login() ? 'checked' : '' ?>>
+        Show a "Staff Login" link in the header of the public site
+      </label>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        Off by default. With an access key set, the link carries the key so
+        it still works, which also means showing the link gives the key
+        away to anyone who reads the page source. Leave it off if you are
+        relying on the key for secrecy.
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label>Access key</label>
+      <input type="text" name="admin_access_key" id="admin_access_key"
+             value="<?= h(get_setting('admin_access_key', '')) ?>"
+             maxlength="64" autocomplete="off" spellcheck="false"
+             placeholder="Leave blank to keep the sign-in page open">
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        6 to 64 letters, digits, dashes or underscores.
+        <button type="button" id="gen-access-key" class="btn btn-outline btn-sm" style="margin-left:6px;">Suggest one</button>
+      </span>
+      <?php $__key = trim(get_setting('admin_access_key', '')); ?>
+      <?php if ($__key !== ''): ?>
+        <div class="alert" style="margin-top:10px;font-size:12.5px;background:var(--bg-soft);border:1px solid var(--border);color:var(--ink);">
+          <strong>Your sign-in link (bookmark it):</strong><br>
+          <code style="word-break:break-all;"><?= h(get_site_url() . '/admin/login.php?k=' . rawurlencode($__key)) ?></code><br>
+          <span style="color:var(--muted);">Anyone reaching <code>/admin/login.php</code> without the key sees a "not found" page. If you lose the key, clear this field from a signed-in session, or reset it in the database.</span>
+        </div>
+      <?php endif; ?>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">Save Sign-in Access</button>
+  </form>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('gen-access-key');
+    var field = document.getElementById('admin_access_key');
+    if (!btn || !field) return;
+    btn.addEventListener('click', function () {
+      var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+      var out = '';
+      var buf = new Uint32Array(24);
+      (window.crypto || window.msCrypto).getRandomValues(buf);
+      for (var i = 0; i < 24; i++) { out += chars[buf[i] % chars.length]; }
+      field.value = out;
+    });
+  })();
+</script>
+<?php endif; ?>
+
+<?php if ($__canManageDeployAlert): ?>
+<div class="form-card form-card--super" style="max-width:560px;margin-top:16px;">
   <h3 style="margin-top:0;">Go-Live Alert</h3>
   <p style="margin-top:0;color:var(--muted);font-size:14px;">
     Get an email the first time this site is visited on a new domain, useful if you

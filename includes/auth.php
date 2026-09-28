@@ -5,6 +5,98 @@
 
 ensure_session_started();
 
+// ---------------------------------------------------------------
+// Hiding the admin entrance.
+//
+// None of this replaces the real defences (rate limiting, lockout, strong
+// passwords, CSRF): it removes the sign-in page from view so automated
+// scanners that hammer /admin/login.php never find it in the first place.
+// Two independent, optional switches, both set at /admin/branding.php:
+//
+//   - the header sign-in link is off by default and a super admin can
+//     turn it back on;
+//   - an access key, when set, makes the sign-in and password-recovery
+//     pages answer 404 to anyone who does not present it, exactly as if
+//     the page did not exist.
+//
+// Both default to "open and hidden link", so a fresh install is never
+// locked out: with no key set, the pages behave normally.
+// ---------------------------------------------------------------
+
+/**
+ * The value stored in the gate cookie: an HMAC of the key rather than the
+ * key itself, so the raw secret never sits in a cookie, and so the cookie
+ * from one key is worthless once the key is changed. Keyed on the app's own
+ * salt (the default admin password hash constant is not available here, so
+ * the key is its own HMAC key, which is enough: the cookie only has to be
+ * unguessable and to change when the key changes).
+ */
+function admin_gate_cookie_value(string $key): string
+{
+    return hash_hmac('sha256', 'admin-gate', $key);
+}
+
+/**
+ * Enforces the access-key gate. Call at the very top of every page that is
+ * a way in: the sign-in page and the two password-recovery pages.
+ *
+ * With no key set, returns immediately. With a key set, the visitor must
+ * present it once as ?k=KEY (which is then remembered in a cookie so it is
+ * not needed on every click); anyone who has not is shown the ordinary 404
+ * page and the request ends there, so a scanner cannot tell the page from
+ * one that was never there. An already-signed-in admin is never gated.
+ */
+function enforce_admin_gate(): void
+{
+    $key = admin_access_key();
+    if ($key === '' || admin_logged_in()) {
+        return;
+    }
+
+    $cookieName = 'agk';
+    $expected = admin_gate_cookie_value($key);
+
+    // Presenting the key in the URL: check it in constant time, remember
+    // it, then send the visitor to the clean URL so the key does not sit
+    // in the address bar, browser history or the Referer of the next click.
+    $supplied = (string) ($_GET['k'] ?? '');
+    if ($supplied !== '' && hash_equals($key, $supplied)) {
+        setcookie($cookieName, $expected, [
+            'expires'  => time() + 86400 * 30,
+            'path'     => '/admin/',
+            'secure'   => is_https_for_cookie(),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        // Drop only the key from the address, keeping any other
+        // parameter (the reset-password token, for one), so presenting the
+        // key never loses the rest of the request.
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/admin/login.php');
+        $path = strtok($uri, '?');
+        $rest = [];
+        parse_str((string) parse_url($uri, PHP_URL_QUERY), $rest);
+        unset($rest['k']);
+        $clean = ($path ?: '/admin/login.php') . ($rest ? '?' . http_build_query($rest) : '');
+        redirect($clean);
+    }
+
+    // Returning with the remembered cookie.
+    if (hash_equals($expected, (string) ($_COOKIE[$cookieName] ?? ''))) {
+        return;
+    }
+
+    // No key, no cookie: this page does not exist, as far as anyone can tell.
+    http_response_code(404);
+    if (is_file(__DIR__ . '/../404.php')) {
+        // The 404.php page renders the site's own not-found screen. It reads
+        // no request input that matters here, so including it is safe.
+        include __DIR__ . '/../404.php';
+    } else {
+        echo 'Not Found';
+    }
+    exit;
+}
+
 function admin_logged_in(): bool
 {
     return !empty($_SESSION['admin_id']);
@@ -98,7 +190,14 @@ function require_admin_base(): void
         // dashboard, otherwise a failed save on some other page looks
         // like it silently did nothing instead of clearly failing.
         // REQUEST_URI (not SCRIPT_NAME) so query params like ?id=5 survive.
-        $current = $_SERVER['REQUEST_URI'] ?? '/admin/dashboard.php';
+        // Kept to a single leading slash and stripped of any control
+        // character, so the value the browser sent can never steer the
+        // redirect off this site or split the Location header.
+        $current = (string) ($_SERVER['REQUEST_URI'] ?? '/admin/dashboard.php');
+        $current = preg_replace('/[\x00-\x1F\x7F]/', '', $current);
+        if ($current === '' || $current[0] !== '/' || str_starts_with($current, '//')) {
+            $current = '/admin/dashboard.php';
+        }
         redirect($current);
     }
 
