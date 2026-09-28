@@ -37,7 +37,7 @@ include __DIR__ . '/includes/header.php';
       <button type="submit" class="btn btn-primary">Track</button>
     </form>
     <div class="demo-hint">
-      Need a quote instead? <a href="/request-shipment.php" style="color:var(--brand-red);">Request a shipment</a>
+      <?php if (request_shipment_enabled()): ?>Need a quote instead? <a href="/request-shipment.php" style="color:var(--brand-red);">Request a shipment</a><?php endif; ?>
     </div>
   </div>
 </div>

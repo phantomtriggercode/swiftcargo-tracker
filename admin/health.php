@@ -199,6 +199,7 @@ $settingsNeeded = [
     'header_show_title'     => 'sql/updates/005_header_title_tagline_switches.sql',
     'header_show_tagline'   => 'sql/updates/005_header_title_tagline_switches.sql',
     'header_show_login'     => 'sql/updates/006_signin_access.sql',
+    'request_shipment_enabled' => 'sql/updates/007_request_parties_and_toggle.sql',
 ];
 try {
     $have = db()->query('SELECT setting_key FROM settings')->fetchAll(PDO::FETCH_COLUMN);

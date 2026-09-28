@@ -44,7 +44,9 @@ $submitted = false;
 $referenceId = null;
 $finalEstimate = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$requestEnabled = request_shipment_enabled();
+
+if ($requestEnabled && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // A booking request is a considered thing to send. More than a few an
     // hour from one address is a script filling the table with rubbish.
     rate_limit_enforce('shipment_request', 6, 3600, '', 3600);
@@ -52,6 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
+    $senderName = trim($_POST['sender_name'] ?? '');
+    $senderPhone = trim($_POST['sender_phone'] ?? '');
+    $senderEmail = trim($_POST['sender_email'] ?? '');
+    $senderAddress = trim($_POST['sender_address'] ?? '');
+    $receiverName = trim($_POST['receiver_name'] ?? '');
+    $receiverPhone = trim($_POST['receiver_phone'] ?? '');
+    $receiverEmail = trim($_POST['receiver_email'] ?? '');
+    $receiverAddress = trim($_POST['receiver_address'] ?? '');
     $shipFrom = trim($_POST['ship_from'] ?? '');
     $shipTo = trim($_POST['ship_to'] ?? '');
     $packageDescription = trim($_POST['package_description'] ?? '');
@@ -88,6 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!in_array($serviceType, $serviceTypes, true)) $errors[] = 'Please choose a service type.';
         if (!in_array($pickupMethod, $pickupMethods, true)) $errors[] = 'Please choose a pickup method.';
         if ($insured && $insuranceValue <= 0) $errors[] = 'Enter a declared value to add insurance.';
+        // Sender and receiver are optional, but if an email is typed it has
+        // to be a real one.
+        if ($senderEmail !== '' && !filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) $errors[] = 'The sender email does not look valid.';
+        if ($receiverEmail !== '' && !filter_var($receiverEmail, FILTER_VALIDATE_EMAIL)) $errors[] = 'The receiver email does not look valid.';
     }
 
     if (!$errors && !$submitted) {
@@ -95,14 +109,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt = db()->prepare('
             INSERT INTO shipment_requests (
-              full_name, email, phone, ship_from, ship_to, package_description,
+              full_name, email, phone,
+              sender_name, sender_phone, sender_email, sender_address,
+              receiver_name, receiver_phone, receiver_email, receiver_address,
+              ship_from, ship_to, package_description,
               weight_kg, dimensions, packaging_type, shipping_method, land_method,
               service_type, insured, insurance_value, preferred_date, preferred_time,
               pickup_method, estimated_cost
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
         $stmt->execute([
-            $fullName, $email, $phone ?: null, $shipFrom, $shipTo, $packageDescription,
+            $fullName, $email, $phone ?: null,
+            $senderName ?: null, $senderPhone ?: null, $senderEmail ?: null, $senderAddress ?: null,
+            $receiverName ?: null, $receiverPhone ?: null, $receiverEmail ?: null, $receiverAddress ?: null,
+            $shipFrom, $shipTo, $packageDescription,
             $weightKg, $dimensions ?: null, $packagingType, $shippingMethod, $landMethod,
             $serviceType, $insured ? 1 : 0, $insured ? $insuranceValue : null, $preferredDate, $preferredTime,
             $pickupMethod, $finalEstimate,
@@ -172,7 +192,16 @@ include __DIR__ . '/includes/header.php';
 <section class="section">
   <div class="container" style="max-width:760px;">
 
-    <?php if ($submitted): ?>
+    <?php if (!$requestEnabled): ?>
+      <div class="form-card" style="max-width:none;text-align:center;">
+        <h3 style="margin-top:0;">Online booking is closed right now</h3>
+        <p style="color:var(--muted);font-size:15px;line-height:1.7;margin:0 0 20px;">
+          We are not taking shipment requests through the website at the
+          moment. Please reach us directly and we will be glad to help.
+        </p>
+        <a href="/contact.php" class="btn btn-primary">Contact Us</a>
+      </div>
+    <?php elseif ($submitted): ?>
       <div class="alert alert-success">
         Thanks, <?= h($fullName) ?>! Your shipment request <strong>#REQ-<?= str_pad((string) $referenceId, 5, '0', STR_PAD_LEFT) ?></strong>
         has been received. Estimated cost: <strong>$<?= number_format($finalEstimate, 2) ?></strong>.
@@ -196,16 +225,21 @@ include __DIR__ . '/includes/header.php';
         <div class="wizard-step-line"></div>
         <div class="wizard-step-node" data-step="2">
           <div class="wizard-step-circle">2</div>
-          <div class="wizard-step-label">Package Details</div>
+          <div class="wizard-step-label">Sender &amp; Receiver</div>
         </div>
         <div class="wizard-step-line"></div>
         <div class="wizard-step-node" data-step="3">
           <div class="wizard-step-circle">3</div>
-          <div class="wizard-step-label">Service Options</div>
+          <div class="wizard-step-label">Package Details</div>
         </div>
         <div class="wizard-step-line"></div>
         <div class="wizard-step-node" data-step="4">
           <div class="wizard-step-circle">4</div>
+          <div class="wizard-step-label">Service Options</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step-node" data-step="5">
+          <div class="wizard-step-circle">5</div>
           <div class="wizard-step-label">Review &amp; Submit</div>
         </div>
       </div>
@@ -274,12 +308,66 @@ include __DIR__ . '/includes/header.php';
 
             <div class="wizard-nav">
               <span></span>
+              <button type="button" class="btn btn-primary wizard-next">Next: Sender &amp; Receiver &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Sender & Receiver (optional) -->
+          <div class="wizard-panel" data-step="2" hidden>
+            <h3 style="margin-top:0;">Sender &amp; Receiver <span style="font-weight:normal;color:var(--muted);font-size:14px;">(optional)</span></h3>
+            <p style="margin:0 0 16px;color:var(--muted);font-size:13px;">
+              Add who the shipment is from and who it is going to. You can
+              leave any of these blank and our team will confirm them with you.
+            </p>
+
+            <h3 style="margin-top:0;">Sender</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Sender Name</label>
+                <input type="text" id="sender_name" name="sender_name" value="<?= h($_POST['sender_name'] ?? '') ?>">
+              </div>
+              <div class="form-group">
+                <label>Sender Phone</label>
+                <input type="text" id="sender_phone" name="sender_phone" value="<?= h($_POST['sender_phone'] ?? '') ?>" placeholder="e.g. +1 800 555 0199">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Sender Email</label>
+              <input type="email" id="sender_email" name="sender_email" value="<?= h($_POST['sender_email'] ?? '') ?>">
+            </div>
+            <div class="form-group">
+              <label>Sender Address</label>
+              <input type="text" id="sender_address" name="sender_address" value="<?= h($_POST['sender_address'] ?? '') ?>" placeholder="Street, city, country">
+            </div>
+
+            <h3>Receiver</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Receiver Name</label>
+                <input type="text" id="receiver_name" name="receiver_name" value="<?= h($_POST['receiver_name'] ?? '') ?>">
+              </div>
+              <div class="form-group">
+                <label>Receiver Phone</label>
+                <input type="text" id="receiver_phone" name="receiver_phone" value="<?= h($_POST['receiver_phone'] ?? '') ?>" placeholder="e.g. +44 20 7946 0958">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Receiver Email</label>
+              <input type="email" id="receiver_email" name="receiver_email" value="<?= h($_POST['receiver_email'] ?? '') ?>">
+            </div>
+            <div class="form-group">
+              <label>Receiver Address</label>
+              <input type="text" id="receiver_address" name="receiver_address" value="<?= h($_POST['receiver_address'] ?? '') ?>" placeholder="Street, city, country">
+            </div>
+
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-outline wizard-back">&larr; Back</button>
               <button type="button" class="btn btn-primary wizard-next">Next: Package Details &rarr;</button>
             </div>
           </div>
 
-          <!-- Step 2: Package Details -->
-          <div class="wizard-panel" data-step="2" hidden>
+          <!-- Step 3: Package Details -->
+          <div class="wizard-panel" data-step="3" hidden>
             <h3 style="margin-top:0;">What You're Shipping</h3>
             <div class="form-group">
               <label>Package Description</label>
@@ -310,8 +398,8 @@ include __DIR__ . '/includes/header.php';
             </div>
           </div>
 
-          <!-- Step 3: Service Options -->
-          <div class="wizard-panel" data-step="3" hidden>
+          <!-- Step 4: Service Options -->
+          <div class="wizard-panel" data-step="4" hidden>
             <h3 style="margin-top:0;">How You Want It Shipped</h3>
             <div class="form-row">
               <div class="form-group">
@@ -359,8 +447,8 @@ include __DIR__ . '/includes/header.php';
             </div>
           </div>
 
-          <!-- Step 4: Review & Submit -->
-          <div class="wizard-panel" data-step="4" hidden>
+          <!-- Step 5: Review & Submit -->
+          <div class="wizard-panel" data-step="5" hidden>
             <h3 style="margin-top:0;">Review Your Request</h3>
             <div class="review-grid" id="review-summary"></div>
 

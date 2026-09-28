@@ -25,6 +25,11 @@ if (!seo_site_hidden()) {
         // A page marked "keep out of search results" is left out entirely.
         // Listing it here and then telling the crawler not to index it
         // wastes its visit and is reported back as an error.
+        // The Ship Now page is dropped from the sitemap while the request
+        // form is switched off, since the page is unavailable then.
+        if ($key === 'request' && !request_shipment_enabled()) {
+            continue;
+        }
         $record = get_seo_page($key);
         if ((int) $record['noindex'] === 1) {
             continue;

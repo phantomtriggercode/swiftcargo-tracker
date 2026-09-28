@@ -92,7 +92,7 @@ include __DIR__ . '/includes/header.php';
 
 <section class="section">
   <div class="container">
-    <div class="tracking-layout" style="grid-template-columns: 0.9fr 1.1fr;">
+    <div class="tracking-layout tracking-layout--contact">
       <div class="timeline">
         <h3>Get in Touch</h3>
         <div class="shipment-meta" style="grid-template-columns:1fr;">

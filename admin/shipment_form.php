@@ -409,21 +409,21 @@ include __DIR__ . '/includes/admin_header.php';
     <div class="form-row">
       <div class="form-group">
         <label>Sender Name</label>
-        <input type="text" name="sender_name" value="<?= h($shipment['sender_name'] ?? '') ?>" required>
+        <input type="text" name="sender_name" value="<?= h($shipment['sender_name'] ?? ($prefill['sender_name'] ?? '')) ?>" required>
       </div>
       <div class="form-group">
         <label>Sender Phone</label>
-        <input type="text" name="sender_phone" value="<?= h($shipment['sender_phone'] ?? '') ?>" placeholder="e.g. +1 800 555 0199">
+        <input type="text" name="sender_phone" value="<?= h($shipment['sender_phone'] ?? ($prefill['sender_phone'] ?? '')) ?>" placeholder="e.g. +1 800 555 0199">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>Sender Email</label>
-        <input type="email" name="sender_email" value="<?= h($shipment['sender_email'] ?? '') ?>" placeholder="optional">
+        <input type="email" name="sender_email" value="<?= h($shipment['sender_email'] ?? ($prefill['sender_email'] ?? '')) ?>" placeholder="optional">
       </div>
       <div class="form-group">
         <label>Sender Address</label>
-        <input type="text" name="sender_address" value="<?= h($shipment['sender_address'] ?? ($prefill['ship_from'] ?? '')) ?>">
+        <input type="text" name="sender_address" value="<?= h($shipment['sender_address'] ?? ($prefill['sender_address'] ?? ($prefill['ship_from'] ?? ''))) ?>">
       </div>
     </div>
 
@@ -431,21 +431,21 @@ include __DIR__ . '/includes/admin_header.php';
     <div class="form-row">
       <div class="form-group">
         <label>Receiver Name</label>
-        <input type="text" name="receiver_name" value="<?= h($shipment['receiver_name'] ?? ($prefill['full_name'] ?? '')) ?>" required>
+        <input type="text" name="receiver_name" value="<?= h($shipment['receiver_name'] ?? ($prefill['receiver_name'] ?? ($prefill['full_name'] ?? ''))) ?>" required>
       </div>
       <div class="form-group">
         <label>Receiver Phone</label>
-        <input type="text" name="receiver_phone" value="<?= h($shipment['receiver_phone'] ?? ($prefill['phone'] ?? '')) ?>" placeholder="e.g. +44 20 7946 0958">
+        <input type="text" name="receiver_phone" value="<?= h($shipment['receiver_phone'] ?? ($prefill['receiver_phone'] ?? ($prefill['phone'] ?? ''))) ?>" placeholder="e.g. +44 20 7946 0958">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>Receiver Email (alerts sent here)</label>
-        <input type="email" name="receiver_email" value="<?= h($shipment['receiver_email'] ?? ($prefill['email'] ?? '')) ?>" required>
+        <input type="email" name="receiver_email" value="<?= h($shipment['receiver_email'] ?? ($prefill['receiver_email'] ?? ($prefill['email'] ?? ''))) ?>" required>
       </div>
       <div class="form-group">
         <label>Receiver Address</label>
-        <input type="text" name="receiver_address" value="<?= h($shipment['receiver_address'] ?? ($prefill['ship_to'] ?? '')) ?>">
+        <input type="text" name="receiver_address" value="<?= h($shipment['receiver_address'] ?? ($prefill['receiver_address'] ?? ($prefill['ship_to'] ?? ''))) ?>">
       </div>
     </div>
 

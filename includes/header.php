@@ -143,7 +143,7 @@ $bingVerification = seo_verification_token('seo_bing_verification');
     <nav class="main-nav">
       <a href="/index.php" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
       <a href="/track.php" class="<?= $activeNav === 'track' ? 'active' : '' ?>">Track Shipment</a>
-      <a href="/request-shipment.php" class="<?= $activeNav === 'request' ? 'active' : '' ?>">Ship Now</a>
+      <?php if (request_shipment_enabled()): ?><a href="/request-shipment.php" class="<?= $activeNav === 'request' ? 'active' : '' ?>">Ship Now</a><?php endif; ?>
       <a href="/services.php" class="<?= $activeNav === 'services' ? 'active' : '' ?>">Services</a>
       <a href="/countries.php" class="<?= $activeNav === 'countries' ? 'active' : '' ?>">Countries</a>
       <a href="/about.php" class="<?= $activeNav === 'about' ? 'active' : '' ?>">About</a>
@@ -158,7 +158,7 @@ $bingVerification = seo_verification_token('seo_bing_verification');
   <nav class="mobile-nav-dropdown" id="mobile-nav-dropdown" aria-label="Mobile navigation">
     <a href="/index.php" class="mobile-nav-link <?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
     <a href="/track.php" class="mobile-nav-link <?= $activeNav === 'track' ? 'active' : '' ?>">Track Shipment</a>
-    <a href="/request-shipment.php" class="mobile-nav-link <?= $activeNav === 'request' ? 'active' : '' ?>">Ship Now</a>
+    <?php if (request_shipment_enabled()): ?><a href="/request-shipment.php" class="mobile-nav-link <?= $activeNav === 'request' ? 'active' : '' ?>">Ship Now</a><?php endif; ?>
     <a href="/services.php" class="mobile-nav-link <?= $activeNav === 'services' ? 'active' : '' ?>">Services</a>
     <a href="/countries.php" class="mobile-nav-link <?= $activeNav === 'countries' ? 'active' : '' ?>">Countries</a>
     <a href="/about.php" class="mobile-nav-link <?= $activeNav === 'about' ? 'active' : '' ?>">About</a>

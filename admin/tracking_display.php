@@ -18,12 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save'
     $history   = !empty($_POST['tracking_show_history']) ? '1' : '0';
     $insurance = !empty($_POST['insurance_enabled']) ? '1' : '0';
     $coords    = !empty($_POST['collect_coordinates']) ? '1' : '0';
+    $shipNow   = !empty($_POST['request_shipment_enabled']) ? '1' : '0';
 
     set_setting('live_map_enabled', $map);
     set_setting('tracking_show_logo', $logo);
     set_setting('tracking_show_history', $history);
     set_setting('insurance_enabled', $insurance);
     set_setting('collect_coordinates', $coords);
+    set_setting('request_shipment_enabled', $shipNow);
 
     log_admin_activity(
         'Changed tracking page display',
@@ -32,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save'
         . ', history ' . ($history === '1' ? 'on' : 'off')
         . ', insurance ' . ($insurance === '1' ? 'on' : 'off')
         . ', collect coordinates ' . ($coords === '1' ? 'on' : 'off')
+        . ', Ship Now ' . ($shipNow === '1' ? 'on' : 'off')
     );
     flash_set('success', 'Tracking page settings saved.');
     redirect('/admin/tracking_display.php');
@@ -42,6 +45,7 @@ $logoOn      = tracking_shows_logo();
 $historyOn   = tracking_shows_history();
 $insuranceOn = insurance_enabled();
 $coordsOn    = get_setting('collect_coordinates', '0') === '1';
+$shipNowOn   = request_shipment_enabled();
 
 $activeAdminNav = 'tracking_display';
 $pageTitle = 'Tracking Page';
@@ -145,6 +149,20 @@ include __DIR__ . '/includes/admin_header.php';
       </span>
     </div>
 
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+        <input type="checkbox" name="request_shipment_enabled" value="1" <?= $shipNowOn ? 'checked' : '' ?>>
+        Let visitors request a shipment online ("Ship Now")
+      </label>
+      <span style="display:block;font-size:12px;color:var(--muted);margin-top:6px;">
+        With this off, the "Ship Now" and "Request a Shipment" links disappear
+        from the menu, the footer and the homepage, and the request page itself
+        shows a short "contact us" message instead of the form. Turn it off if
+        you would rather take bookings by phone or email only. Existing requests
+        already saved are untouched.
+      </span>
+    </div>
+
     <button type="submit" class="btn btn-primary btn-block">Save Settings</button>
   </form>
 </div>
@@ -157,6 +175,7 @@ include __DIR__ . '/includes/admin_header.php';
     <li>Staff are <strong><?= coordinates_collected() ? 'asked' : 'not asked' ?></strong> for coordinates when adding or editing a shipment.</li>
     <li>Full update history on the tracking page is <strong><?= $historyOn ? 'ON' : 'OFF' ?></strong>.</li>
     <li>Shipment insurance is <strong><?= $insuranceOn ? 'OFFERED' : 'NOT OFFERED' ?></strong>.</li>
+    <li>Online "Ship Now" requests are <strong><?= $shipNowOn ? 'ON' : 'OFF' ?></strong>.</li>
     <li>Waybill and label PDFs are printable from the admin panel only.</li>
   </ul>
 </div>

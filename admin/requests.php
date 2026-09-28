@@ -57,7 +57,25 @@ include __DIR__ . '/includes/admin_header.php';
           <span style="color:var(--muted);font-size:12px;"><?= h(date('M j, g:i A', strtotime($r['created_at']))) ?></span>
         </td>
         <td data-label="From / To" style="font-size:13px;"><?= h($r['ship_from']) ?> &rarr; <?= h($r['ship_to']) ?></td>
-        <td data-label="Contact"><?= h($r['full_name']) ?><br><span style="color:var(--muted);font-size:12.5px;"><?= h($r['email']) ?></span></td>
+        <td data-label="Contact" style="font-size:13px;">
+          <?= h($r['full_name']) ?><br><span style="color:var(--muted);font-size:12.5px;"><?= h($r['email']) ?><?= $r['phone'] ? ' &middot; ' . h($r['phone']) : '' ?></span>
+          <?php if (!empty($r['sender_name']) || !empty($r['sender_email']) || !empty($r['sender_address'])): ?>
+            <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+              <strong style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Sender</strong><br>
+              <?= h(trim(($r['sender_name'] ?? '') . ($r['sender_phone'] ? ' &middot; ' . $r['sender_phone'] : ''))) ?>
+              <?php if (!empty($r['sender_email'])): ?><br><span style="color:var(--muted);"><?= h($r['sender_email']) ?></span><?php endif; ?>
+              <?php if (!empty($r['sender_address'])): ?><br><span style="color:var(--muted);"><?= h($r['sender_address']) ?></span><?php endif; ?>
+            </div>
+          <?php endif; ?>
+          <?php if (!empty($r['receiver_name']) || !empty($r['receiver_email']) || !empty($r['receiver_address'])): ?>
+            <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+              <strong style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Receiver</strong><br>
+              <?= h(trim(($r['receiver_name'] ?? '') . ($r['receiver_phone'] ? ' &middot; ' . $r['receiver_phone'] : ''))) ?>
+              <?php if (!empty($r['receiver_email'])): ?><br><span style="color:var(--muted);"><?= h($r['receiver_email']) ?></span><?php endif; ?>
+              <?php if (!empty($r['receiver_address'])): ?><br><span style="color:var(--muted);"><?= h($r['receiver_address']) ?></span><?php endif; ?>
+            </div>
+          <?php endif; ?>
+        </td>
         <td data-label="Details" style="font-size:13px;">
           <?= h($r['package_description']) ?><br>
           <span style="color:var(--muted);"><?= h($r['weight_kg']) ?>kg &middot; <?= h($r['packaging_type']) ?> &middot; <?= h($r['shipping_method']) ?><?= $r['land_method'] ? ' (' . h($r['land_method']) . ')' : '' ?> &middot; <?= h($r['service_type']) ?></span>

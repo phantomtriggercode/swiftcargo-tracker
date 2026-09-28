@@ -237,6 +237,12 @@ function admin_access_key(): string
 }
 
 /** True if the public header should show a sign-in link. Off by default. */
+/** True if the public "Ship Now" request form is switched on. */
+function request_shipment_enabled(): bool
+{
+    return get_setting('request_shipment_enabled', '1') === '1';
+}
+
 function header_shows_login(): bool
 {
     return get_setting('header_show_login', '0') === '1';

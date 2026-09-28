@@ -1404,6 +1404,22 @@ familiar with your jurisdiction before relying on it for a real business.
 
 ## Public shipment requests & the shipping calculator
 
+**Sender and receiver details.** The request wizard has a *Sender & Receiver*
+step where a visitor can add who the shipment is from and who it is going to:
+name, phone, email and address for each. All of it is optional. Whatever they
+fill in shows on the request in the admin panel and is carried across when you
+convert the request into a shipment.
+
+**Turning it off.** A super admin can switch the whole online request form off
+under **Tracking Page & Switches** (the "Let visitors request a shipment
+online" box). With it off, every "Ship Now" and "Request a Shipment" link
+disappears from the menu, the footer and the homepage, the page itself shows a
+short "contact us" message instead of the form, and it drops out of the
+sitemap. Requests already saved are untouched. Turn it back on and everything
+returns.
+
+
+
 `/request-shipment.php` is a guided 4-step wizard (Route & Schedule → Package
 Details → Service Options → Review & Submit) where any visitor can request a
 shipment: what they're shipping, weight/dimensions, packaging type, shipping

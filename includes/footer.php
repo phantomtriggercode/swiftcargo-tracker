@@ -31,7 +31,7 @@
         <h4>Support</h4>
         <ul>
           <li><a href="/track.php">Track a Shipment</a></li>
-          <li><a href="/request-shipment.php">Request a Shipment</a></li>
+          <?php if (request_shipment_enabled()): ?><li><a href="/request-shipment.php">Request a Shipment</a></li><?php endif; ?>
           <li><a href="/contact.php">Help Center</a></li>
           <li><a href="/admin/login.php">Login</a></li>
         </ul>

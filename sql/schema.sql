@@ -280,6 +280,80 @@ SET @sql := (SELECT IF(
   'SELECT "shipments.status is already a free text column"'));
 PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
 
+-- Sender and receiver contact details on public shipment requests, added
+-- by a later version.
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests' AND COLUMN_NAME = 'sender_name') = 0,
+  'ALTER TABLE shipment_requests ADD COLUMN sender_name VARCHAR(150) NULL DEFAULT NULL AFTER phone',
+  'SELECT "shipment_requests.sender_name is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests' AND COLUMN_NAME = 'sender_phone') = 0,
+  'ALTER TABLE shipment_requests ADD COLUMN sender_phone VARCHAR(40) NULL DEFAULT NULL AFTER sender_name',
+  'SELECT "shipment_requests.sender_phone is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests' AND COLUMN_NAME = 'sender_email') = 0,
+  'ALTER TABLE shipment_requests ADD COLUMN sender_email VARCHAR(190) NULL DEFAULT NULL AFTER sender_phone',
+  'SELECT "shipment_requests.sender_email is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests' AND COLUMN_NAME = 'sender_address') = 0,
+  'ALTER TABLE shipment_requests ADD COLUMN sender_address VARCHAR(255) NULL DEFAULT NULL AFTER sender_email',
+  'SELECT "shipment_requests.sender_address is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests' AND COLUMN_NAME = 'receiver_name') = 0,
+  'ALTER TABLE shipment_requests ADD COLUMN receiver_name VARCHAR(150) NULL DEFAULT NULL AFTER sender_address',
+  'SELECT "shipment_requests.receiver_name is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests' AND COLUMN_NAME = 'receiver_phone') = 0,
+  'ALTER TABLE shipment_requests ADD COLUMN receiver_phone VARCHAR(40) NULL DEFAULT NULL AFTER receiver_name',
+  'SELECT "shipment_requests.receiver_phone is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests' AND COLUMN_NAME = 'receiver_email') = 0,
+  'ALTER TABLE shipment_requests ADD COLUMN receiver_email VARCHAR(190) NULL DEFAULT NULL AFTER receiver_phone',
+  'SELECT "shipment_requests.receiver_email is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipment_requests' AND COLUMN_NAME = 'receiver_address') = 0,
+  'ALTER TABLE shipment_requests ADD COLUMN receiver_address VARCHAR(255) NULL DEFAULT NULL AFTER receiver_email',
+  'SELECT "shipment_requests.receiver_address is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
 -- Coordinates became optional when the live map became something a super
 -- admin can switch off. While it is off there is nothing sensible to
 -- store, and these columns used to be NOT NULL, which left only 0,0 as a
@@ -611,7 +685,10 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 -- header link is hidden by default; an access key, when set, turns the
 -- sign-in page into a 404 for anyone who does not present it as ?k=KEY.
 ('header_show_login', '0'),
-('admin_access_key', '');
+('admin_access_key', ''),
+-- The public "Ship Now" request form, on by default. Off hides every
+-- "Ship Now" / "Request a Shipment" link and makes the page unavailable.
+('request_shipment_enabled', '1');
 
 -- ---------------------------------------------------------------
 -- Site-wide color palettes (managed only by super admins, at
@@ -713,6 +790,16 @@ CREATE TABLE IF NOT EXISTS shipment_requests (
   full_name VARCHAR(150) NOT NULL,
   email VARCHAR(190) NOT NULL,
   phone VARCHAR(40) DEFAULT NULL,
+  -- Optional sender/receiver contact details a visitor may add, mirroring
+  -- the shipment form in the admin panel.
+  sender_name VARCHAR(150) DEFAULT NULL,
+  sender_phone VARCHAR(40) DEFAULT NULL,
+  sender_email VARCHAR(190) DEFAULT NULL,
+  sender_address VARCHAR(255) DEFAULT NULL,
+  receiver_name VARCHAR(150) DEFAULT NULL,
+  receiver_phone VARCHAR(40) DEFAULT NULL,
+  receiver_email VARCHAR(190) DEFAULT NULL,
+  receiver_address VARCHAR(255) DEFAULT NULL,
   ship_from VARCHAR(255) NOT NULL,
   ship_to VARCHAR(255) NOT NULL,
   package_description VARCHAR(255) NOT NULL,
