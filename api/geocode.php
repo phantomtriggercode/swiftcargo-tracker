@@ -20,7 +20,17 @@ require_admin();
 
 header('Content-Type: application/json');
 
+// Every call here becomes an outbound request to a free service that asks
+// callers to stay under one request a second. This keeps a stuck browser
+// tab or a careless script from getting the whole site blocked there.
+rate_limit_enforce('geocode', 60, 300, 'admin:' . (int) ($_SESSION['admin_id'] ?? 0), 300);
+
 $q = trim($_GET['q'] ?? '');
+if (strlen($q) > 250) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'That address is too long to look up.']);
+    exit;
+}
 if ($q === '') {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'Missing address.']);

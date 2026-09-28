@@ -41,9 +41,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // filling every input does. Treat it exactly like a wrong
         // password: no hint that a trap was sprung.
         record_login_attempt($ip, $username, false);
+        login_failure_delay();
         $error = 'Invalid username or password.';
     } elseif (!verify_captcha($captchaAnswer)) {
         record_login_attempt($ip, $username, false);
+        login_failure_delay();
         $error = 'Incorrect answer to the security question below: please try again.';
     } else {
         $loginOk = attempt_admin_login($username, $password);
@@ -51,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($loginOk) {
             redirect('/admin/dashboard.php');
         }
+        login_failure_delay();
         $error = 'Invalid username or password.';
     }
 }

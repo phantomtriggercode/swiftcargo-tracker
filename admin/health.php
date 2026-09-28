@@ -124,6 +124,15 @@ $columnsNeeded = [
         'estimated_delivery_time' => 'sql/migrations/016_in_transit_status_and_delivery_time.sql',
     ],
 ];
+
+// Whole tables added by later versions. A missing one is not fatal, every
+// piece of code that touches these fails open, but the feature it powers
+// is quietly doing nothing, which is worth saying out loud.
+$tablesNeeded = [
+    'rate_limits'     => 'sql/migrations/019_security_and_seo.sql',
+    'security_events' => 'sql/migrations/019_security_and_seo.sql',
+    'seo_pages'       => 'sql/migrations/019_security_and_seo.sql',
+];
 $missingColumns = [];
 foreach ($columnsNeeded as $table => $columns) {
     foreach ($columns as $column => $file) {
@@ -142,6 +151,22 @@ foreach ($columnsNeeded as $table => $columns) {
         }
     }
 }
+foreach ($tablesNeeded as $table => $file) {
+    try {
+        $stmt = db()->prepare(
+            'SELECT COUNT(*) FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?'
+        );
+        $stmt->execute([$table]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            $missingColumns[$file][] = 'the ' . $table . ' table';
+        }
+    } catch (PDOException $e) {
+        // As above: a host that restricts information_schema means this
+        // page cannot confirm either way, not that anything is wrong.
+    }
+}
+
 if ($missingColumns) {
     $lines = [];
     foreach ($missingColumns as $file => $cols) {
@@ -168,6 +193,8 @@ $settingsNeeded = [
     'live_chat_enabled'     => 'sql/updates/002_live_chat_settings.sql',
     'live_chat_property_id' => 'sql/updates/002_live_chat_settings.sql',
     'live_chat_widget_id'   => 'sql/updates/002_live_chat_settings.sql',
+    'seo_noindex_site'      => 'sql/migrations/019_security_and_seo.sql',
+    'seo_google_verification' => 'sql/migrations/019_security_and_seo.sql',
 ];
 try {
     $have = db()->query('SELECT setting_key FROM settings')->fetchAll(PDO::FETCH_COLUMN);
@@ -195,6 +222,99 @@ try {
     }
 } catch (PDOException $e) {
     check('Settings rows', 'warn', 'Could not read the settings table.', '');
+}
+
+// The password the setup guide prints is public knowledge the moment this
+// site is online. An account still using it is not a warning, it is an open
+// door, so this is a failure rather than a caution.
+try {
+    $defaultHash = '$2y$12$HYDffKZi7ppAiampmKCVU.Fm8Fk/S4.vKv.dvwoUYPRyvoXs.l9G.';
+    $stmt = db()->prepare('SELECT username FROM admins WHERE password_hash = ? AND is_active = 1');
+    $stmt->execute([$defaultHash]);
+    $stillDefault = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    if ($stillDefault) {
+        check(
+            'Starter password changed',
+            'fail',
+            'Still signing in with the password from the setup guide: '
+            . h(implode(', ', $stillDefault)) . '.',
+            'Anyone who has read the setup guide can sign in to this panel right now. Go to My Profile '
+            . 'in the sidebar and set a real password, or, for another account, open Admin Accounts '
+            . 'and set one for them.'
+        );
+    } else {
+        check('Starter password changed', 'ok', 'No account is using the password from the setup guide.', '');
+    }
+} catch (PDOException $e) {
+    check('Starter password changed', 'warn', 'Could not read the admin accounts table to check this.', '');
+}
+
+// Nothing that describes how the site is built should be readable over the
+// web. The rules that block them live in .htaccess, and a host that ignores
+// .htaccess would serve them silently, with nothing to notice.
+$blockedFiles = [
+    '/docs/OPERATIONS.md' => 'the operator guide, which names every page of this panel',
+    '/sql/schema.sql'     => 'the database structure and the starter password',
+    '/composer.json'      => 'the exact version of every library in use',
+    '/config/config.php'  => 'the database and mailbox passwords',
+];
+$exposed = [];
+$unchecked = [];
+$refused = 0;
+foreach ($blockedFiles as $path => $what) {
+    if (!file_exists(dirname(__DIR__) . $path)) {
+        continue;
+    }
+
+    $context = stream_context_create(['http' => [
+        'method' => 'HEAD',
+        'timeout' => 3,
+        'ignore_errors' => true,   // a 403 is an answer, not a failure
+        'follow_location' => 0,
+    ]]);
+    $headers = @get_headers(get_site_url() . $path, true, $context);
+    $status = is_array($headers) && isset($headers[0]) ? (string) $headers[0] : '';
+
+    if ($status === '') {
+        // No answer at all. That is NOT the same as "refused", and must
+        // never be reported as if it were: the request may simply not have
+        // got out, which says nothing about what a visitor would get.
+        $unchecked[] = $path;
+    } elseif (str_contains($status, ' 200')) {
+        $exposed[] = $path . ' (' . $what . ')';
+    } else {
+        $refused++;
+    }
+}
+
+if ($exposed) {
+    check(
+        'Private files are not served',
+        'fail',
+        'These are readable by anyone who types the address: ' . h(implode('; ', $exposed)) . '.',
+        'The .htaccess file in the site root is supposed to refuse these. Check that it uploaded '
+        . '(it starts with a dot, so some upload tools hide it), and that your host has .htaccess '
+        . 'enabled. The operator guide under docs/ can also simply be deleted from the server: '
+        . 'nothing on the site reads it.'
+    );
+} elseif ($unchecked) {
+    check(
+        'Private files are not served',
+        'warn',
+        'This page could not reach ' . h(implode(', ', $unchecked)) . ' to find out, so it cannot say either way.',
+        'Nothing is necessarily wrong. Some hosts stop a site from making web requests back to itself, '
+        . 'which is all this needs. To check by hand, open '
+        . h(get_site_url() . array_key_first($blockedFiles)) . ' in a private browser window: you should '
+        . 'see a "not found" or "forbidden" page, never the file itself.'
+    );
+} else {
+    check(
+        'Private files are not served',
+        'ok',
+        'All ' . $refused . ' checked: the setup guide, the database file and the config file are refused over the web.',
+        ''
+    );
 }
 
 // Design rows the public pages read on every request.

@@ -9,6 +9,12 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/settings.php';
 
 header('Content-Type: application/json');
+// The tracking page polls this every 15 seconds while it is open, so the
+// ceiling has to sit well above four calls a minute. What it stops is a
+// script walking through tracking numbers to harvest customer movements:
+// that needs thousands of calls, and gets fifteen minutes of nothing
+// instead.
+rate_limit_enforce('track_feed', 150, 300, '', 900);
 
 // When a super admin switches the live map off, coordinates are not just
 // hidden on the page, they are left out of this feed too. Otherwise anyone
@@ -17,9 +23,9 @@ header('Content-Type: application/json');
 $mapOn = live_map_enabled();
 
 $tn = trim($_GET['tn'] ?? '');
-if ($tn === '') {
+if ($tn === '' || !is_valid_tracking_number($tn)) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'Missing tracking number']);
+    echo json_encode(['ok' => false, 'error' => 'Missing or malformed tracking number']);
     exit;
 }
 

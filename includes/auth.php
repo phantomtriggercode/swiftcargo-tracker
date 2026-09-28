@@ -10,10 +10,34 @@ function admin_logged_in(): bool
     return !empty($_SESSION['admin_id']);
 }
 
-// An admin session left idle this long is logged out on its next request, // standard practice for a panel that can see customer PII and hold SMTP
-// credentials. Resets on every admin page load, so it's 60 idle minutes,
-// not 60 minutes total.
-const ADMIN_IDLE_TIMEOUT_SECONDS = 3600;
+/**
+ * What a session is tied to: the browser that signed in and the network it
+ * signed in from. Hashed, so nothing identifying is kept in the session
+ * itself, and deliberately coarse on the address (see client_network) so a
+ * phone moving between masts does not sign itself out.
+ */
+function admin_session_fingerprint(): string
+{
+    return hash('sha256', ($_SERVER['HTTP_USER_AGENT'] ?? '') . '|' . client_network());
+}
+
+/**
+ * Ends the signed-in session and sends the person back to the login page
+ * with an explanation.
+ *
+ * Clears only the admin identity rather than destroying the whole session,
+ * because flash_set() right after a session_destroy() would have nothing
+ * left to write the message into and the login page would explain nothing.
+ */
+function end_admin_session(string $message): void
+{
+    foreach (['admin_id', 'admin_name', 'admin_last_activity', 'admin_login_time', 'admin_fingerprint', 'admin_session_rotated'] as $key) {
+        unset($_SESSION[$key]);
+    }
+    session_regenerate_id(true);
+    flash_set('error', $message);
+    redirect('/admin/login.php');
+}
 
 /**
  * Login + active-account check, without the forced-password-change
@@ -26,16 +50,40 @@ function require_admin_base(): void
         redirect('/admin/login.php');
     }
 
+    $now = time();
+
+    // A session that has been sitting untouched is over.
     $lastActivity = $_SESSION['admin_last_activity'] ?? null;
-    if ($lastActivity !== null && (time() - $lastActivity) > ADMIN_IDLE_TIMEOUT_SECONDS) {
-        // Clear just the admin identity, not the whole session (see the
-        // suspended-account branch below for why), flash_set() right
-        // after a full session_destroy() wouldn't survive to the login page.
-        unset($_SESSION['admin_id'], $_SESSION['admin_name'], $_SESSION['admin_last_activity']);
-        flash_set('error', 'You were logged out after a period of inactivity. Please log in again.');
-        redirect('/admin/login.php');
+    if ($lastActivity !== null && ($now - $lastActivity) > ADMIN_IDLE_TIMEOUT_SECONDS) {
+        end_admin_session('You were signed out after '
+            . (int) (ADMIN_IDLE_TIMEOUT_SECONDS / 60) . ' minutes of inactivity. Please sign in again.');
     }
-    $_SESSION['admin_last_activity'] = time();
+
+    // ...and so is one that has been going all day, however busy it was.
+    $startedAt = $_SESSION['admin_login_time'] ?? null;
+    if ($startedAt !== null && ($now - $startedAt) > ADMIN_ABSOLUTE_TIMEOUT_SECONDS) {
+        end_admin_session('For security, sessions end after '
+            . (int) (ADMIN_ABSOLUTE_TIMEOUT_SECONDS / 3600) . ' hours. Please sign in again.');
+    }
+
+    // The session is tied to the browser and the network it was created
+    // on. A cookie copied off this machine and replayed from somewhere
+    // else no longer matches, and is thrown out rather than honoured.
+    $fingerprint = $_SESSION['admin_fingerprint'] ?? null;
+    if ($fingerprint !== null && !hash_equals($fingerprint, admin_session_fingerprint())) {
+        log_admin_activity('Session rejected', 'Fingerprint did not match the session it was issued for');
+        end_admin_session('Your session could not be verified, so it was ended. Please sign in again.');
+    }
+
+    // Rotate the session id periodically, so a captured id is only worth
+    // something for a short window rather than for the whole session.
+    $rotatedAt = $_SESSION['admin_session_rotated'] ?? $now;
+    if (($now - $rotatedAt) > ADMIN_SESSION_ROTATE_SECONDS) {
+        session_regenerate_id(true);
+        $_SESSION['admin_session_rotated'] = $now;
+    }
+
+    $_SESSION['admin_last_activity'] = $now;
 
     // Every state-changing admin request must carry a valid CSRF token, so
     // a malicious page an admin happens to have open elsewhere can't
@@ -100,11 +148,37 @@ function attempt_admin_login(string $identifier, string $password): bool
     $stmt->execute([$identifier, $identifier]);
     $admin = $stmt->fetch();
 
-    if ($admin && $admin['is_active'] && password_verify($password, $admin['password_hash'])) {
+    if (!$admin) {
+        // Verify against a throwaway hash anyway. Without this, an unknown
+        // username returns noticeably faster than a known one with the
+        // wrong password, and that difference is enough to work out which
+        // usernames exist before guessing a single password.
+        password_verify($password, '$2y$12$usesomesillystringforsalttoavoidtimingleaksxxxxxxxxxxxxxxxxxxxxx');
+        return false;
+    }
+
+    if ($admin['is_active'] && password_verify($password, $admin['password_hash'])) {
+        // A brand new id for the signed-in session, so an id an attacker
+        // may already know cannot become an authenticated one.
         session_regenerate_id(true);
         $_SESSION['admin_id'] = $admin['id'];
         $_SESSION['admin_name'] = $admin['full_name'];
-        log_admin_activity('Logged in', '', $admin['id'], $admin['full_name']);
+        $_SESSION['admin_login_time'] = time();
+        $_SESSION['admin_last_activity'] = time();
+        $_SESSION['admin_session_rotated'] = time();
+        $_SESSION['admin_fingerprint'] = admin_session_fingerprint();
+        // A fresh CSRF token per session, never one carried over from
+        // before sign-in.
+        unset($_SESSION['csrf_token']);
+
+        // If the stored hash was made with older settings than this PHP
+        // build now uses, quietly upgrade it while the password is in hand.
+        if (password_needs_rehash($admin['password_hash'], PASSWORD_DEFAULT)) {
+            $rehash = db()->prepare('UPDATE admins SET password_hash = ? WHERE id = ?');
+            $rehash->execute([password_hash($password, PASSWORD_DEFAULT), $admin['id']]);
+        }
+
+        log_admin_activity('Signed in', '', $admin['id'], $admin['full_name']);
         return true;
     }
 
@@ -114,6 +188,19 @@ function attempt_admin_login(string $identifier, string $password): bool
 function admin_logout(): void
 {
     $_SESSION = [];
+    // Expire the cookie itself as well as the server-side session, so a
+    // shared or public computer is not left holding a usable id.
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', [
+            'expires' => time() - 42000,
+            'path' => $params['path'],
+            'domain' => $params['domain'],
+            'secure' => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'] ?? 'Lax',
+        ]);
+    }
     session_destroy();
 }
 
@@ -159,7 +246,10 @@ function current_admin(): ?array
 
 function set_admin_password(int $adminId, string $newPassword): void
 {
-    $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+    // Cost 12 rather than PHP's default 10: roughly four times the work
+    // per guess for an attacker who gets hold of the table, and still
+    // well under a tenth of a second for the one person signing in.
+    $hash = password_hash($newPassword, PASSWORD_DEFAULT, ['cost' => 12]);
     // Setting a password (self-service, a mailed reset link, or a super
     // admin setting one directly) always satisfies any pending forced
     // change, admin_edit.php re-sets the flag afterward if it wants the

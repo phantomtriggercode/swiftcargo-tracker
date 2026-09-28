@@ -32,7 +32,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $columns = array_keys(PALETTE_COLOR_FIELDS);
+        // The column names come from a constant in this codebase, never
+        // from the request, so nothing user-supplied is ever built into
+        // SQL here. The filter is a standing guarantee of that: if a
+        // future edit ever lets an outside value reach this list, the
+        // statement is built without it rather than with it.
+        $columns = array_values(array_filter(
+            array_keys(PALETTE_COLOR_FIELDS),
+            static fn($c) => is_string($c) && preg_match('/^[a-z_]+$/', $c)
+        ));
         $setClause = implode(', ', array_map(fn($c) => "$c = ?", $columns));
         $stmt = db()->prepare("UPDATE color_palettes SET name = ?, $setClause WHERE id = ?");
         $stmt->execute(array_merge([$name], array_map(fn($c) => $colorValues[$c], $columns), [$id]));

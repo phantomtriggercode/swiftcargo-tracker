@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/settings.php';
 
 $activeNav = '';
+$seoPage = 'terms';
 $pageTitle = 'Terms of Service';
 include __DIR__ . '/includes/header.php';
 ?>

@@ -22,6 +22,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Enter a valid email address.';
     } elseif (login_rate_limit_check($ip, 'reset:' . strtolower($email)) !== null) {
         $errors[] = 'Too many requests. Please wait a while and try again.';
+    } elseif (!rate_limit_hit('reset_ip', 3, 3600, '', 3600)['allowed']
+        || !rate_limit_hit('reset_email', 3, 3600, 'to:' . strtolower($email), 3600)['allowed']) {
+        // Three reset emails an hour is more than anyone who has genuinely
+        // forgotten their password needs, and it stops this form being
+        // used to flood an admin's mailbox or to fish for which addresses
+        // have accounts.
+        $errors[] = 'Too many reset requests. Please wait an hour and try again.';
     }
 
     if (!$errors) {

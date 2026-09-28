@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($fullName === '') $errors[] = 'Full name is required.';
         if ($username === '') $errors[] = 'Username is required.';
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Enter a valid email, or leave it blank.';
-        if (strlen($password) < 8) $errors[] = 'Password must be at least 8 characters.';
+        if (($pwError = password_policy_error($password)) !== null) $errors[] = $pwError;
 
         if (!$errors) {
             $dup = db()->prepare('SELECT id FROM admins WHERE username = ? OR (email = ? AND email IS NOT NULL AND email != "")');
@@ -216,7 +216,7 @@ include __DIR__ . '/includes/admin_header.php';
     </div>
     <div class="form-group">
       <label>Password</label>
-      <input type="password" name="password" minlength="8" required>
+      <input type="password" name="password" minlength="12" required>
     </div>
     <div class="form-group">
       <label style="display:flex;align-items:center;gap:8px;font-weight:600;">

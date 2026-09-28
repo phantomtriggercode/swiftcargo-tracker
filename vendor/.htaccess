@@ -1,3 +1,9 @@
+# Third-party libraries. They are loaded by PHP from disk and are never
+# requested over the web, so nothing here should be reachable by URL,
+# including the example and test scripts libraries often ship with.
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
 <IfModule mod_authz_core.c>
   Require all denied
 </IfModule>

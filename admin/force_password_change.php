@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_verify((string) ($_POST['csrf_token'] ?? ''))) {
         $errors[] = 'Your session expired: please reload the page and try again.';
     }
-    if (strlen($newPassword) < 8) {
-        $errors[] = 'New password must be at least 8 characters.';
+    if (($pwError = password_policy_error($newPassword)) !== null) {
+        $errors[] = $pwError;
     }
     if ($newPassword !== $confirm) {
         $errors[] = 'New password and confirmation do not match.';
@@ -70,11 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <?= csrf_field() ?>
       <div class="form-group">
         <label for="new_password">New Password</label>
-        <input type="password" id="new_password" name="new_password" minlength="8" required autofocus autocomplete="new-password">
+        <input type="password" id="new_password" name="new_password" minlength="12" required autofocus autocomplete="new-password">
       </div>
       <div class="form-group">
         <label for="new_password_confirm">Confirm New Password</label>
-        <input type="password" id="new_password_confirm" name="new_password_confirm" minlength="8" required autocomplete="new-password">
+        <input type="password" id="new_password_confirm" name="new_password_confirm" minlength="12" required autocomplete="new-password">
       </div>
       <button type="submit" class="btn btn-primary btn-block">Set Password</button>
     </form>

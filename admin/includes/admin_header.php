@@ -51,6 +51,7 @@ $__navAdmin = current_admin();
       <a href="/admin/status_messages.php" class="<?= $activeAdminNav === 'status_messages' ? 'active' : '' ?>">Status Messages</a>
       <a href="/admin/content.php" class="<?= $activeAdminNav === 'content' ? 'active' : '' ?>">Site Content</a>
       <a href="/admin/images.php" class="<?= $activeAdminNav === 'images' ? 'active' : '' ?>">Site Images</a>
+      <a href="/admin/seo.php" class="<?= $activeAdminNav === 'seo' ? 'active' : '' ?>">Search Engines</a>
       <a href="/admin/rates.php" class="<?= $activeAdminNav === 'rates' ? 'active' : '' ?>">Calculator Rates</a>
       <a href="/admin/branding.php" class="<?= $activeAdminNav === 'branding' ? 'active' : '' ?>">Branding</a>
       <a href="/admin/smtp_settings.php" class="<?= $activeAdminNav === 'smtp' ? 'active' : '' ?>">Email (SMTP)</a>

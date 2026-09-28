@@ -9,6 +9,18 @@ $events = [];
 $notFound = false;
 
 if ($tn !== '') {
+    // Looking up your own parcel a few times an hour is normal. Working
+    // through the tracking-number space to find other people's is not,
+    // and this is where that stops.
+    rate_limit_enforce('track_lookup', 40, 600, '', 900);
+}
+
+if ($tn !== '' && !is_valid_tracking_number($tn)) {
+    // Not shaped like a tracking number at all, so there is nothing to
+    // look up. Answered exactly like a number that simply is not ours, so
+    // the page never confirms what a real one looks like.
+    $notFound = true;
+} elseif ($tn !== '') {
     $shipment = get_shipment_by_tracking($tn);
     if ($shipment) {
         $events = get_shipment_events((int) $shipment['id']);

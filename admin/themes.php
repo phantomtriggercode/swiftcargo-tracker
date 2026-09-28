@@ -24,7 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('error', 'Color palette not found.');
             redirect('/admin/themes.php');
         }
-        $columns = array_keys(PALETTE_COLOR_FIELDS);
+        // Same standing guarantee as theme_edit.php: these names are
+        // this codebase's own, and are filtered to plain identifiers
+        // before any of them is written into a statement.
+        $columns = array_values(array_filter(
+            array_keys(PALETTE_COLOR_FIELDS),
+            static fn($c) => is_string($c) && preg_match('/^[a-z_]+$/', $c)
+        ));
         $placeholders = implode(', ', array_fill(0, count($columns), '?'));
         $stmt = db()->prepare('INSERT INTO color_palettes (name, is_active, is_preset, is_admin_selectable, ' . implode(', ', $columns) . ') VALUES (?, 0, 0, 0, ' . $placeholders . ')');
         $values = array_merge(['Copy of ' . $source['name']], array_map(fn($c) => $source[$c], $columns));

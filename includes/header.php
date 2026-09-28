@@ -4,16 +4,61 @@
  */
 $activeNav = $activeNav ?? '';
 maybe_send_go_live_alert();
+
+// Which page this is, for the SEO record staff wrote in the admin panel.
+// Pages set $seoPage themselves; $activeNav is the fallback because the
+// two use the same names for the same pages.
+$seo = seo_meta_for($seoPage ?? $activeNav ?? '', $pageTitle ?? '');
+$googleVerification = seo_verification_token('seo_google_verification');
+$bingVerification = seo_verification_token('seo_bing_verification');
 ?>
 <!DOCTYPE html>
 <html lang="en" data-template="<?= h(active_template_layout_key()) ?>" data-animation="<?= h(active_template_animation_key()) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= isset($pageTitle) ? h($pageTitle) . ' | ' . h(get_site_name()) : h(get_site_name()) . ' | Global Shipping & Tracking' ?></title>
-<meta name="description" content="<?= live_map_enabled()
-  ? 'Track your shipment live on the map and get instant email alerts on every status update.'
-  : 'Track your shipment and get instant email alerts on every status update.' ?>">
+<title><?= h($seo['title']) ?></title>
+<meta name="description" content="<?= h($seo['description']) ?>">
+<?php if ($seo['keywords']): ?>
+<meta name="keywords" content="<?= h(implode(', ', $seo['keywords'])) ?>">
+<?php endif; ?>
+<link rel="canonical" href="<?= h($seo['canonical']) ?>">
+
+<?php // A page that answered 404 must never be indexed, whatever its
+      // record says, or a mistyped URL can end up in search results as a
+      // real page.
+      $noIndex = $seo['noindex'] || seo_site_hidden() || http_response_code() === 404; ?>
+<?php if ($noIndex): ?>
+<meta name="robots" content="noindex, nofollow">
+<?php else: ?>
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<?php endif; ?>
+
+<?php if ($googleVerification !== ''): ?>
+<meta name="google-site-verification" content="<?= h($googleVerification) ?>">
+<?php endif; ?>
+<?php if ($bingVerification !== ''): ?>
+<meta name="msvalidate.01" content="<?= h($bingVerification) ?>">
+<?php endif; ?>
+
+<?php /* What a link to this page looks like when it is shared or pasted
+         into a chat: a title, a sentence and a picture rather than a bare
+         URL. Open Graph is read by most sites; Twitter/X reads its own. */ ?>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="<?= h(get_site_name()) ?>">
+<meta property="og:title" content="<?= h($seo['og_title']) ?>">
+<meta property="og:description" content="<?= h($seo['og_description']) ?>">
+<meta property="og:url" content="<?= h($seo['canonical']) ?>">
+<meta property="og:image" content="<?= h($seo['image']) ?>">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?= h($seo['og_title']) ?>">
+<meta name="twitter:description" content="<?= h($seo['og_description']) ?>">
+<meta name="twitter:image" content="<?= h($seo['image']) ?>">
+
+<meta name="theme-color" content="<?= h(get_active_palette()['color_primary']) ?>">
+<?= seo_structured_data() ?>
+
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
 <?= palette_style_tag() ?>

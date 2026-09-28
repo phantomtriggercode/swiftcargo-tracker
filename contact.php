@@ -14,7 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = trim($_POST['message'] ?? '');
     $honeypot = (string) ($_POST['website'] ?? '');
 
-    if (honeypot_tripped($honeypot)) {
+    // A person sends one message and waits for a reply. Anything past a
+    // handful an hour is a script using the form as a relay.
+    if (!rate_limit_hit('contact', 5, 3600, '', 3600)['allowed']) {
+        $errors[] = 'You have already sent several messages recently. Please wait a while before sending another.';
+    }
+
+    if (!$errors && honeypot_tripped($honeypot)) {
         // Bots that fill in the hidden field never see it fail: pretend
         // success without actually sending anything, so nothing tells the
         // bot to adjust its behavior.
@@ -22,9 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/contact.php');
     }
 
-    if ($name === '') $errors[] = 'Please enter your name.';
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
-    if ($message === '') $errors[] = 'Please enter a message.';
+    if (!$errors) {
+        if ($name === '') $errors[] = 'Please enter your name.';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
+        if ($message === '') $errors[] = 'Please enter a message.';
+        if (strlen($message) > 5000) $errors[] = 'Please keep your message under 5000 characters.';
+    }
 
     if (!$errors) {
         $supportEmail = get_setting('contact_email');

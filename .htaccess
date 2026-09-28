@@ -1,19 +1,45 @@
+# ------------------------------------------------------------------
+# Server-level protection. Everything here is a second lock on a door
+# the PHP code already bolts: if a rule below is ever lost (a control
+# panel resets the file, a host disables a module), the application
+# still refuses the same requests. Nothing here is the only thing
+# standing between an attacker and anything.
+#
+# Every block is wrapped in <IfModule> so the file stays valid on a host
+# that does not have that module, rather than returning 500 for the
+# whole site.
+# ------------------------------------------------------------------
+
+# No directory listings. Without this, any folder with no index file
+# hands over a complete inventory of what is in it.
 Options -Indexes
 
 <IfModule mod_php.c>
   php_flag display_errors off
+  php_flag log_errors on
+  php_flag expose_php off
+  php_flag allow_url_fopen off
+  php_flag allow_url_include off
+  php_value session.cookie_httponly 1
+  php_value session.use_strict_mode 1
 </IfModule>
 
+ErrorDocument 403 /404.php
 ErrorDocument 404 /404.php
 
-# Files that describe how this site is built. None of them are needed to
-# serve a page, and between them they give away the database structure, the
-# exact library versions in use, every admin URL, and the default login from
-# the setup guide. Serving them hands a stranger the blueprint.
+DirectoryIndex index.php index.html
+
+# ------------------------------------------------------------------
+# Files that describe how this site is built. None of them are needed
+# to serve a page, and between them they give away the database
+# structure, the exact library versions in use, every admin URL, and
+# the setup instructions. Serving any of them hands a stranger the
+# blueprint.
 #
-# This matches on the file name, so .well-known/ (which the SSL certificate
-# renewal needs) keeps working normally.
-<FilesMatch "(^\.|\.(md|sql|lock|json|yml|yaml|ini|log|bak|old|dist|sh|twig)$)">
+# This matches on the file name, so .well-known/ (which SSL renewal
+# needs) keeps working normally.
+# ------------------------------------------------------------------
+<FilesMatch "(^\.|\.(md|markdown|txt~|sql|lock|json|yml|yaml|ini|log|bak|old|orig|save|swp|swo|dist|sh|bash|twig|tpl|inc|sample|example|conf|config)$|~$)">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -22,3 +48,75 @@ ErrorDocument 404 /404.php
     Deny from all
   </IfModule>
 </FilesMatch>
+
+# robots.txt is the one text file that must stay readable, and it is
+# served by robots.php so its sitemap line can carry the real domain.
+<Files "robots.txt">
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+  </IfModule>
+</Files>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Serve robots.txt from PHP so the Sitemap: line can name the real
+  # domain, which a static file cannot know.
+  RewriteRule ^robots\.txt$ robots.php [L]
+
+  # Same for the sitemap: served from PHP so it lists the real domain and
+  # leaves out any page taken out of search results, but crawlers still
+  # ask for it at the address they expect.
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+  # Google Search Console's HTML-file verification, when that method is
+  # chosen instead of the meta tag. The token is stored in the admin
+  # panel and checked by verify.php, so no file has to be uploaded by
+  # hand and nothing has to be remembered at the next redeploy.
+  RewriteRule ^(google[0-9a-zA-Z_-]+\.html)$ verify.php?file=$1 [L,QSA]
+
+  # TRACE and TRACK exist only to echo a request back. They have no use
+  # on this site and have historically been used to read headers a
+  # script should not be able to see.
+  RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK|DEBUG)
+  RewriteRule .* - [F,L]
+
+  # Requests carrying the shape of an injection or a file-inclusion
+  # probe in the query string. The application screens these too; this
+  # turns them away a step earlier, before PHP starts at all.
+  RewriteCond %{QUERY_STRING} (union[^a-z]+select|information_schema|concat\s*\() [NC,OR]
+  RewriteCond %{QUERY_STRING} (base64_(en|de)code|eval\s*\(|GLOBALS(=|\[|%)) [NC,OR]
+  RewriteCond %{QUERY_STRING} (\.\./\.\./|/etc/passwd|proc/self/environ) [NC,OR]
+  RewriteCond %{QUERY_STRING} ((php|data|expect|file|zip|phar):/) [NC,OR]
+  RewriteCond %{QUERY_STRING} (<|%3C)\s*script [NC]
+  RewriteRule .* - [F,L]
+
+  # The standard sweep every automated scanner runs first, looking for
+  # a content management system this site does not use. None of these
+  # paths exist here, so answering them at all only tells the scanner
+  # the site is alive and worth a longer look.
+  RewriteRule ^(wp-admin|wp-content|wp-includes|wp-login\.php|xmlrpc\.php|wordpress|joomla|drupal) - [F,L]
+  RewriteRule ^(\.env|\.git|\.svn|\.hg|\.aws|\.ssh|\.vscode|\.idea)(/|$) - [F,L]
+  RewriteRule ^(phpmyadmin|pma|myadmin|adminer|adminer\.php|dbadmin|mysql|sqlite|websql) - [F,L]
+  RewriteRule ^(vendor|sql|node_modules)/ - [F,L]
+  RewriteRule ^(composer\.(json|lock|phar)|package(-lock)?\.json|yarn\.lock|Dockerfile|docker-compose\.ya?ml)$ - [F,L]
+</IfModule>
+
+# ------------------------------------------------------------------
+# Security headers at the server level as well as from PHP. A static
+# file (an image, the stylesheet) never runs PHP, so without these it
+# would go out with no headers at all.
+# ------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+  Header always unset X-Powered-By
+  Header always unset Server
+  Header unset X-Powered-By
+</IfModule>

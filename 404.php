@@ -6,6 +6,8 @@ require_once __DIR__ . '/includes/settings.php';
 http_response_code(404);
 
 $pageTitle = 'Page Not Found';
+// Not one of the tunable pages, and never one to be indexed.
+$seoPage = '404';
 include __DIR__ . '/includes/header.php';
 ?>
 

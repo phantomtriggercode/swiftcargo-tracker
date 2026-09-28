@@ -1,27 +1,317 @@
--- SwiftCargo Tracker database schema: single-file, complete, up to date.
--- This one file creates every table the current codebase needs (admins,
--- couriers, shipments, tracking_events, settings, color_palettes,
--- templates, shipment_requests, login_attempts, admin_activity_log) with
--- every column and default the app currently reads, plus starter/seed
--- data (a default admin login, 8 carriers, 11 color palettes, 6 design
--- templates, all site copy, and calculator rates). It supersedes every
--- individual file under sql/migrations/. Those exist only for upgrading
--- an *existing* live database in place without losing its data; if you
--- are starting from an empty database (a fresh install, or a live site
--- you've intentionally dropped and are reimporting from scratch), import
--- ONLY this file and skip the migrations folder entirely.
+-- Complete database for this site: every table, every column, every
+-- default, plus the starter data a brand new site needs (one admin login,
+-- the carrier list, the colour palettes, the design templates, all site
+-- copy, and the calculator rates).
 --
--- Import this file via Hostinger's phpMyAdmin (or `mysql -u user -p dbname < schema.sql`).
+-- HOW TO USE IT
 --
--- NOTE: if you already have a live database with real shipments/admins in
--- it, do NOT import this file: CREATE TABLE IF NOT EXISTS means it won't
--- overwrite your data, but INSERT IGNORE / ON DUPLICATE KEY seed rows can
--- still reintroduce old default content or the original demo admin
--- password. Use the specific migration file for whatever you're adding
--- instead, in numeric order.
+--   Fresh install    Import this one file and nothing else. Skip the
+--                    sql/migrations/ folder entirely.
+--
+--   Existing site    Import this one file as well. It is written to be
+--                    re-imported safely over a database that already has
+--                    real data in it:
+--
+--                      * Tables that already exist are left exactly as
+--                        they are (CREATE TABLE IF NOT EXISTS).
+--                      * Tables that do not exist yet are created.
+--                      * Columns added by later versions are added to
+--                        existing tables, each one checked first, so
+--                        re-running changes nothing.
+--                      * Settings you have never had are added with
+--                        their defaults. Settings you have already set
+--                        keep the value you set (INSERT IGNORE).
+--                      * Starter data (the default admin, carriers,
+--                        palettes, templates, statuses, demo shipments)
+--                        is added ONLY when that table is completely
+--                        empty. A site with real data gets none of it
+--                        back, and in particular the default admin
+--                        password is never restored.
+--
+--   Import through your host's phpMyAdmin, or with:
+--       mysql -u USER -p DATABASE < schema.sql
+--
+-- The numbered files under sql/migrations/ do the same work one change at
+-- a time. They exist for anyone who would rather apply a single specific
+-- change than re-import the whole file; you do not need them if you
+-- import this.
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ---------------------------------------------------------------
+-- Bringing an older database up to date.
+--
+-- The CREATE TABLE IF NOT EXISTS statements further down leave an
+-- existing table exactly as it is, which is what makes this file safe to
+-- re-import, but it also means a table created by an earlier version
+-- never gains the columns added since. This section adds them, one at a
+-- time, each one checked first.
+--
+-- It runs before everything else because the starter data below refers to
+-- columns that some of these statements add: on a database old enough to
+-- be missing one, the import would otherwise stop there.
+--
+-- Every statement here checks two things: that the table exists at all
+-- (on a fresh install it does not yet, and is about to be created
+-- complete), and that the column is actually missing. So this section is
+-- a no-op both on a brand new database and on one that is already up to
+-- date, and can be run any number of times.
+--
+-- One caveat worth knowing: a column added here is added without the
+-- foreign key the same column has on a freshly created table. Nothing in
+-- the site depends on that constraint, and adding it to a table that may
+-- already hold rows that violate it would fail the import.
+--
+-- If you would rather apply one specific change than re-import this whole
+-- file, the numbered files in sql/migrations/ do the same work
+-- individually.
+-- ---------------------------------------------------------------
+SET @db := DATABASE();
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins' AND COLUMN_NAME = 'email') = 0,
+  'ALTER TABLE admins ADD COLUMN email VARCHAR(150) NULL UNIQUE AFTER username',
+  'SELECT "admins.email is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins' AND COLUMN_NAME = 'reset_token') = 0,
+  'ALTER TABLE admins ADD COLUMN reset_token VARCHAR(64) NULL AFTER password_hash',
+  'SELECT "admins.reset_token is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins' AND COLUMN_NAME = 'reset_token_expires') = 0,
+  'ALTER TABLE admins ADD COLUMN reset_token_expires DATETIME NULL AFTER reset_token',
+  'SELECT "admins.reset_token_expires is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins' AND COLUMN_NAME = 'is_super_admin') = 0,
+  'ALTER TABLE admins ADD COLUMN is_super_admin TINYINT(1) NOT NULL DEFAULT 0 AFTER full_name',
+  'SELECT "admins.is_super_admin is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins' AND COLUMN_NAME = 'is_active') = 0,
+  'ALTER TABLE admins ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1 AFTER is_super_admin',
+  'SELECT "admins.is_active is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'admins' AND COLUMN_NAME = 'must_change_password') = 0,
+  'ALTER TABLE admins ADD COLUMN must_change_password TINYINT(1) NOT NULL DEFAULT 0 AFTER is_active',
+  'SELECT "admins.must_change_password is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'color_palettes') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'color_palettes' AND COLUMN_NAME = 'is_admin_selectable') = 0,
+  'ALTER TABLE color_palettes ADD COLUMN is_admin_selectable TINYINT(1) NOT NULL DEFAULT 0 AFTER is_preset',
+  'SELECT "color_palettes.is_admin_selectable is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'shipping_method') = 0,
+  'ALTER TABLE shipments ADD COLUMN shipping_method ENUM(''Air'',''Sea'',''Land'') NOT NULL DEFAULT ''Air'' AFTER service_type',
+  'SELECT "shipments.shipping_method is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'land_method') = 0,
+  'ALTER TABLE shipments ADD COLUMN land_method ENUM(''Van'',''Trailer'',''Train'') NULL DEFAULT NULL AFTER shipping_method',
+  'SELECT "shipments.land_method is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'packaging_type') = 0,
+  'ALTER TABLE shipments ADD COLUMN packaging_type ENUM(''Box'',''Crate'',''Pallet'',''Loose Cargo'',''Full Container Load (FCL)'',''Less Than Container Load (LCL)'',''Envelope/Document'') NOT NULL DEFAULT ''Box'' AFTER package_description',
+  'SELECT "shipments.packaging_type is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'dimensions') = 0,
+  'ALTER TABLE shipments ADD COLUMN dimensions VARCHAR(100) NULL DEFAULT NULL AFTER weight_kg',
+  'SELECT "shipments.dimensions is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'insured') = 0,
+  'ALTER TABLE shipments ADD COLUMN insured TINYINT(1) NOT NULL DEFAULT 0 AFTER dimensions',
+  'SELECT "shipments.insured is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'insurance_value') = 0,
+  'ALTER TABLE shipments ADD COLUMN insurance_value DECIMAL(10,2) NULL DEFAULT NULL AFTER insured',
+  'SELECT "shipments.insurance_value is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'courier_id') = 0,
+  'ALTER TABLE shipments ADD COLUMN courier_id INT UNSIGNED NULL DEFAULT NULL AFTER shipping_method',
+  'SELECT "shipments.courier_id is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'payment_type') = 0,
+  'ALTER TABLE shipments ADD COLUMN payment_type ENUM(''Full Payment'', ''Partial Payment'', ''Payment on Arrival'') NOT NULL DEFAULT ''Full Payment'' AFTER insurance_value',
+  'SELECT "shipments.payment_type is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'payment_price') = 0,
+  'ALTER TABLE shipments ADD COLUMN payment_price DECIMAL(10,2) NULL DEFAULT NULL AFTER payment_type',
+  'SELECT "shipments.payment_price is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'payment_initial_amount') = 0,
+  'ALTER TABLE shipments ADD COLUMN payment_initial_amount DECIMAL(10,2) NULL DEFAULT NULL AFTER payment_price',
+  'SELECT "shipments.payment_initial_amount is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'payment_amount_paid') = 0,
+  'ALTER TABLE shipments ADD COLUMN payment_amount_paid DECIMAL(10,2) NULL DEFAULT NULL AFTER payment_initial_amount',
+  'SELECT "shipments.payment_amount_paid is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'sender_email') = 0,
+  'ALTER TABLE shipments ADD COLUMN sender_email VARCHAR(190) NULL DEFAULT NULL AFTER sender_name',
+  'SELECT "shipments.sender_email is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'sender_phone') = 0,
+  'ALTER TABLE shipments ADD COLUMN sender_phone VARCHAR(40) NULL DEFAULT NULL AFTER sender_email',
+  'SELECT "shipments.sender_phone is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'receiver_phone') = 0,
+  'ALTER TABLE shipments ADD COLUMN receiver_phone VARCHAR(40) NULL DEFAULT NULL AFTER receiver_email',
+  'SELECT "shipments.receiver_phone is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1
+  AND (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'estimated_delivery_time') = 0,
+  'ALTER TABLE shipments ADD COLUMN estimated_delivery_time TIME NULL DEFAULT NULL AFTER estimated_delivery',
+  'SELECT "shipments.estimated_delivery_time is already present"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+-- The shipment status used to be a fixed list baked into the table, which
+-- meant adding a status like "In Transit" required editing the database
+-- structure by hand. It is a plain text column now, and the allowed
+-- values live in shipment_statuses, which staff manage at
+-- /admin/statuses.php. Nothing is lost in the conversion: every shipment
+-- keeps the exact status text it already had.
+SET @sql := (SELECT IF(
+  (SELECT DATA_TYPE FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments' AND COLUMN_NAME = 'status') = 'enum',
+  'ALTER TABLE shipments MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT ''Pending''',
+  'SELECT "shipments.status is already a free text column"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+-- Coordinates became optional when the live map became something a super
+-- admin can switch off. While it is off there is nothing sensible to
+-- store, and these columns used to be NOT NULL, which left only 0,0 as a
+-- stand-in: a real place in the Atlantic off the coast of Africa, where
+-- every shipment booked during that window would have appeared the moment
+-- the map was switched back on. NULL means "not recorded", and the
+-- tracking page leaves those points off the map rather than inventing one.
+--
+-- Widening a column that is already nullable changes nothing and touches
+-- no existing value, so this runs unconditionally.
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'shipments') = 1,
+  'ALTER TABLE shipments
+     MODIFY COLUMN origin_lat DECIMAL(10,7) NULL DEFAULT NULL,
+     MODIFY COLUMN origin_lng DECIMAL(10,7) NULL DEFAULT NULL,
+     MODIFY COLUMN destination_lat DECIMAL(10,7) NULL DEFAULT NULL,
+     MODIFY COLUMN destination_lng DECIMAL(10,7) NULL DEFAULT NULL,
+     MODIFY COLUMN current_lat DECIMAL(10,7) NULL DEFAULT NULL,
+     MODIFY COLUMN current_lng DECIMAL(10,7) NULL DEFAULT NULL',
+  'SELECT "shipments will be created complete"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'tracking_events') = 1,
+  'ALTER TABLE tracking_events
+     MODIFY COLUMN lat DECIMAL(10,7) NULL DEFAULT NULL,
+     MODIFY COLUMN lng DECIMAL(10,7) NULL DEFAULT NULL',
+  'SELECT "tracking_events will be created complete"'));
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
 
 -- ---------------------------------------------------------------
 -- Admins (staff who manage shipments from the admin panel)
@@ -40,13 +330,26 @@ CREATE TABLE IF NOT EXISTS admins (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Default admin login: username = admin / password = ChangeMe123!
--- (hash generated with PHP password_hash, change this password immediately after first login)
--- This first account is the super admin. It can create/suspend/delete
--- any other admin account from /admin/admins.php.
-INSERT INTO admins (username, password_hash, full_name, is_super_admin, is_active) VALUES
-('admin', '$2y$12$HYDffKZi7ppAiampmKCVU.Fm8Fk/S4.vKv.dvwoUYPRyvoXs.l9G.', 'Site Administrator', 1, 1)
-ON DUPLICATE KEY UPDATE username = username;
+-- The starter login for a brand new site: username `admin`, password
+-- `ChangeMe123!`. This first account can create, suspend and delete every
+-- other account.
+--
+-- It is created with must_change_password set, so the very first sign-in
+-- cannot reach any page until a new password has been set. A password
+-- printed in a setup guide is public knowledge the moment the site is
+-- online, and this is what makes it useless past that first sign-in.
+--
+-- Added ONLY when the admins table is completely empty. That is part of
+-- what makes this file safe to re-import: on a site that already has real
+-- accounts this does nothing at all, and an account with a publicly known
+-- password is never put back.
+SET @seed_admins := (SELECT COUNT(*) FROM admins);
+
+INSERT INTO admins (username, password_hash, full_name, is_super_admin, is_active, must_change_password)
+SELECT * FROM (
+  SELECT 'admin' AS c1, '$2y$12$HYDffKZi7ppAiampmKCVU.Fm8Fk/S4.vKv.dvwoUYPRyvoXs.l9G.' AS c2, 'Site Administrator' AS c3, 1 AS c4, 1 AS c5, 1 AS c6
+) AS seed
+WHERE @seed_admins = 0;
 
 -- ---------------------------------------------------------------
 -- Couriers / carriers (managed from /admin/couriers.php: admins can
@@ -60,15 +363,22 @@ CREATE TABLE IF NOT EXISTS couriers (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT IGNORE INTO couriers (name, sort_order) VALUES
-('DHL Express', 1),
-('UPS', 2),
-('FedEx', 3),
-('USPS', 4),
-('TNT Express', 5),
-('Aramex', 6),
-('DPD', 7),
-('Royal Mail', 8);
+-- Added only when the carrier list is empty, so a site that has renamed
+-- or removed carriers does not get the originals back on a re-import.
+SET @seed_couriers := (SELECT COUNT(*) FROM couriers);
+
+INSERT INTO couriers (name, sort_order)
+SELECT * FROM (
+  SELECT 'DHL Express' AS c1, 1 AS c2
+  UNION ALL SELECT 'UPS', 2
+  UNION ALL SELECT 'FedEx', 3
+  UNION ALL SELECT 'USPS', 4
+  UNION ALL SELECT 'TNT Express', 5
+  UNION ALL SELECT 'Aramex', 6
+  UNION ALL SELECT 'DPD', 7
+  UNION ALL SELECT 'Royal Mail', 8
+) AS seed
+WHERE @seed_couriers = 0;
 
 -- ---------------------------------------------------------------
 -- Shipments
@@ -182,18 +492,25 @@ CREATE TABLE IF NOT EXISTS shipment_statuses (
   INDEX idx_sort (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT IGNORE INTO shipment_statuses (name, badge_class, sort_order, is_protected) VALUES
-('Pending',              'badge-pending',   10, 1),
-('Picked Up',            'badge-pending',   20, 0),
-('In Transit',           'badge-transit',   25, 0),
-('En Route',             'badge-transit',   30, 0),
-('Customs Clearance',    'badge-hold',      40, 0),
-('Insurance Clearance',  'badge-hold',      50, 0),
-('Out for Delivery',     'badge-transit',   60, 0),
-('Delivered',            'badge-delivered', 70, 0),
-('On Hold',              'badge-hold',      80, 0),
-('Delayed',              'badge-alert',     90, 0),
-('Exception',            'badge-alert',    100, 0);
+-- Added only when the status list is empty. A site that has added its own
+-- statuses, or deleted ones it does not use, keeps exactly the list it has.
+SET @seed_shipment_statuses := (SELECT COUNT(*) FROM shipment_statuses);
+
+INSERT INTO shipment_statuses (name, badge_class, sort_order, is_protected)
+SELECT * FROM (
+  SELECT 'Pending' AS c1, 'badge-pending' AS c2, 10 AS c3, 1 AS c4
+  UNION ALL SELECT 'Picked Up', 'badge-pending', 20, 0
+  UNION ALL SELECT 'In Transit', 'badge-transit', 25, 0
+  UNION ALL SELECT 'En Route', 'badge-transit', 30, 0
+  UNION ALL SELECT 'Customs Clearance', 'badge-hold', 40, 0
+  UNION ALL SELECT 'Insurance Clearance', 'badge-hold', 50, 0
+  UNION ALL SELECT 'Out for Delivery', 'badge-transit', 60, 0
+  UNION ALL SELECT 'Delivered', 'badge-delivered', 70, 0
+  UNION ALL SELECT 'On Hold', 'badge-hold', 80, 0
+  UNION ALL SELECT 'Delayed', 'badge-alert', 90, 0
+  UNION ALL SELECT 'Exception', 'badge-alert', 100, 0
+) AS seed
+WHERE @seed_shipment_statuses = 0;
 
 -- ---------------------------------------------------------------
 -- Site content + calculator rate settings (key/value, editable from
@@ -265,7 +582,21 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('tracking_show_logo', '1'),
 ('live_chat_enabled', '0'),
 ('live_chat_property_id', ''),
-('live_chat_widget_id', '');
+('live_chat_widget_id', ''),
+-- Search engines. Written at /admin/seo.php. All blank or off, so
+-- importing this changes nothing about how the site currently appears in
+-- search results.
+--
+-- seo_noindex_site defaults to '0', meaning visible. Defaulting it the
+-- other way would quietly take a working site out of Google, and leaving
+-- it switched on after launch is the single most common reason a new site
+-- never appears there at all.
+('seo_default_description', ''),
+('seo_share_image', ''),
+('seo_noindex_site', '0'),
+('seo_google_verification', ''),
+('seo_google_verification_file', ''),
+('seo_bing_verification', '');
 
 -- ---------------------------------------------------------------
 -- Site-wide color palettes (managed only by super admins, at
@@ -300,56 +631,26 @@ CREATE TABLE IF NOT EXISTS color_palettes (
   INDEX idx_active (is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO color_palettes (
-  name, is_active, is_preset, is_admin_selectable,
-  color_primary, color_primary_dark, color_accent,
-  color_ink, color_ink_soft, color_muted, color_border, color_bg_soft, color_white,
-  color_ok, color_warn, color_danger
-) VALUES
-('Classic Red', 1, 1, 1,
-  '#d40511', '#a80410', '#ffcc00',
-  '#111827', '#4b5563', '#6b7280', '#e5e7eb', '#f4f5f7', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Classic Green', 0, 1, 1,
-  '#15803d', '#166534', '#facc15',
-  '#111827', '#4b5563', '#6b7280', '#e5e7eb', '#f4f7f5', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Ocean Blue', 0, 1, 0,
-  '#0369a1', '#075985', '#38bdf8',
-  '#111827', '#4b5563', '#6b7280', '#e2e8f0', '#f1f5f9', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Emerald Freight', 0, 1, 0,
-  '#047857', '#065f46', '#34d399',
-  '#111827', '#4b5563', '#6b7280', '#e5e7eb', '#f4f6f5', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Sunset Orange', 0, 1, 0,
-  '#c2410c', '#9a3412', '#fb923c',
-  '#1c1917', '#57534e', '#78716c', '#e7e5e4', '#faf5f0', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Royal Purple', 0, 1, 0,
-  '#6d28d9', '#5b21b6', '#a78bfa',
-  '#1e1b2e', '#4b5563', '#6b7280', '#e5e7eb', '#f6f4fb', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Midnight Navy', 0, 1, 0,
-  '#1e3a8a', '#1e293b', '#60a5fa',
-  '#111827', '#4b5563', '#6b7280', '#e5e7eb', '#f4f5f7', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Charcoal Mono', 0, 1, 0,
-  '#111827', '#000000', '#9ca3af',
-  '#111827', '#4b5563', '#6b7280', '#d1d5db', '#f3f4f6', '#ffffff',
-  '#16a34a', '#b45309', '#dc2626'),
-('Teal Logistics', 0, 1, 0,
-  '#0f766e', '#115e59', '#5eead4',
-  '#111827', '#4b5563', '#6b7280', '#e2e8f0', '#f1f5f4', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Crimson Express', 0, 1, 0,
-  '#be123c', '#9f1239', '#fb7185',
-  '#18181b', '#52525b', '#71717a', '#e4e4e7', '#faf5f6', '#ffffff',
-  '#16a34a', '#d97706', '#dc2626'),
-('Amber Cargo', 0, 1, 0,
-  '#b45309', '#92400e', '#fbbf24',
-  '#1c1917', '#57534e', '#78716c', '#e7e5e4', '#faf7f0', '#ffffff',
-  '#16a34a', '#b45309', '#dc2626');
+-- Added only when no palettes exist yet. Without this a re-import would
+-- duplicate all eleven presets and activate a second copy of the first
+-- one, which would look like the site had reset its own colours.
+SET @seed_color_palettes := (SELECT COUNT(*) FROM color_palettes);
+
+INSERT INTO color_palettes (name, is_active, is_preset, is_admin_selectable, color_primary, color_primary_dark, color_accent, color_ink, color_ink_soft, color_muted, color_border, color_bg_soft, color_white, color_ok, color_warn, color_danger)
+SELECT * FROM (
+  SELECT 'Classic Red' AS c1, 1 AS c2, 1 AS c3, 1 AS c4, '#d40511' AS c5, '#a80410' AS c6, '#ffcc00' AS c7, '#111827' AS c8, '#4b5563' AS c9, '#6b7280' AS c10, '#e5e7eb' AS c11, '#f4f5f7' AS c12, '#ffffff' AS c13, '#16a34a' AS c14, '#d97706' AS c15, '#dc2626' AS c16
+  UNION ALL SELECT 'Classic Green', 0, 1, 1, '#15803d', '#166534', '#facc15', '#111827', '#4b5563', '#6b7280', '#e5e7eb', '#f4f7f5', '#ffffff', '#16a34a', '#d97706', '#dc2626'
+  UNION ALL SELECT 'Ocean Blue', 0, 1, 0, '#0369a1', '#075985', '#38bdf8', '#111827', '#4b5563', '#6b7280', '#e2e8f0', '#f1f5f9', '#ffffff', '#16a34a', '#d97706', '#dc2626'
+  UNION ALL SELECT 'Emerald Freight', 0, 1, 0, '#047857', '#065f46', '#34d399', '#111827', '#4b5563', '#6b7280', '#e5e7eb', '#f4f6f5', '#ffffff', '#16a34a', '#d97706', '#dc2626'
+  UNION ALL SELECT 'Sunset Orange', 0, 1, 0, '#c2410c', '#9a3412', '#fb923c', '#1c1917', '#57534e', '#78716c', '#e7e5e4', '#faf5f0', '#ffffff', '#16a34a', '#d97706', '#dc2626'
+  UNION ALL SELECT 'Royal Purple', 0, 1, 0, '#6d28d9', '#5b21b6', '#a78bfa', '#1e1b2e', '#4b5563', '#6b7280', '#e5e7eb', '#f6f4fb', '#ffffff', '#16a34a', '#d97706', '#dc2626'
+  UNION ALL SELECT 'Midnight Navy', 0, 1, 0, '#1e3a8a', '#1e293b', '#60a5fa', '#111827', '#4b5563', '#6b7280', '#e5e7eb', '#f4f5f7', '#ffffff', '#16a34a', '#d97706', '#dc2626'
+  UNION ALL SELECT 'Charcoal Mono', 0, 1, 0, '#111827', '#000000', '#9ca3af', '#111827', '#4b5563', '#6b7280', '#d1d5db', '#f3f4f6', '#ffffff', '#16a34a', '#b45309', '#dc2626'
+  UNION ALL SELECT 'Teal Logistics', 0, 1, 0, '#0f766e', '#115e59', '#5eead4', '#111827', '#4b5563', '#6b7280', '#e2e8f0', '#f1f5f4', '#ffffff', '#16a34a', '#d97706', '#dc2626'
+  UNION ALL SELECT 'Crimson Express', 0, 1, 0, '#be123c', '#9f1239', '#fb7185', '#18181b', '#52525b', '#71717a', '#e4e4e7', '#faf5f6', '#ffffff', '#16a34a', '#d97706', '#dc2626'
+  UNION ALL SELECT 'Amber Cargo', 0, 1, 0, '#b45309', '#92400e', '#fbbf24', '#1c1917', '#57534e', '#78716c', '#e7e5e4', '#faf7f0', '#ffffff', '#16a34a', '#b45309', '#dc2626'
+) AS seed
+WHERE @seed_color_palettes = 0;
 
 -- ---------------------------------------------------------------
 -- Structural design templates (managed only by super admins, at
@@ -373,13 +674,21 @@ CREATE TABLE IF NOT EXISTS templates (
   INDEX idx_active (is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO templates (name, layout_key, animation_key, logo_path, is_active, is_preset) VALUES
-('Classic', 'classic', 'fade', '/assets/images/template-logos/classic.svg', 1, 1),
-('Modern', 'modern', 'fade-up', '/assets/images/template-logos/modern.svg', 0, 1),
-('Minimal', 'minimal', 'none', '/assets/images/template-logos/minimal.svg', 0, 1),
-('Bold', 'bold', 'scale-in', '/assets/images/template-logos/bold.svg', 0, 1),
-('Corporate', 'corporate', 'fade', '/assets/images/template-logos/corporate.svg', 0, 1),
-('Dark Header', 'dark-header', 'slide-in', '/assets/images/template-logos/dark-header.svg', 0, 1);
+-- Added only when no templates exist yet, for the same reason as the
+-- palettes above: a duplicate set with a second active row would fight
+-- with the one already chosen.
+SET @seed_templates := (SELECT COUNT(*) FROM templates);
+
+INSERT INTO templates (name, layout_key, animation_key, logo_path, is_active, is_preset)
+SELECT * FROM (
+  SELECT 'Classic' AS c1, 'classic' AS c2, 'fade' AS c3, '/assets/images/template-logos/classic.svg' AS c4, 1 AS c5, 1 AS c6
+  UNION ALL SELECT 'Modern', 'modern', 'fade-up', '/assets/images/template-logos/modern.svg', 0, 1
+  UNION ALL SELECT 'Minimal', 'minimal', 'none', '/assets/images/template-logos/minimal.svg', 0, 1
+  UNION ALL SELECT 'Bold', 'bold', 'scale-in', '/assets/images/template-logos/bold.svg', 0, 1
+  UNION ALL SELECT 'Corporate', 'corporate', 'fade', '/assets/images/template-logos/corporate.svg', 0, 1
+  UNION ALL SELECT 'Dark Header', 'dark-header', 'slide-in', '/assets/images/template-logos/dark-header.svg', 0, 1
+) AS seed
+WHERE @seed_templates = 0;
 
 -- ---------------------------------------------------------------
 -- Public "request a shipment" submissions.
@@ -445,11 +754,104 @@ CREATE TABLE IF NOT EXISTS admin_activity_log (
   FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ---------------------------------------------------------------
+-- Rate limiting (see includes/security.php).
+--
+-- One row per (bucket, actor, window) with a counter, rather than one row
+-- per request, so the table stays small and the write stays cheap even
+-- while an attack is in progress, which is exactly when it is written to
+-- most.
+--
+--   bucket         what is being limited: 'login', 'contact', 'page'.
+--   actor          who: normally an address, sometimes an address plus an
+--                  account. Hashed if it would overflow the key.
+--   blocked_until  unix timestamp; 0 means not currently blocked.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS rate_limits (
+  bucket VARCHAR(40) NOT NULL,
+  actor VARCHAR(190) NOT NULL,
+  window_start INT UNSIGNED NOT NULL,
+  hits INT UNSIGNED NOT NULL DEFAULT 0,
+  blocked_until INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (bucket, actor, window_start),
+  INDEX idx_updated (updated_at),
+  INDEX idx_blocked (bucket, actor, blocked_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------
+-- Requests that were refused outright because they were shaped like an
+-- attack rather than like a visit. Kept so the site owner can see what is
+-- being tried, and so a pattern (the same address probing all week) is
+-- visible rather than invisible. The application clears out old rows; no
+-- cron job is involved.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS security_events (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  ip_address VARCHAR(45) NOT NULL DEFAULT '',
+  reason VARCHAR(60) NOT NULL DEFAULT '',
+  request_path VARCHAR(255) NOT NULL DEFAULT '',
+  user_agent VARCHAR(255) NOT NULL DEFAULT '',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX idx_created (created_at),
+  INDEX idx_ip (ip_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------
+-- Per-page search engine settings, written by staff at /admin/seo.php:
+-- the title and description a page shows in a search result, and the
+-- keyword it is trying to rank for.
+--
+-- A page with no row here still renders perfectly well. The site falls
+-- back to the page's own heading plus the site name for the title, and to
+-- the site-wide description, so nothing has to be filled in for the site
+-- to work.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS seo_pages (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  -- Matches the keys in seo_pages() in includes/seo.php: home, track,
+  -- request, services, countries, about, contact, privacy, terms.
+  page_key VARCHAR(40) NOT NULL UNIQUE,
+
+  meta_title VARCHAR(255) NOT NULL DEFAULT '',
+  meta_description VARCHAR(320) NOT NULL DEFAULT '',
+  -- The one phrase this page is trying to rank for.
+  focus_keyword VARCHAR(120) NOT NULL DEFAULT '',
+  -- Supporting phrases, comma separated as they were typed.
+  meta_keywords VARCHAR(500) NOT NULL DEFAULT '',
+
+  -- What a link to this page looks like when it is shared in a message.
+  og_title VARCHAR(255) NOT NULL DEFAULT '',
+  og_description VARCHAR(320) NOT NULL DEFAULT '',
+
+  -- Overrides the address search engines are told is the real one for
+  -- this page. Blank means "the page's own address", which is right
+  -- almost always.
+  canonical_path VARCHAR(255) NOT NULL DEFAULT '',
+  -- 1 keeps the page online but out of search results and out of the
+  -- sitemap.
+  noindex TINYINT(1) NOT NULL DEFAULT 0,
+
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ---------------------------------------------------------------
--- Demo seed data (safe to delete once you add real shipments)
+-- Demo seed data.
+--
+-- Two example shipments with a full history, so a brand new site has
+-- something to look at on the dashboard and something to type into the
+-- tracking box. Delete them once you add real shipments.
+--
+-- Added ONLY when the shipments table is completely empty. On a site with
+-- real shipments in it this whole section does nothing, which is what
+-- lets this file be re-imported without two demo parcels reappearing in
+-- the middle of a real list.
 -- ---------------------------------------------------------------
+SET @seed_demo := (SELECT COUNT(*) FROM shipments);
 
 -- Shipment 1: domestic, Land/Trailer, Express, currently en route
 INSERT INTO shipments (
@@ -459,23 +861,47 @@ INSERT INTO shipments (
   origin_label, origin_lat, origin_lng,
   destination_label, destination_lat, destination_lng,
   current_lat, current_lng, estimated_delivery
-) VALUES (
-  'SC1000000US', 'Wells & Turner Logistics Group', '1420 Alameda St, Los Angeles, CA 90021, USA',
-  'Michael Chen', 'michael.demo@example.com', '245 Park Avenue, New York, NY 10167, USA',
-  'Consumer electronics, palletized', 'Pallet', 180.00, '48in x 40in x 60in',
-  'Express', 'Land', 'Trailer', 1, 5000.00, 'En Route',
-  'Los Angeles, CA, USA', 34.0522000, -118.2437000,
-  'New York, NY, USA', 40.7128000, -74.0060000,
-  39.7392000, -104.9903000, DATE_ADD(CURDATE(), INTERVAL 2 DAY)
-) ON DUPLICATE KEY UPDATE tracking_number = tracking_number;
+)
+SELECT * FROM (
+  SELECT
+    'SC1000000US' AS c1,
+   'Wells & Turner Logistics Group' AS c2,
+   '1420 Alameda St, Los Angeles, CA 90021, USA' AS c3,
+   'Michael Chen' AS c4,
+   'michael.demo@example.com' AS c5,
+   '245 Park Avenue, New York, NY 10167, USA' AS c6,
+   'Consumer electronics, palletized' AS c7,
+   'Pallet' AS c8,
+   180.00 AS c9,
+   '48in x 40in x 60in' AS c10,
+   'Express' AS c11,
+   'Land' AS c12,
+   'Trailer' AS c13,
+   1 AS c14,
+   5000.00 AS c15,
+   'En Route' AS c16,
+   'Los Angeles, CA, USA' AS c17,
+   34.0522000 AS c18,
+   -118.2437000 AS c19,
+   'New York, NY, USA' AS c20,
+   40.7128000 AS c21,
+   -74.0060000 AS c22,
+   39.7392000 AS c23,
+   -104.9903000 AS c24,
+   DATE_ADD(CURDATE(), INTERVAL 2 DAY) AS c25
+) AS seed
+WHERE @seed_demo = 0;
 
 SET @sid = (SELECT id FROM shipments WHERE tracking_number = 'SC1000000US');
 
-INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note, event_time) VALUES
-(@sid, 'Pending', 'Los Angeles, CA, USA', 34.0522000, -118.2437000, 'Shipment booked and label created.', DATE_SUB(NOW(), INTERVAL 3 DAY)),
-(@sid, 'Picked Up', 'Los Angeles, CA, USA', 34.0522000, -118.2437000, 'Pallet picked up from sender facility.', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-(@sid, 'En Route', 'Las Vegas, NV, USA', 36.1699000, -115.1398000, 'Departed regional hub, en route to destination.', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(@sid, 'En Route', 'Denver, CO, USA', 39.7392000, -104.9903000, 'In transit to next facility.', NOW());
+INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note, event_time)
+SELECT * FROM (
+  SELECT @sid AS c1, 'Pending' AS c2, 'Los Angeles, CA, USA' AS c3, 34.0522000 AS c4, -118.2437000 AS c5, 'Shipment booked and label created.' AS c6, DATE_SUB(NOW(), INTERVAL 3 DAY) AS c7
+  UNION ALL SELECT @sid, 'Picked Up', 'Los Angeles, CA, USA', 34.0522000, -118.2437000, 'Pallet picked up from sender facility.', DATE_SUB(NOW(), INTERVAL 2 DAY)
+  UNION ALL SELECT @sid, 'En Route', 'Las Vegas, NV, USA', 36.1699000, -115.1398000, 'Departed regional hub, en route to destination.', DATE_SUB(NOW(), INTERVAL 1 DAY)
+  UNION ALL SELECT @sid, 'En Route', 'Denver, CO, USA', 39.7392000, -104.9903000, 'In transit to next facility.', NOW()
+) AS seed
+WHERE @seed_demo = 0 AND @sid IS NOT NULL;
 
 -- Shipment 2: international, Sea/Crate, Regular, delivered
 INSERT INTO shipments (
@@ -485,23 +911,47 @@ INSERT INTO shipments (
   origin_label, origin_lat, origin_lng,
   destination_label, destination_lat, destination_lng,
   current_lat, current_lng, estimated_delivery
-) VALUES (
-  'SC1000001US', 'Gulfstream Import Exports LLC', '900 Bagby St, Houston, TX 77002, USA',
-  'Lena Fischer', 'lena.demo@example.com', 'Speicherstadt 12, 20457 Hamburg, Germany',
-  'Industrial machine parts, crated', 'Crate', 640.00, '72in x 48in x 48in',
-  'Regular', 'Sea', NULL, 1, 12000.00, 'Delivered',
-  'Houston, TX, USA', 29.7604000, -95.3698000,
-  'Hamburg, Germany', 53.5511000, 9.9937000,
-  53.5511000, 9.9937000, DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-) ON DUPLICATE KEY UPDATE tracking_number = tracking_number;
+)
+SELECT * FROM (
+  SELECT
+    'SC1000001US' AS c1,
+   'Gulfstream Import Exports LLC' AS c2,
+   '900 Bagby St, Houston, TX 77002, USA' AS c3,
+   'Lena Fischer' AS c4,
+   'lena.demo@example.com' AS c5,
+   'Speicherstadt 12, 20457 Hamburg, Germany' AS c6,
+   'Industrial machine parts, crated' AS c7,
+   'Crate' AS c8,
+   640.00 AS c9,
+   '72in x 48in x 48in' AS c10,
+   'Regular' AS c11,
+   'Sea' AS c12,
+   NULL AS c13,
+   1 AS c14,
+   12000.00 AS c15,
+   'Delivered' AS c16,
+   'Houston, TX, USA' AS c17,
+   29.7604000 AS c18,
+   -95.3698000 AS c19,
+   'Hamburg, Germany' AS c20,
+   53.5511000 AS c21,
+   9.9937000 AS c22,
+   53.5511000 AS c23,
+   9.9937000 AS c24,
+   DATE_SUB(CURDATE(), INTERVAL 1 DAY) AS c25
+) AS seed
+WHERE @seed_demo = 0;
 
 SET @sid2 = (SELECT id FROM shipments WHERE tracking_number = 'SC1000001US');
 
-INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note, event_time) VALUES
-(@sid2, 'Pending', 'Houston, TX, USA', 29.7604000, -95.3698000, 'Shipment booked and label created.', DATE_SUB(NOW(), INTERVAL 9 DAY)),
-(@sid2, 'Picked Up', 'Houston, TX, USA', 29.7604000, -95.3698000, 'Crate picked up from sender facility.', DATE_SUB(NOW(), INTERVAL 8 DAY)),
-(@sid2, 'Customs Clearance', 'Port of Houston, TX, USA', 29.7355000, -95.0480000, 'Cleared US export customs.', DATE_SUB(NOW(), INTERVAL 7 DAY)),
-(@sid2, 'En Route', 'Atlantic Ocean', 40.0000000, -40.0000000, 'Vessel en route to Hamburg.', DATE_SUB(NOW(), INTERVAL 4 DAY)),
-(@sid2, 'Customs Clearance', 'Port of Hamburg, Germany', 53.5412000, 9.9339000, 'Cleared German import customs.', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-(@sid2, 'Out for Delivery', 'Hamburg, Germany', 53.5511000, 9.9937000, 'Out for delivery with local courier.', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(@sid2, 'Delivered', 'Hamburg, Germany', 53.5511000, 9.9937000, 'Crate delivered and signed for.', DATE_SUB(NOW(), INTERVAL 1 DAY));
+INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note, event_time)
+SELECT * FROM (
+  SELECT @sid2 AS c1, 'Pending' AS c2, 'Houston, TX, USA' AS c3, 29.7604000 AS c4, -95.3698000 AS c5, 'Shipment booked and label created.' AS c6, DATE_SUB(NOW(), INTERVAL 9 DAY) AS c7
+  UNION ALL SELECT @sid2, 'Picked Up', 'Houston, TX, USA', 29.7604000, -95.3698000, 'Crate picked up from sender facility.', DATE_SUB(NOW(), INTERVAL 8 DAY)
+  UNION ALL SELECT @sid2, 'Customs Clearance', 'Port of Houston, TX, USA', 29.7355000, -95.0480000, 'Cleared US export customs.', DATE_SUB(NOW(), INTERVAL 7 DAY)
+  UNION ALL SELECT @sid2, 'En Route', 'Atlantic Ocean', 40.0000000, -40.0000000, 'Vessel en route to Hamburg.', DATE_SUB(NOW(), INTERVAL 4 DAY)
+  UNION ALL SELECT @sid2, 'Customs Clearance', 'Port of Hamburg, Germany', 53.5412000, 9.9339000, 'Cleared German import customs.', DATE_SUB(NOW(), INTERVAL 2 DAY)
+  UNION ALL SELECT @sid2, 'Out for Delivery', 'Hamburg, Germany', 53.5511000, 9.9937000, 'Out for delivery with local courier.', DATE_SUB(NOW(), INTERVAL 1 DAY)
+  UNION ALL SELECT @sid2, 'Delivered', 'Hamburg, Germany', 53.5511000, 9.9937000, 'Crate delivered and signed for.', DATE_SUB(NOW(), INTERVAL 1 DAY)
+) AS seed
+WHERE @seed_demo = 0 AND @sid2 IS NOT NULL;

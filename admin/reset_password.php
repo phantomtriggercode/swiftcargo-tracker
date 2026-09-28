@@ -21,8 +21,8 @@ if ($admin && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_verify((string) ($_POST['csrf_token'] ?? ''))) {
         $errors[] = 'Your session expired: please reload the page and try again.';
     }
-    if (strlen($password) < 8) {
-        $errors[] = 'Password must be at least 8 characters.';
+    if (($pwError = password_policy_error($password)) !== null) {
+        $errors[] = $pwError;
     }
     if ($password !== $confirm) {
         $errors[] = 'Passwords do not match.';
@@ -87,11 +87,11 @@ $pageTitle = 'Reset Password';
         <input type="hidden" name="token" value="<?= h($token) ?>">
         <div class="form-group">
           <label for="password">New Password</label>
-          <input type="password" id="password" name="password" minlength="8" required autofocus>
+          <input type="password" id="password" name="password" minlength="12" required autofocus>
         </div>
         <div class="form-group">
           <label for="password_confirm">Confirm New Password</label>
-          <input type="password" id="password_confirm" name="password_confirm" minlength="8" required>
+          <input type="password" id="password_confirm" name="password_confirm" minlength="12" required>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Set New Password</button>
       </form>

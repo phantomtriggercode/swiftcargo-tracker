@@ -1,3 +1,8 @@
+# The database structure, every table and column name, and the starter
+# data. Nothing here is ever fetched by a browser: these files are
+# imported through the hosting control panel. Blocked outright so a
+# misconfigured server, or a host that ignores the rules in the root
+# .htaccess, still cannot serve them.
 <IfModule mod_authz_core.c>
   Require all denied
 </IfModule>

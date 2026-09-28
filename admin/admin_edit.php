@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($fullName === '') $errors[] = 'Full name is required.';
     if ($username === '') $errors[] = 'Username is required.';
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Enter a valid email, or leave it blank.';
-    if ($newPassword !== '' && strlen($newPassword) < 8) $errors[] = 'New password must be at least 8 characters.';
+    if ($newPassword !== '' && ($pwError = password_policy_error($newPassword)) !== null) $errors[] = $pwError;
 
     if (!$errors) {
         $dup = db()->prepare('SELECT id FROM admins WHERE (username = ? OR (email = ? AND email IS NOT NULL AND email != "")) AND id != ?');
@@ -95,7 +95,7 @@ include __DIR__ . '/includes/admin_header.php';
     </div>
     <div class="form-group">
       <label>Set New Password</label>
-      <input type="password" name="new_password" minlength="8" placeholder="Leave blank to keep their current password" autocomplete="new-password">
+      <input type="password" name="new_password" minlength="12" placeholder="Leave blank to keep their current password" autocomplete="new-password">
     </div>
     <div class="form-group">
       <label style="display:flex;align-items:center;gap:8px;font-weight:600;">

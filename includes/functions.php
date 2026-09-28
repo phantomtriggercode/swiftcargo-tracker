@@ -6,6 +6,7 @@
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/design.php';
 require_once __DIR__ . '/security.php';
+require_once __DIR__ . '/seo.php';
 
 function h(?string $value): string
 {
@@ -163,6 +164,24 @@ function generate_tracking_number(): string
 }
 
 /**
+ * True if this string is shaped like a tracking number at all.
+ *
+ * The database column holds up to 32 characters and every number this site
+ * issues, or that a carrier issues, is letters, digits and at most a
+ * separator. Checking that before running a lookup means a public page
+ * never passes a paragraph of someone else's making to the database, and
+ * an obviously bogus lookup costs nothing to answer.
+ *
+ * This is belt and braces, not the actual defence: every lookup is a
+ * prepared statement, so the value is sent as data and can never be read
+ * as SQL whatever it contains.
+ */
+function is_valid_tracking_number(string $value): bool
+{
+    return (bool) preg_match('/^[A-Za-z0-9][A-Za-z0-9 _\-]{2,31}$/', $value);
+}
+
+/**
  * Active couriers/carriers for the shipment form dropdown, in the order
  * admins arranged them at /admin/couriers.php.
  */
@@ -264,91 +283,6 @@ function redirect(string $path): void
 {
     header('Location: ' . $path);
     exit;
-}
-
-/**
- * True if this request reached us over HTTPS. Checks $_SERVER['HTTPS']
- * directly, then falls back to the X-Forwarded-Proto header some
- * hosts/proxies set when they terminate SSL in front of PHP (e.g. behind
- * a CDN or load balancer): without this fallback, PHP can think a
- * perfectly secure request is plain HTTP and mis-set cookie/URL scheme.
- */
-function is_https(): bool
-{
-    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-        return true;
-    }
-    return !empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
-}
-
-/**
- * Stricter cousin of is_https(), used only to decide whether the session
- * cookie gets the `Secure` flag. Getting this wrong doesn't degrade the
- * site. It locks people out of it, so it errs on the side of working.
- *
- * The `Secure` flag tells the browser "only ever send this cookie over
- * HTTPS". If we set it on a response the browser received over plain
- * HTTP, the browser doesn't just ignore the flag. It refuses to store
- * the cookie at all. No cookie means no session, no session means the
- * CSRF token from the login form has nothing to match against, and the
- * user is told "your session expired" no matter how correct their
- * password is.
- *
- * That is not hypothetical: several hosts (Hostinger and Cloudflare among
- * them) send `X-Forwarded-Proto: https` on *every* request once SSL is
- * enabled, including ones the visitor genuinely made over http://. Trust
- * that header alone and the login page becomes unusable for anyone who
- * reaches the site by typing the bare domain: which is most people on a
- * phone, while desktop users click an https:// bookmark and never notice.
- *
- * So the forwarded header is only believed when the port agrees with it.
- * When the two disagree, the cookie simply goes out without `Secure`: it
- * still works, and repeat visitors are protected anyway by the
- * Strict-Transport-Security header sent on every HTTPS response, which
- * stops the browser using http:// for this domain at all.
- */
-function is_https_for_cookie(): bool
-{
-    // TLS terminated by the web server itself: unambiguous, always trust.
-    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-        return true;
-    }
-
-    $forwarded = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
-    if ($forwarded !== 'https') {
-        return false;
-    }
-
-    // Behind a TLS-terminating proxy. Believe it only if the port backs it up.
-    $port = (int) ($_SERVER['SERVER_PORT'] ?? 0);
-    return $port === 443 || $port === 0;
-}
-
-/**
- * Starts the PHP session with explicit cookie params (mainly SameSite=Lax
- * + Secure-when-HTTPS) instead of PHP's bare defaults. Safari/iOS is
- * stricter about cookie attributes than most desktop browsers, and a
- * session cookie mobile Safari won't accept means a login can succeed
- * server-side and still bounce straight back to the login page with no
- * error, because the browser never actually kept the session.
- */
-function ensure_session_started(): void
-{
-    if (session_status() === PHP_SESSION_NONE) {
-        session_set_cookie_params([
-            'lifetime' => 0,
-            'path' => '/',
-            // Deliberately is_https_for_cookie(), not is_https(), see the
-            // long note on that function. Marking this Secure on a request
-            // the browser made over plain HTTP makes the browser discard
-            // the cookie entirely, which presents as "your session expired"
-            // on a perfectly correct login.
-            'secure' => is_https_for_cookie(),
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
-        session_start();
-    }
 }
 
 /**

@@ -51,8 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!password_verify($current, (string) $hash)) {
             $errors[] = 'Current password is incorrect.';
         }
-        if (strlen($newPassword) < 8) {
-            $errors[] = 'New password must be at least 8 characters.';
+        if (($pwError = password_policy_error($newPassword)) !== null) {
+            $errors[] = $pwError;
         }
         if ($newPassword !== $confirm) {
             $errors[] = 'New password and confirmation do not match.';
@@ -117,11 +117,11 @@ include __DIR__ . '/includes/admin_header.php';
     </div>
     <div class="form-group">
       <label>New Password</label>
-      <input type="password" name="new_password" minlength="8" required>
+      <input type="password" name="new_password" minlength="12" required>
     </div>
     <div class="form-group">
       <label>Confirm New Password</label>
-      <input type="password" name="new_password_confirm" minlength="8" required>
+      <input type="password" name="new_password_confirm" minlength="12" required>
     </div>
     <button type="submit" class="btn btn-primary btn-block">Change Password</button>
   </form>

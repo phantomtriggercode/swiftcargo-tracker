@@ -45,6 +45,10 @@ $referenceId = null;
 $finalEstimate = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // A booking request is a considered thing to send. More than a few an
+    // hour from one address is a script filling the table with rubbish.
+    rate_limit_enforce('shipment_request', 6, 3600, '', 3600);
+
     $fullName = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
