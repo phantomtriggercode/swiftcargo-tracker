@@ -385,12 +385,13 @@ function maybe_send_go_live_alert(): void
 }
 
 /**
- * Turns what an admin typed into a <input type="datetime-local"> into a
- * value MySQL will store, or null if it is not a usable date.
+ * Turns a date and time string into a value MySQL will store, or null if
+ * it is not a usable date. Callers normally reach this through
+ * parse_admin_date_and_time(), which joins a date field and a time field.
  *
- * Every tracking update carries the time staff entered rather than the
- * moment the form was submitted, so the customer's timeline reflects when
- * things actually happened, including checkpoints recorded after the fact.
+ * Every tracking update carries the time staff chose rather than the moment
+ * the form was submitted, so the customer's timeline reflects when things
+ * actually happened, including checkpoints recorded after the fact.
  */
 function parse_admin_datetime(string $input): ?string
 {
@@ -422,14 +423,41 @@ function parse_admin_datetime(string $input): ?string
     return null;
 }
 
-/** The value to put in a datetime-local input for an existing timestamp. */
-function datetime_local_value(?string $sqlDateTime): string
+/**
+ * The date and the time halves of a stored timestamp, for a pair of
+ * <input type="date"> and <input type="time"> fields. Split in two because
+ * each one then gets its own native picker: a calendar for the date, an
+ * hour and minute list for the time.
+ */
+function date_input_value(?string $sqlDateTime): string
 {
-    if ($sqlDateTime === null || $sqlDateTime === '') {
-        return date('Y-m-d\TH:i');
+    $ts = $sqlDateTime ? strtotime($sqlDateTime) : false;
+    return date('Y-m-d', $ts === false ? time() : $ts);
+}
+
+function time_input_value(?string $sqlDateTime): string
+{
+    $ts = $sqlDateTime ? strtotime($sqlDateTime) : false;
+    return date('H:i', $ts === false ? time() : $ts);
+}
+
+/**
+ * Combines a date field and a time field into one value MySQL will store,
+ * or null if either half is missing or impossible. Validation stays in
+ * parse_admin_datetime(), which rejects dates that only look valid because
+ * PHP would roll them over.
+ */
+function parse_admin_date_and_time(string $date, string $time): ?string
+{
+    $date = trim($date);
+    $time = trim($time);
+
+    if ($date === '' || $time === '') {
+        return null;
     }
-    $ts = strtotime($sqlDateTime);
-    return $ts === false ? date('Y-m-d\TH:i') : date('Y-m-d\TH:i', $ts);
+
+    // A time input sends "HH:MM", or "HH:MM:SS" when it is set to seconds.
+    return parse_admin_datetime($date . 'T' . $time);
 }
 
 /**

@@ -50,6 +50,7 @@
   </div>
 </footer>
 <script src="<?= h(asset_url('/assets/js/reveal.js')) ?>" defer></script>
+<script src="<?= h(asset_url('/assets/js/pickers.js')) ?>" defer></script>
 <?php
 // The live chat bubble (bottom-right of every public page), only when the
 // site owner has switched it on at /admin/live_chat.php. Printed last so a

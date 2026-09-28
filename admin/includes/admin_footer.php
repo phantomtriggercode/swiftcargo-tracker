@@ -57,5 +57,6 @@
     window.addEventListener('resize', closeMenu);
   })();
 </script>
+<script src="<?= h(asset_url('/assets/js/pickers.js')) ?>" defer></script>
 </body>
 </html>

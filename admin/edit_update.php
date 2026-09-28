@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lat = $_POST['lat'] ?? '';
     $lng = $_POST['lng'] ?? '';
     $note = trim($_POST['note'] ?? '');
-    $eventTimeSql = parse_admin_datetime(trim($_POST['event_time'] ?? ''));
+    $eventTimeSql = parse_admin_date_and_time($_POST['event_date'] ?? '', $_POST['event_time'] ?? '');
 
     // A status that has since been removed from the list is still allowed to
     // stay on an update that already carries it, so editing the remark on an
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($locationLabel === '') $errors[] = 'Location is required.';
     if (!is_valid_latitude((string) $lat)) $errors[] = 'Latitude must be a number between -90 and 90.';
     if (!is_valid_longitude((string) $lng)) $errors[] = 'Longitude must be a number between -180 and 180.';
-    if ($eventTimeSql === null) $errors[] = 'Enter a real date and time for this update.';
+    if ($eventTimeSql === null) $errors[] = 'Pick a real date and time for this update.';
 
     if (!$errors) {
         $upd = db()->prepare(
@@ -98,15 +98,22 @@ include __DIR__ . '/includes/admin_header.php';
       </select>
     </div>
 
-    <div class="form-group">
-      <label>Date &amp; Time of this update</label>
-      <input type="datetime-local" name="event_time" value="<?= h($_POST['event_time'] ?? datetime_local_value($event['event_time'])) ?>" required>
-      <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
-        Exactly what the customer sees against this checkpoint. Changing it can
-        also change which update counts as the newest, and the shipment's
-        status follows the newest one.
-      </span>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date of this update</label>
+        <input type="date" name="event_date" value="<?= h($_POST['event_date'] ?? date_input_value($event['event_time'])) ?>" required>
+      </div>
+      <div class="form-group">
+        <label>Time of this update</label>
+        <input type="time" name="event_time" value="<?= h($_POST['event_time'] ?? time_input_value($event['event_time'])) ?>" required>
+      </div>
     </div>
+    <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
+      Click either box to pick from a calendar and a clock. This is exactly
+      what the customer sees against this checkpoint. Changing it can also
+      change which update counts as the newest, and the shipment's status
+      follows the newest one.
+    </p>
 
     <div class="form-group">
       <label>Location: Address or Place</label>

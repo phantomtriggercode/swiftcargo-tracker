@@ -24,13 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lat = $_POST['lat'] ?? '';
     $lng = $_POST['lng'] ?? '';
     $note = trim($_POST['note'] ?? '');
-    $eventTime = trim($_POST['event_time'] ?? '');
-
     if (!in_array($status, $statuses, true)) $errors[] = 'Please choose a valid status.';
-    // The timeline shows exactly what is typed here, never the moment the
-    // form happened to be submitted, so a backdated update reads correctly.
-    $eventTimeSql = parse_admin_datetime($eventTime);
-    if ($eventTimeSql === null) $errors[] = 'Enter the date and time this update happened.';
+    // The timeline shows exactly what staff picked here, never the moment
+    // the form happened to be submitted, so a backdated update reads right.
+    $eventTimeSql = parse_admin_date_and_time($_POST['event_date'] ?? '', $_POST['event_time'] ?? '');
+    if ($eventTimeSql === null) $errors[] = 'Pick the date and the time this update happened.';
     if ($locationLabel === '') $errors[] = 'Location label is required.';
     // Range-checked, not just "is it a number", an out-of-range coordinate
     // saves fine but would break the live map for this shipment.
@@ -133,16 +131,22 @@ include __DIR__ . '/includes/admin_header.php';
       by hand instead: open <strong>Google Maps</strong>, right-click the spot,
       and click the numbers at the top of the menu to copy them.
     </p>
-    <div class="form-group">
-      <label>Date &amp; Time of this update</label>
-      <input type="datetime-local" name="event_time" value="<?= h($_POST['event_time'] ?? date('Y-m-d\TH:i')) ?>" required>
-      <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
-        This exact date and time is what the customer sees on the timeline. It
-        is prefilled with now for convenience, but change it freely to record
-        something that happened earlier, or to schedule the wording of a
-        checkpoint you are entering late.
-      </span>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date of this update</label>
+        <input type="date" name="event_date" value="<?= h($_POST['event_date'] ?? date('Y-m-d')) ?>" required>
+      </div>
+      <div class="form-group">
+        <label>Time of this update</label>
+        <input type="time" name="event_time" value="<?= h($_POST['event_time'] ?? date('H:i')) ?>" required>
+      </div>
     </div>
+    <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
+      Click either box to pick from a calendar and a clock. This exact date and
+      time is what the customer sees on the timeline. Both are prefilled with
+      now, so change them only when you are recording something that happened
+      earlier.
+    </p>
     <div class="form-group">
       <label>Remark or comment (optional)</label>
       <textarea name="note" rows="3" placeholder="e.g. Departed regional hub, en route to next facility."><?= h($_POST['note'] ?? '') ?></textarea>

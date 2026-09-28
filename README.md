@@ -424,8 +424,14 @@ From **Shipments**, the **Updates** link on any row opens
 `/admin/updates.php`, listing every checkpoint on that shipment with the
 ability to correct or delete any of them.
 
-- **The date and time are whatever staff typed**, never the moment the form
-  was submitted. That is what the customer sees on the timeline, so a
+- **The date and time are whatever staff picked**, never the moment the form
+  was submitted. They are two fields, a date and a time, and clicking
+  anywhere in either one opens the browser's own calendar or its hour and
+  minute list rather than putting a caret in the middle of the number, so
+  nothing has to be typed. The same applies to every other date field in the
+  site, including Estimated Delivery and the booking wizard's preferred
+  date (`assets/js/pickers.js`). Where a browser is too old to support it,
+  the field simply behaves as it always did and can still be typed into. That is what the customer sees on the timeline, so a
   checkpoint recorded days late still reads correctly.
 - **The shipment's own status always follows its newest update by that
   entered time.** Adding a backdated checkpoint does not drag the current
