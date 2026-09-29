@@ -1473,6 +1473,15 @@ scanner/app) rendered by a barcode encoder hand-written for this project in
 
 ## Devices and browsers
 
+**Mobile form fields.** All form fields use a 16px font on phones. Below
+16px, iOS and Android zoom in when a field is tapped, which looked like the
+page overflowing sideways; at 16px they do not. Pinch-to-zoom still works.
+
+**The header on a phone.** The logo sits at the left, and the "Track Now"
+button is kept but shown compact so the logo, the button and the menu all
+fit on one row without wrapping.
+
+
 **Layout** was verified in a real Chromium engine at nine viewport sizes: 320px (small Android), 360px (Galaxy S20), 375px (iPhone SE), 393px
 (iPhone 14 Pro), 430px (iPhone 14 Pro Max), 768px (iPad Mini), 1024px
 (iPad Pro), 1366px (laptop) and 1920px (desktop): across every public
