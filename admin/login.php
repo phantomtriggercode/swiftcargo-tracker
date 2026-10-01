@@ -53,20 +53,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         login_failure_delay();
         $error = 'Incorrect answer to the security question below: please try again.';
     } else {
-        $loginOk = attempt_admin_login($username, $password);
-        record_login_attempt($ip, $username, $loginOk);
-        if ($loginOk) {
-            redirect('/admin/dashboard.php');
+        $admin = verify_admin_credentials($username, $password);
+        record_login_attempt($ip, $username, $admin !== null);
+        if ($admin !== null) {
+            if (!login_codes_enabled() || browser_is_trusted((int) $admin['id'])) {
+                complete_admin_login($admin, login_codes_enabled() ? 'Remembered browser' : '');
+                redirect('/admin/dashboard.php');
+            }
+
+            // Right password, browser not seen before: an emailed code is
+            // needed before the panel opens.
+            $started = login_code_begin($admin, $username);
+            if ($started['ok']) {
+                redirect('/admin/login_code.php');
+            }
+            if (($started['error'] ?? '') === 'no_email') {
+                log_admin_activity('Sign-in stopped', 'No email address on the account for a sign-in code', (int) $admin['id'], $admin['full_name']);
+                $error = 'Your password is correct, but this account has no email address to send a sign-in code to. '
+                    . 'Ask a super admin to add your email under Admin Accounts, then sign in again.';
+            } elseif (($started['error'] ?? '') === 'too_many') {
+                $error = 'Too many sign-in codes have been sent to this account recently. Please wait '
+                    . max(1, (int) ceil(($started['wait'] ?? 900) / 60)) . ' minutes and sign in again.';
+            } else {
+                $error = 'Your password is correct, but the sign-in code email could not be sent just now. '
+                    . 'Please try again in a minute. If it keeps happening, the site\'s email settings need attention.';
+            }
+            login_code_clear();
+        } else {
+            login_failure_delay();
+            $error = 'Invalid username or password.';
         }
-        login_failure_delay();
-        $error = 'Invalid username or password.';
     }
 }
 
 $captcha = new_captcha_challenge();
 ?>
 <!DOCTYPE html>
-<html lang="en" data-template="<?= h(active_template_layout_key()) ?>" data-animation="<?= h(active_template_animation_key()) ?>">
+<html lang="en" data-area="admin">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -74,6 +97,7 @@ $captcha = new_captcha_challenge();
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
 <?= palette_style_tag() ?>
+<script src="<?= h(asset_url('/assets/js/password-toggle.js')) ?>" defer></script>
 </head>
 <body>
 <div class="login-page">

@@ -59,13 +59,14 @@ include __DIR__ . '/includes/admin_header.php';
 <?php endif; ?>
 
 <p style="color:var(--muted);font-size:14px;max-width:760px;">
-  Only super admins can see this page. The active template controls the
-  site's structural design: homepage section order, hero treatment,
-  corner/shadow style, scroll animations, and its own default logo: but
-  never colors (that's a separate, independent choice at
-  <a href="/admin/themes.php" style="color:var(--brand-red);">Colors</a>).
-  Deleting a template is permanent and manual, there's no undo. The
-  active template can't be deleted; activate a different one first.
+  Only super admins can see this page. Each template is a complete website
+  design for the public site: its own header, homepage, page banners,
+  footer, typeface, wording, motion and hover effects. It never changes the
+  admin panel, and never changes colours: that is a separate choice at
+  <a href="/admin/themes.php" style="color:var(--brand-red);">Colors</a>, and
+  every template stays readable with every colour palette. Text you have
+  written under Site Content is kept in every template. Deleting a template
+  is permanent; the active one can't be deleted.
 </p>
 
 <div class="theme-grid">

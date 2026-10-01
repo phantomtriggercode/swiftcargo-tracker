@@ -64,6 +64,13 @@ function seo_pages(): array
             'priority' => '0.6',
             'changefreq' => 'yearly',
         ],
+        'testimonials' => [
+            'label' => 'Testimonials',
+            'path' => '/testimonials.php',
+            'hint' => 'People checking what others thought before they book. Your company name plus "reviews" is the phrase to target. Only online while reviews are switched on.',
+            'priority' => '0.6',
+            'changefreq' => 'weekly',
+        ],
         'contact' => [
             'label' => 'Contact',
             'path' => '/contact.php',

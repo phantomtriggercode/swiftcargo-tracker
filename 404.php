@@ -11,18 +11,11 @@ $seoPage = '404';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<section class="hero" style="padding-bottom:60px;text-align:center;">
-  <div class="container">
-    <h1 style="font-size:34px;">Page Not Found</h1>
-    <p class="lead">
-      The page you're looking for doesn't exist, may have moved, or the link might be
-      out of date. If you're trying to track a shipment, use the button below.
-    </p>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
-      <a href="/index.php" class="btn btn-outline">Go to Homepage</a>
-      <a href="/track.php" class="btn btn-primary">Track a Shipment</a>
-    </div>
-  </div>
-</section>
+<?= page_banner(
+    (string) tpl(['classic' => 'Page Not Found', 'modern' => 'This page took a wrong turn', 'minimal' => 'Not found.', 'bold' => 'Lost in transit', 'corporate' => 'Page Not Found', 'dark-header' => 'Signal lost']),
+    "The page you're looking for doesn't exist, may have moved, or the link might be out of date. If you're trying to track a shipment, use the button below.",
+    ['key' => '404', 'photo' => 'highway', 'crumb' => 'Not found', 'kicker' => 'Error 404', 'center' => true,
+     'extra' => '<div class="banner-actions"><a href="/index.php" class="btn btn-outline">Go to Homepage</a><a href="/track.php" class="btn btn-primary">Track a Shipment</a></div>']
+) ?>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

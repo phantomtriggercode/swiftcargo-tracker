@@ -58,5 +58,6 @@
   })();
 </script>
 <script src="<?= h(asset_url('/assets/js/pickers.js')) ?>" defer></script>
+<script src="<?= h(asset_url('/assets/js/password-toggle.js')) ?>" defer></script>
 </body>
 </html>

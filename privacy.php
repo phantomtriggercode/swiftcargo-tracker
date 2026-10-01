@@ -9,15 +9,14 @@ $pageTitle = 'Privacy Policy';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<section class="hero" style="padding-bottom:60px;">
-  <div class="container">
-    <h1 style="font-size:34px;"><?= h(get_setting('privacy_title', 'Privacy Policy')) ?></h1>
-    <p class="lead"><?= h(get_setting('privacy_lead', 'How we collect, use, and protect the information you share with us.')) ?></p>
-  </div>
-</section>
+<?= page_banner(
+    get_setting('privacy_title', 'Privacy Policy'),
+    get_setting('privacy_lead', 'How we collect, use, and protect the information you share with us.'),
+    ['key' => 'privacy', 'photo' => 'clipboard', 'crumb' => 'Privacy Policy', 'kicker' => 'Legal']
+) ?>
 
 <section class="section">
-  <div class="container" style="max-width:800px;font-size:16px;color:var(--ink-soft);">
+  <div class="container prose">
     <?= render_paragraphs(get_setting('privacy_body')) ?>
   </div>
 </section>

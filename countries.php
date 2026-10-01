@@ -10,12 +10,22 @@ $pageTitle = 'Countries We Ship To';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<section class="hero" style="padding-bottom:60px;">
-  <div class="container">
-    <h1 style="font-size:34px;"><?= h(get_setting('countries_title', 'Countries We Ship To')) ?></h1>
-    <p class="lead"><?= h(get_setting('countries_intro')) ?></p>
-  </div>
-</section>
+<?= page_banner(
+    site_copy_tpl('countries_title', [
+        'classic' => 'Countries We Ship To', 'modern' => 'Where we deliver', 'minimal' => 'Destinations',
+        'bold' => 'Anywhere. Everywhere.', 'corporate' => 'Our Global Network', 'dark-header' => 'Network coverage',
+    ]),
+    site_copy('countries_intro', (string) tpl([
+        'classic' => '{site} ships to every country in the world. Wherever your shipment is headed, we can get it there.',
+        'modern' => 'Search for a country to check we deliver there. Spoiler: we almost certainly do.',
+        'minimal' => 'A short list would be easier to read. Ours is every country in the world.',
+        'bold' => 'If it has an address, we can get there. Search below.',
+        'corporate' => 'Door-to-door service to every country and territory, through our partner network.',
+        'dark-header' => 'Every country is on the network. Search to confirm yours.',
+    ])),
+    ['key' => 'countries', 'photo' => 'network', 'crumb' => (string) tpl(['corporate' => 'Global Network', 'minimal' => 'Destinations', 'modern' => 'Coverage', 'dark-header' => 'Network', 'classic' => 'Countries']), 'number' => '04',
+     'kicker' => (string) tpl(['modern' => 'Coverage', 'bold' => 'Coverage', 'corporate' => 'Worldwide', 'classic' => 'Coverage'])]
+) ?>
 
 <section class="section">
   <div class="container">

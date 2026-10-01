@@ -39,12 +39,12 @@ const PALETTE_COLOR_FIELDS = [
 ];
 
 const TEMPLATE_LAYOUT_KEYS = [
-    'classic'     => 'Classic: the site\'s original section order and look',
-    'modern'      => 'Modern: soft rounded cards, reordered homepage sections, fade-up reveals',
-    'minimal'     => 'Minimal: sharp corners, flat, no shadows, no motion',
-    'bold'        => 'Bold: strong shadows, uppercase buttons, reordered sections, scale-in reveals',
-    'corporate'   => 'Corporate: serif headings, restrained radius, formal hero',
-    'dark-header' => 'Dark Header: dark navigation bar site-wide, reordered sections, slide-in reveals',
+    'classic'     => 'Classic: two-row header, full-width photo slider, tracking box over the photo, picture cards and gallery',
+    'modern'      => 'Modern: floating glass pill header, drifting colour blobs, floating photo cards, bento grid, swipeable carousel',
+    'minimal'     => 'Minimal: centred editorial masthead, large serif headline, black-and-white photo strip, numbered lists',
+    'bold'        => 'Bold: service ticker, brand-colour slab header, huge capitals, tilted photo collage, colour-flood cards',
+    'corporate'   => 'Corporate: three-tier header with pinned menu bar, photo slider with arrows, Track / Quote / Contact tabs',
+    'dark-header' => 'Dark Header: dark glass header with built-in tracking, night hero with moving grid and sliding photo rows',
 ];
 
 const TEMPLATE_ANIMATION_KEYS = [
@@ -105,6 +105,168 @@ function get_palette(int $id): ?array
     return $stmt->fetch() ?: null;
 }
 
+/* --------------------- Contrast-safe colour helpers ---------------------
+ *
+ * A palette is twelve colours somebody picked, and nothing stops two of
+ * them being nearly the same: a pale yellow "primary", a "text" colour that
+ * is almost the page background, a charcoal palette whose primary is the
+ * same as its text. The templates put text on top of most of these
+ * colours, so every one of those pairings is worked out here, from the
+ * actual colours, using the WCAG contrast formula. Whatever palette is
+ * active, text drawn with these variables stays readable.
+ */
+
+/** [r, g, b] (0-255) from "#rrggbb" or "#rgb". Falls back to black. */
+function hex_to_rgb(string $hex): array
+{
+    $hex = ltrim(trim($hex), '#');
+    if (strlen($hex) === 3) {
+        $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+    }
+    if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+        return [0, 0, 0];
+    }
+    return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
+}
+
+function rgb_to_hex(array $rgb): string
+{
+    return sprintf('#%02x%02x%02x', ...array_map(static fn($c) => max(0, min(255, (int) round($c))), $rgb));
+}
+
+/** WCAG relative luminance, 0 (black) to 1 (white). */
+function color_luminance(string $hex): float
+{
+    $channels = array_map(static function ($c) {
+        $c /= 255;
+        return $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+    }, hex_to_rgb($hex));
+    return 0.2126 * $channels[0] + 0.7152 * $channels[1] + 0.0722 * $channels[2];
+}
+
+/** WCAG contrast ratio between two colours, 1 to 21. */
+function color_contrast(string $a, string $b): float
+{
+    $la = color_luminance($a);
+    $lb = color_luminance($b);
+    return (max($la, $lb) + 0.05) / (min($la, $lb) + 0.05);
+}
+
+/** Mixes $a toward $b; $amount 0 is all $a, 1 is all $b. */
+function color_mix(string $a, string $b, float $amount): string
+{
+    $ra = hex_to_rgb($a);
+    $rb = hex_to_rgb($b);
+    return rgb_to_hex([
+        $ra[0] + ($rb[0] - $ra[0]) * $amount,
+        $ra[1] + ($rb[1] - $ra[1]) * $amount,
+        $ra[2] + ($rb[2] - $ra[2]) * $amount,
+    ]);
+}
+
+/**
+ * The best colour for text sitting on $background: whichever of the
+ * candidates has the most contrast with it. White and near-black are
+ * always among the candidates, so there is always a readable answer.
+ */
+function readable_text_on(string $background, array $prefer = []): string
+{
+    // A preferred colour (the palette's own text colour, say) wins when it
+    // is comfortably readable, so the page keeps its intended look.
+    foreach ($prefer as $candidate) {
+        if (color_contrast($candidate, $background) >= 4.5) {
+            return $candidate;
+        }
+    }
+    $best = '#ffffff';
+    $bestRatio = 0.0;
+    foreach (['#ffffff', '#0b0f19'] as $candidate) {
+        $ratio = color_contrast($candidate, $background);
+        if ($ratio > $bestRatio) {
+            $best = $candidate;
+            $bestRatio = $ratio;
+        }
+    }
+    return $best;
+}
+
+/**
+ * The first candidate that reaches $minimum contrast on $background, or
+ * the readable fallback. Used for coloured text (links, labels, accents)
+ * so it keeps its colour when it can and turns plain when it cannot.
+ */
+function first_readable(array $candidates, string $background, float $minimum = 4.5): string
+{
+    foreach ($candidates as $candidate) {
+        if (color_contrast($candidate, $background) >= $minimum) {
+            return $candidate;
+        }
+    }
+    return readable_text_on($background);
+}
+
+/**
+ * The derived variables every template draws text with. Each "on-" colour
+ * is the readable text colour for the matching background.
+ */
+function palette_contrast_vars(array $palette): array
+{
+    $primary = (string) $palette['color_primary'];
+    $primaryDark = (string) $palette['color_primary_dark'];
+    $accent = (string) $palette['color_accent'];
+    $ink = (string) $palette['color_ink'];
+    $page = (string) $palette['color_white'];
+    $soft = (string) $palette['color_bg_soft'];
+
+    // "Dark surface": the darker of text colour and page colour. On an
+    // ordinary light palette that is the text colour; on a dark palette
+    // (light text on a dark page) it is the page colour. Dark bands,
+    // footers and image overlays use it, so they are dark either way.
+    $dark = color_luminance($ink) <= color_luminance($page) ? $ink : $page;
+    $light = $dark === $ink ? $page : $ink;
+    // If the two are too alike to build a dark band from, fall back to a
+    // deep version of the primary colour.
+    if (color_contrast($dark, '#ffffff') < 7) {
+        $dark = color_mix($primaryDark, '#000000', 0.55);
+    }
+
+    $vars = [
+        '--on-brand'        => readable_text_on($primary, ['#ffffff']),
+        '--on-brand-dark'   => readable_text_on($primaryDark, ['#ffffff']),
+        '--on-accent'       => readable_text_on($accent, [$ink, '#ffffff']),
+        '--on-ink'          => readable_text_on($ink, [$page, '#ffffff']),
+        '--surface-dark'    => $dark,
+        '--on-dark'         => readable_text_on($dark, [$light, '#ffffff']),
+        '--on-dark-soft'    => color_mix(readable_text_on($dark, [$light, '#ffffff']), $dark, 0.28),
+        '--on-dark-muted'   => color_mix(readable_text_on($dark, [$light, '#ffffff']), $dark, 0.42),
+        '--text'            => readable_text_on($page, [$ink]),
+        '--text-on-soft'    => readable_text_on($soft, [$ink]),
+        // Coloured text on the page background (links, small labels).
+        '--link'            => first_readable([$primary, $primaryDark, $ink], $page, 4.5),
+        // Large or bold coloured text on the page (headings, numbers).
+        '--brand-text'      => first_readable([$primary, $primaryDark, $ink], $page, 3.0),
+        '--accent-text'     => first_readable([$accent, $primary, $primaryDark, $ink], $page, 3.0),
+        // Coloured highlight on a dark surface.
+        '--accent-on-dark'  => first_readable([$accent, color_mix($primary, '#ffffff', 0.35), '#ffffff'], $dark, 3.0),
+        '--brand-on-dark'   => first_readable([$primary, $accent, color_mix($primary, '#ffffff', 0.4), '#ffffff'], $dark, 3.0),
+        // Coloured highlight on a primary-coloured surface.
+        '--accent-on-brand' => first_readable([$accent, readable_text_on($primary, ['#ffffff'])], $primary, 3.0),
+        // Soft tints for icon tiles and badges, always light enough for
+        // the primary colour on top of them to stay readable.
+        '--brand-tint'      => color_mix($primary, $page, 0.88),
+        '--brand-tint-2'    => color_mix($primary, $page, 0.76),
+        '--accent-tint'     => color_mix($accent, $page, 0.8),
+    ];
+
+    // rgb triplets for translucent versions: rgba(var(--brand-red-rgb), .2)
+    foreach (['--brand-red-rgb' => $primary, '--brand-red-dark-rgb' => $primaryDark, '--brand-yellow-rgb' => $accent,
+              '--ink-rgb' => $ink, '--white-rgb' => $page, '--surface-dark-rgb' => $dark] as $name => $hex) {
+        $vars[$name] = implode(',', hex_to_rgb($hex));
+    }
+
+    return $vars;
+}
+
 /** Renders the <style> tag overriding :root color variables for the active palette. Place right after the main stylesheet <link>. */
 function palette_style_tag(): string
 {
@@ -112,6 +274,9 @@ function palette_style_tag(): string
     $css = '';
     foreach (PALETTE_COLOR_FIELDS as $column => $meta) {
         $css .= $meta['css_var'] . ':' . h($palette[$column]) . ';';
+    }
+    foreach (palette_contrast_vars($palette) as $name => $value) {
+        $css .= $name . ':' . h($value) . ';';
     }
     return '<style id="active-palette-vars">:root{' . $css . '}</style>';
 }

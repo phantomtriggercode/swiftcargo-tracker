@@ -39,7 +39,7 @@ if ($admin && $_SERVER['REQUEST_METHOD'] === 'POST') {
 $pageTitle = 'Reset Password';
 ?>
 <!DOCTYPE html>
-<html lang="en" data-template="<?= h(active_template_layout_key()) ?>" data-animation="<?= h(active_template_animation_key()) ?>">
+<html lang="en" data-area="admin">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,6 +47,7 @@ $pageTitle = 'Reset Password';
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
 <?= palette_style_tag() ?>
+<script src="<?= h(asset_url('/assets/js/password-toggle.js')) ?>" defer></script>
 </head>
 <body>
 <div class="login-page">

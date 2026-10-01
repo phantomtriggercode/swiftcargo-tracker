@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($fullName === '') $errors[] = 'Full name is required.';
         if ($username === '') $errors[] = 'Username is required.';
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Enter a valid email, or leave it blank.';
+        if ($email === '' && login_codes_enabled()) $errors[] = 'An email address is required while sign-in codes are on: the new admin\'s first sign-in needs a code sent there.';
         if (($pwError = password_policy_error($password)) !== null) $errors[] = $pwError;
 
         if (!$errors) {

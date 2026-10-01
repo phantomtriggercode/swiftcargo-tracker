@@ -16,6 +16,13 @@ if (!$target) {
 
 $errors = [];
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'forget_browsers') {
+    $count = forget_trusted_browsers($id);
+    log_admin_activity('Forgot remembered browsers', $target['username'] . ': ' . $count . ' browser(s)');
+    flash_set('success', 'Done. ' . $target['full_name'] . ' will be asked for an emailed code at their next sign-in on any browser.');
+    redirect('/admin/admin_edit.php?id=' . $id);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = trim($_POST['full_name'] ?? '');
     $username = trim($_POST['username'] ?? '');
@@ -26,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($fullName === '') $errors[] = 'Full name is required.';
     if ($username === '') $errors[] = 'Username is required.';
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Enter a valid email, or leave it blank.';
+    if ($email === '' && login_codes_enabled()) $errors[] = 'An email address is required while sign-in codes are on, or this admin could not sign in from a new browser.';
     if ($newPassword !== '' && ($pwError = password_policy_error($newPassword)) !== null) $errors[] = $pwError;
 
     if (!$errors) {
@@ -108,6 +116,21 @@ include __DIR__ . '/includes/admin_header.php';
       </span>
     </div>
     <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+  </form>
+</div>
+
+<div class="form-card" style="max-width:520px;margin-top:16px;">
+  <h3 style="margin-top:0;">Remembered browsers</h3>
+  <?php $theirBrowsers = list_trusted_browsers($id); ?>
+  <p style="font-size:13.5px;color:var(--muted);margin-top:0;">
+    <?= count($theirBrowsers) === 1 ? '1 browser is' : count($theirBrowsers) . ' browsers are' ?> remembered for this account.
+    Forgetting them means the next sign-in on any browser needs an emailed code
+    (when sign-in codes are on). Setting a new password above does this too.
+  </p>
+  <form method="post">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="forget_browsers">
+    <button type="submit" class="btn btn-outline btn-sm" <?= $theirBrowsers ? '' : 'disabled' ?>>Forget their remembered browsers</button>
   </form>
 </div>
 

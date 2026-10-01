@@ -1120,6 +1120,88 @@ That's a genuinely solid baseline for a small PHP site, not a guarantee
 nothing can ever go wrong. Anyone who tells you otherwise is selling
 something.
 
+## Reviews (`/admin/reviews.php`, any admin)
+
+Customer reviews are a star rating (1 to 5), a title and the message:
+no names and no photos. Add as many as you like.
+
+- **One switch** at the top of the page shows or hides reviews across the
+  whole site at once: the looping reviews slider on the homepage and the
+  About page, the Testimonials page, its link in the menu and the footer,
+  and its entry in the sitemap. Off, the Testimonials page answers "not
+  found". Your reviews stay saved either way.
+- With the switch on but no review published, nothing shows yet, so the
+  site never displays an empty reviews section.
+- Each review can be hidden on its own (**Hide from site**), edited or
+  deleted. **Display order**: lower numbers show first; leave it at 0 for
+  newest first.
+- The slider carries the first 12; the Testimonials page lists them all,
+  12 to a page, with the average rating at the top.
+- Nothing is pre-filled. Reviews should be ones customers actually gave.
+
+## Partners (`/admin/partners.php`, any admin)
+
+A slowly moving strip of partner logos on the homepage. Each partner is
+a name, and optionally a logo (PNG, JPG, WEBP or SVG, up to 2MB) and a
+website link. Without a logo the name is shown in the site's own type.
+One switch hides the whole strip; it also stays hidden while no partner
+is shown.
+
+The list starts empty on purpose. A company's name and logo are its
+trademarks: add companies you have an agreement with, using the logo
+files they supplied, and keep to their brand guidelines (most publish
+rules on spacing, colours and minimum size).
+
+## Emailed sign-in codes for new browsers (`/admin/security.php`, super admin)
+
+When this is on, a correct password is not enough the first time an
+admin signs in from a browser. A 6-digit code is emailed to the address
+on their account and the panel only opens once it is typed in. After
+that the browser is remembered (30 days by default, adjustable from
+"every sign-in" to a year), so the code is asked for again only on a new
+browser, after the browser's cookies are cleared, when the period ends,
+or after a password change.
+
+- **Turning it on** is done by emailing yourself a code and typing it
+  back in, which proves the site's email really arrives. It cannot be
+  switched on while the email settings are missing or while your own
+  account has no email address. The page lists any admin without an
+  email: they could not sign in from a new browser until one is added,
+  and while codes are on, an admin account cannot be saved without one.
+- **Turning it off** asks for your password again.
+- A code lasts 10 minutes and works once. Five wrong codes end the
+  attempt and the password has to be entered again; wrong codes also
+  count towards the normal sign-in lockout. "Send a new code" is limited
+  to once a minute and five per quarter hour.
+- On a shared computer, untick **Remember this browser** on the code
+  screen.
+- Every admin can see and forget their remembered browsers under **My
+  Profile**. A super admin can forget another admin's under **Admin
+  Accounts → Edit**, or everyone's at once on the Sign-in Security page
+  (useful if a password or a laptop may have been compromised). Setting
+  a new password forgets that admin's other browsers automatically.
+
+**If email ever stops working while codes are on**, nobody can sign in
+from a new browser. Two ways back in, both needing access to the hosting
+account rather than the website:
+
+1. In File Manager, add this line to `config/config.php`, sign in, fix
+   the email settings, then remove the line again:
+
+       define('LOGIN_CODES_FORCE_OFF', true);
+
+2. Or in phpMyAdmin, run:
+
+       UPDATE settings SET setting_value = '0' WHERE setting_key = 'login_otp_enabled';
+
+## Show / hide password
+
+Every password box in the admin panel (sign-in, reset, change password,
+creating an admin, email settings) has an eye button. Press it to see
+what you have typed, press again to hide it. It is per box and never
+remembered; the box is always switched back to hidden before the form
+is sent, so password managers still offer to save it.
+
 ## Search engines (`/admin/seo.php`)
 
 Open to every admin, because writing a page and writing what that page says
@@ -1347,29 +1429,46 @@ text invisible.
 
 #### Templates (`/admin/templates.php`)
 
-Controls the *structural design*: everything colors don't touch: which
-order the homepage sections appear in, the hero section's background
-treatment, corner radius and shadow depth, heading typography, scroll-in
-animations as you scroll down the homepage, and the site's own default
-logo mark.
+A template is a whole website design. Switching template changes the
+public site completely: the header, the homepage, every page banner, the
+footer, the typeface, the wording, the motion and the hover effects.
+It never changes the admin panel, and it never changes colours (that is
+the Colors page). Every template works with every colour palette: text
+colours are worked out from the active palette so they always stay
+readable, even with a pale or very dark palette.
 
-- **6 preset templates** ship out of the box: Classic, Modern, Minimal,
-  Bold, Corporate, and Dark Header: each with a genuinely different
-  homepage layout (sections reordered, not just recolored), its own hero
-  treatment (gradients, an angled clip-path edge, a dot-pattern overlay,
-  or a flat block color depending on the template), and its own scroll
-  animation style (fade, fade-up, scale-in, slide-in, or none). "Classic"
-  is active by default.
-- **Activate** any template to make it live site-wide instantly: design
-  only, colors are untouched.
-- **Edit** a template to rename it, change its layout, change its scroll
-  animation, or upload a custom logo for it (falls back to that
-  template's built-in logo mark if you never upload one, a **Branding**
-  logo upload always wins over either).
-- **Duplicate** a template to start a custom variant from an existing
-  one's settings.
-- **Delete** a template permanently, presets included. Blocked only for
-  the active template and the last remaining template.
+| Template | Header | Homepage | Typeface |
+|---|---|---|---|
+| **Classic** | Dark contact strip over a white bar | Full-width photo slider behind the headline, tracking box overlapping it, stats, picture cards, gallery | System |
+| **Modern** | Floating frosted-glass "pill" | Drifting colour blobs, floating photo cards with live-status chips, bento grid, swipeable services carousel | Plus Jakarta Sans |
+| **Minimal** | Centred masthead, menu between hairlines | Big serif headline, slowly moving black-and-white photo strip, numbered list, one quote at a time | Fraunces + Inter |
+| **Bold** | Service ticker over a brand-colour slab, logo on a slanted block | Huge capitals, drifting tilted photo collage, scrolling outline words, giant counting numbers, colour-flood cards | Anton + Archivo |
+| **Corporate** | Three tiers: contact strip, logo with contact blocks, deep-colour menu bar that stays pinned | Photo slider with arrows, Track / Quote / Contact tabs, photo service cards, figures over a fixed photo | Montserrat + Open Sans |
+| **Dark Header** | Dark glass bar with a tracking box built in | Night hero with a moving grid, two rows of photos sliding past, spotlight cards, glowing status timeline | Space Grotesk |
+
+**Wording.** Each template has its own voice for headlines, section
+titles, buttons and page banners. Text you have written yourself under
+Site Content always wins, in every template: a template only replaces
+text that is still at the wording the site shipped with. So if a
+headline you wrote shows in every template, that is why; clear it (or
+put back the original) to see each template's own.
+
+**Fonts** are stored on this site (`assets/fonts/`), not loaded from
+Google, so no visitor's address is sent anywhere and nothing slows the
+page if a font service is blocked. Their licences are in the same folder.
+
+**Motion** (sliders, moving photo strips, counting numbers, rotating
+words) stops for anyone whose phone or computer is set to reduce motion;
+every arrow and button still works. Hovering over a slider or strip, or
+tabbing into it, pauses it, and sliders have a pause button.
+
+- **Activate** any template to make it live site-wide instantly.
+- **Edit** a template to rename it, change which design it uses, change
+  its scroll animation, or upload a custom logo for it (a **Branding**
+  logo always wins).
+- **Duplicate** a template to start a custom variant.
+- **Delete** a template permanently. Blocked only for the active one and
+  the last one.
 
 Both pages are visible only to super admins: regular (non-super-admin)
 accounts can't see or reach `/admin/themes.php`, `/admin/theme_edit.php`,

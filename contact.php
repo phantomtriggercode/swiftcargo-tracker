@@ -83,12 +83,19 @@ $pageTitle = 'Contact Us';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<section class="hero" style="padding-bottom:60px;">
-  <div class="container">
-    <h1 style="font-size:34px;">Contact Us</h1>
-    <p class="lead"><?= h(get_setting('contact_intro')) ?></p>
-  </div>
-</section>
+<?= page_banner(
+    (string) tpl(['classic' => 'Contact Us', 'modern' => "Let's talk", 'minimal' => 'Contact', 'bold' => 'Talk to us', 'corporate' => 'Contact Us', 'dark-header' => 'Get in touch']),
+    site_copy('contact_intro', (string) tpl([
+        'classic' => 'Questions about a shipment, a quote, or our services? Reach our support team any time.',
+        'modern' => 'A real person reads every message. Ask us anything about a shipment, a quote or a route.',
+        'minimal' => 'Write to us, or call. We reply to every message.',
+        'bold' => 'Questions? Quotes? Something stuck? Fire away.',
+        'corporate' => 'Our customer service team is ready to help with shipments, quotes and account enquiries.',
+        'dark-header' => 'Send us a message and our team will pick it up.',
+    ])),
+    ['key' => 'contact', 'photo' => 'port-team', 'crumb' => 'Contact', 'number' => '07',
+     'kicker' => (string) tpl(['modern' => 'Support', 'bold' => 'Contact', 'corporate' => 'Get in touch', 'classic' => 'Contact'])]
+) ?>
 
 <section class="section">
   <div class="container">

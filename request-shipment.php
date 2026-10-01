@@ -182,12 +182,15 @@ $pageTitle = 'Request a Shipment';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<section class="hero" style="padding-bottom:60px;">
-  <div class="container">
-    <h1 style="font-size:34px;"><?= h(get_setting('request_title', 'Request a Shipment')) ?></h1>
-    <p class="lead"><?= h(get_setting('request_lead', "Tell us what you're shipping and when. We'll get back to you with a confirmed quote. Prices below are a live estimate.")) ?></p>
-  </div>
-</section>
+<?= page_banner(
+    site_copy_tpl('request_title', [
+        'classic' => 'Request a Shipment', 'modern' => 'Book your shipment', 'minimal' => 'Book a shipment',
+        'bold' => 'Ship it now', 'corporate' => 'Request a Quote', 'dark-header' => 'Start a shipment',
+    ]),
+    site_copy('request_lead', "Tell us what you're shipping and when. We'll get back to you with a confirmed quote. Prices below are a live estimate."),
+    ['key' => 'request', 'photo' => 'forklift', 'crumb' => (string) tpl(['corporate' => 'Request a Quote', 'classic' => 'Ship Now', 'minimal' => 'Book']), 'number' => '03',
+     'kicker' => (string) tpl(['modern' => 'Five quick steps', 'bold' => 'Five steps. Done.', 'corporate' => 'Online booking', 'classic' => 'Ship now'])]
+) ?>
 
 <section class="section">
   <div class="container" style="max-width:760px;">

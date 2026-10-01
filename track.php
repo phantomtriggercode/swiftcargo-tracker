@@ -58,18 +58,15 @@ $mapOn = $mapOn && $hasCoordinates;
   <link rel="stylesheet" href="<?= h(asset_url('/assets/vendor/leaflet/leaflet.css')) ?>">
 <?php endif; ?>
 
-<section class="track-hero">
-  <div class="container">
-    <h3 style="margin:0 0 4px;">Track your shipment</h3>
-    <p style="color:#d1d5db;margin:0 0 16px;font-size:14px;"><?= live_map_enabled()
-      ? 'Enter a tracking number to see live location and full status history.'
-      : 'Enter a tracking number to see its current status and full history.' ?></p>
-    <form class="track-form" action="/track.php" method="get">
-      <input type="text" name="tn" value="<?= h($tn) ?>" placeholder="Enter your tracking number" required autocomplete="off">
-      <button type="submit" class="btn btn-yellow">Track</button>
-    </form>
-  </div>
-</section>
+<?= page_banner(
+    (string) tpl(['classic' => 'Track your shipment', 'modern' => 'Where is my parcel?', 'minimal' => 'Tracking', 'bold' => 'Track it', 'corporate' => 'Shipment Tracking', 'dark-header' => 'Live tracking']),
+    live_map_enabled()
+        ? 'Enter a tracking number to see live location and full status history.'
+        : 'Enter a tracking number to see its current status and full history.',
+    ['key' => 'track', 'photo' => 'scan', 'crumb' => (string) tpl(['corporate' => 'Tracking', 'minimal' => 'Tracking', 'dark-header' => 'Live tracking', 'classic' => 'Track Shipment']), 'number' => '01',
+     'kicker' => (string) tpl(['modern' => 'Tracking', 'bold' => 'Tracking', 'corporate' => 'Track & trace', 'classic' => 'Tracking']),
+     'extra' => render_track_form('track-form--banner', $tn)]
+) ?>
 
 <div class="container tracking-result">
 

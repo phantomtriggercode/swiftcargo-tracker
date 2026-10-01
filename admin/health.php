@@ -132,6 +132,9 @@ $tablesNeeded = [
     'rate_limits'     => 'sql/migrations/019_security_and_seo.sql',
     'security_events' => 'sql/migrations/019_security_and_seo.sql',
     'seo_pages'       => 'sql/migrations/019_security_and_seo.sql',
+    'reviews'         => 'sql/updates/008_reviews_partners_signin_codes.sql',
+    'partners'        => 'sql/updates/008_reviews_partners_signin_codes.sql',
+    'admin_trusted_browsers' => 'sql/updates/008_reviews_partners_signin_codes.sql',
 ];
 $missingColumns = [];
 foreach ($columnsNeeded as $table => $columns) {
