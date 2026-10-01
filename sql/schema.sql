@@ -688,7 +688,22 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
 ('admin_access_key', ''),
 -- The public "Ship Now" request form, on by default. Off hides every
 -- "Ship Now" / "Request a Shipment" link and makes the page unavailable.
-('request_shipment_enabled', '1');
+('request_shipment_enabled', '1'),
+-- Emailed sign-in codes for admins on a browser not seen before (super
+-- admin, at Sign-in Security). Off on a fresh install: it can only be
+-- switched on from that page, after a test code has actually arrived, so
+-- a site whose email is not working yet can never lock its own staff out.
+-- login_otp_remember_days is how long a browser is trusted after a code
+-- has been entered there (0 = ask for a code at every sign-in).
+('login_otp_enabled', '0'),
+('login_otp_remember_days', '30'),
+-- Customer reviews (Reviews, in the admin menu). On: the reviews slider,
+-- the Testimonials page and its menu link appear as soon as at least one
+-- review is published. Off: all of them disappear together.
+('reviews_enabled', '1'),
+-- The strip of partner logos on the homepage (Partners, in the admin
+-- menu). Shown only while switched on and at least one partner is listed.
+('partners_enabled', '1');
 
 -- ---------------------------------------------------------------
 -- Site-wide color palettes (managed only by super admins, at
@@ -937,6 +952,77 @@ CREATE TABLE IF NOT EXISTS seo_pages (
   noindex TINYINT(1) NOT NULL DEFAULT 0,
 
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------
+-- Browsers an admin has verified with an emailed sign-in code, so they
+-- are not asked again until this runs out (see includes/login_codes.php).
+--
+-- The browser keeps a random token in a cookie; this table keeps only a
+-- SHA-256 hash of it (validator_hash), looked up by a separate random
+-- selector. A copy of this table on its own therefore cannot be used to
+-- pass as a remembered browser. Rows go when they expire, when the admin
+-- forgets them under My Profile, when their password changes, and with the
+-- admin account itself.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admin_trusted_browsers (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  admin_id INT UNSIGNED NOT NULL,
+  selector CHAR(24) NOT NULL,
+  validator_hash CHAR(64) NOT NULL,
+  -- "Chrome on Windows" and so on, shown in the admin's own list.
+  browser_label VARCHAR(120) NOT NULL DEFAULT '',
+  ip_address VARCHAR(45) NOT NULL DEFAULT '',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_used_at DATETIME NULL,
+  expires_at DATETIME NOT NULL,
+  UNIQUE KEY uniq_trusted_selector (selector),
+  KEY idx_trusted_admin (admin_id),
+  KEY idx_trusted_expires (expires_at),
+  CONSTRAINT fk_trusted_browser_admin FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------
+-- Customer reviews shown in the reviews slider and on the Testimonials
+-- page. Written by staff under Reviews in the admin panel: a star rating,
+-- a title and the message, nothing else (no names, no photos). Unlimited.
+--
+-- Nothing is seeded: reviews on a live site should be ones customers
+-- actually gave.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reviews (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  -- 1 to 5 stars.
+  rating TINYINT UNSIGNED NOT NULL DEFAULT 5,
+  title VARCHAR(150) NOT NULL,
+  message TEXT NOT NULL,
+  -- 0 keeps a review on file but off the site.
+  is_published TINYINT(1) NOT NULL DEFAULT 1,
+  -- Lower numbers show first; equal numbers show newest first.
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_reviews_listing (is_published, sort_order, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------
+-- Companies shown in the homepage partner strip, managed under Partners
+-- in the admin panel. A name, and optionally a logo and a link.
+--
+-- Nothing is seeded. Another company's name and logo are its trademarks:
+-- list only companies you have an agreement with, using the logo artwork
+-- they supplied.
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS partners (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  logo_path VARCHAR(255) NULL,
+  website_url VARCHAR(255) NULL,
+  is_published TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_partners_listing (is_published, sort_order, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET FOREIGN_KEY_CHECKS = 1;

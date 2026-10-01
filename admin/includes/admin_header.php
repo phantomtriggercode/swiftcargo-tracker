@@ -8,7 +8,7 @@ $activeAdminNav = $activeAdminNav ?? '';
 $__navAdmin = current_admin();
 ?>
 <!DOCTYPE html>
-<html lang="en" data-template="<?= h(active_template_layout_key()) ?>" data-animation="<?= h(active_template_animation_key()) ?>">
+<html lang="en" data-area="admin">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,6 +67,8 @@ $__navAdmin = current_admin();
         'Site content' => [
           ['content', '/admin/content.php', 'Site Content'],
           ['images', '/admin/images.php', 'Site Images'],
+          ['reviews', '/admin/reviews.php', 'Reviews'],
+          ['partners', '/admin/partners.php', 'Partners'],
           ['seo', '/admin/seo.php', 'Search Engines'],
           ['rates', '/admin/rates.php', 'Calculator Rates'],
           ['branding', '/admin/branding.php', 'Branding'],
@@ -75,6 +77,7 @@ $__navAdmin = current_admin();
           ['smtp', '/admin/smtp_settings.php', 'Email (SMTP)'],
           ['live_chat', '/admin/live_chat.php', 'Live Chat', 'super'],
           ['tracking_display', '/admin/tracking_display.php', 'Tracking Page &amp; Switches', 'super'],
+          ['security', '/admin/security.php', 'Sign-in Security', 'super'],
           ['my_theme', '/admin/my_theme.php', 'Site Color', 'reg'],
           ['themes', '/admin/themes.php', 'Colors', 'super'],
           ['templates', '/admin/templates.php', 'Templates', 'super'],

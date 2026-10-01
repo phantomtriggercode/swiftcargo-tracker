@@ -653,6 +653,23 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
 .form-group textarea:focus { outline: none; border-color: var(--brand-red); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
+/* Show/hide button inside password fields (assets/js/password-toggle.js
+   wraps each password box in .pw-field and adds the button). The field
+   keeps its full width; room is made on the right for the button. */
+.pw-field { position: relative; display: block; }
+span.pw-field > input { width: 100%; padding-right: 48px; }
+span.pw-field > input::-ms-reveal,
+span.pw-field > input::-ms-clear { display: none; }
+.pw-toggle {
+  position: absolute; top: 50%; right: 5px; transform: translateY(-50%);
+  width: 38px; height: 38px; padding: 0; border: 0; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.pw-toggle:hover { color: var(--ink); background: var(--bg-soft); }
+.pw-toggle:focus-visible { outline: 2px solid var(--brand-red); outline-offset: 1px; }
+.pw-toggle[aria-pressed="true"] { color: var(--brand-red); }
+
 .input-with-button { display: flex; gap: 8px; }
 .input-with-button input { flex: 1; }
 .input-with-button .btn { flex: none; white-space: nowrap; }
@@ -709,6 +726,112 @@ h1, h2, h3, h4 { font-family: var(--font-heading); }
   background: rgba(245,158,11,0.14); color: #b45309;
   padding: 2px 6px; border-radius: 4px; margin-left: 8px;
 }
+/* Sign-in codes: the code box, the security page's checklist and status
+   line, and the list of remembered browsers on My Profile. */
+.form-group input.otp-input {
+  font-size: 24px; letter-spacing: 0.45em; text-align: center;
+  font-variant-numeric: tabular-nums; padding: 12px 10px;
+}
+.link-button {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--muted); font-size: 13px; text-decoration: underline; font-family: inherit;
+}
+.link-button:hover { color: var(--ink); }
+.status-line {
+  padding: 10px 14px; border-radius: 8px; font-size: 14px;
+  background: var(--bg-soft); border: 1px solid var(--border); border-left-width: 4px;
+}
+.status-line--on { border-left-color: var(--ok); }
+.status-line--off { border-left-color: var(--muted); }
+.check-list { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+.check-list li { position: relative; padding: 6px 0 6px 28px; color: var(--ink-soft); }
+.check-list li::before {
+  position: absolute; left: 0; top: 6px; width: 19px; height: 19px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff;
+}
+.check-list li.ok::before { content: "\2713"; background: var(--ok); }
+.check-list li.bad::before { content: "!"; background: var(--danger); }
+.check-list a { color: var(--brand-red); text-decoration: underline; }
+.browser-list { list-style: none; padding: 0; margin: 0; }
+.browser-list li {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.browser-list li:last-child { border-bottom: 0; }
+.browser-list strong { font-size: 14px; }
+.browser-list span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
+.browser-list form { flex: none; }
+
+/* One-switch cards (Reviews, Partners): explanation on the left, a large
+   on/off switch on the right. */
+.switch-card-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.switch-toggle {
+  display: inline-flex; align-items: center; gap: 10px; flex: none;
+  background: none; border: 0; padding: 4px; cursor: pointer;
+  font: inherit; font-weight: 700; font-size: 14px; color: var(--ink);
+}
+.switch-toggle-track {
+  position: relative; width: 52px; height: 30px; border-radius: 999px;
+  background: #cbd2dc; transition: background .2s ease;
+}
+.switch-toggle-knob {
+  position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s ease;
+}
+.switch-toggle.is-on .switch-toggle-track { background: var(--ok); }
+.switch-toggle.is-on .switch-toggle-knob { transform: translateX(22px); }
+.switch-toggle:focus-visible { outline: 2px solid var(--brand-red); outline-offset: 3px; border-radius: 8px; }
+@media (max-width: 600px) {
+  .switch-card-row { flex-direction: column-reverse; }
+}
+
+/* Star rating picker in the review form: five radio buttons drawn as
+   stars. Laid out right to left so "this star and every one before it"
+   can light up with plain CSS on hover and when checked. */
+.field-label { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+.star-input { display: inline-flex; flex-direction: row-reverse; gap: 2px; }
+.star-input input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.form-group .star-input input[type="radio"] { width: 1px; }
+.star-input label {
+  font-size: 32px; line-height: 1; color: #d1d5db; cursor: pointer; padding: 0 2px;
+  margin: 0; transition: color .12s ease, transform .12s ease;
+}
+.star-input label:hover { transform: scale(1.12); }
+.star-input input:checked ~ label { color: #f5a524; }
+/* While hovering, preview the hovered rating instead of the saved one. */
+.star-input:hover label { color: #d1d5db; }
+.star-input:hover label:hover,
+.star-input:hover label:hover ~ label { color: #f5a524; }
+.star-input input:focus-visible + label { outline: 2px solid var(--brand-red); outline-offset: 2px; border-radius: 4px; }
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.admin-subhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.admin-subhead-note { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-soft); }
+.rv-stars { display: inline-flex; gap: 2px; color: #f5a524; vertical-align: middle; }
+.rv-stars svg { display: block; fill: currentColor; }
+.rv-stars .rv-star--empty { opacity: .25; }
+.rv-stars--admin svg { width: 16px; height: 16px; }
+
+.pager { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 22px 0 6px; }
+.pager a, .pager span {
+  min-width: 38px; height: 38px; padding: 0 10px; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; border: 1px solid var(--border);
+  background: var(--white); color: var(--ink);
+}
+.pager a:hover { border-color: var(--brand-red); color: var(--link, var(--brand-red)); }
+.pager .active { background: var(--brand-red); border-color: var(--brand-red); color: var(--on-brand, #fff); }
+.pager .pager-gap { border-color: transparent; background: none; min-width: 20px; padding: 0; }
+
+.partner-logo-preview {
+  display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px;
+  background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px;
+}
+.partner-logo-preview img { max-height: 48px; max-width: 200px; width: auto; }
+
 .admin-main { padding: 30px 36px; background: var(--bg-soft); min-width: 0; }
 .admin-topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 26px; }
 .admin-topbar h1 { font-size: 22px; margin: 0; }

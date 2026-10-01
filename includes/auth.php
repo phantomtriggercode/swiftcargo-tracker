@@ -5,6 +5,9 @@
 
 ensure_session_started();
 
+// Sign-in codes for new browsers, and the list of remembered browsers.
+require_once __DIR__ . '/login_codes.php';
+
 // ---------------------------------------------------------------
 // Hiding the admin entrance.
 //
@@ -241,7 +244,15 @@ function require_super_admin(): void
     }
 }
 
-function attempt_admin_login(string $identifier, string $password): bool
+/**
+ * Checks a username (or email) and password, without signing anyone in.
+ *
+ * Returns the admin's row when both are right and the account is active,
+ * or null otherwise. Signing in is a separate step (complete_admin_login)
+ * because a correct password is not always the last step: with sign-in
+ * codes on, a new browser still has to enter the emailed code first.
+ */
+function verify_admin_credentials(string $identifier, string $password): ?array
 {
     $stmt = db()->prepare('SELECT * FROM admins WHERE username = ? OR email = ? LIMIT 1');
     $stmt->execute([$identifier, $identifier]);
@@ -253,35 +264,58 @@ function attempt_admin_login(string $identifier, string $password): bool
         // wrong password, and that difference is enough to work out which
         // usernames exist before guessing a single password.
         password_verify($password, '$2y$12$usesomesillystringforsalttoavoidtimingleaksxxxxxxxxxxxxxxxxxxxxx');
+        return null;
+    }
+
+    if (!$admin['is_active'] || !password_verify($password, $admin['password_hash'])) {
+        return null;
+    }
+
+    // If the stored hash was made with older settings than this PHP build
+    // now uses, quietly upgrade it while the password is in hand.
+    if (password_needs_rehash($admin['password_hash'], PASSWORD_DEFAULT)) {
+        $rehash = db()->prepare('UPDATE admins SET password_hash = ? WHERE id = ?');
+        $rehash->execute([password_hash($password, PASSWORD_DEFAULT), $admin['id']]);
+    }
+
+    return $admin;
+}
+
+/**
+ * Signs an admin in: the last step, after the password (and, where one is
+ * needed, the emailed code) has been accepted.
+ */
+function complete_admin_login(array $admin, string $how = ''): void
+{
+    // A brand new id for the signed-in session, so an id an attacker may
+    // already know cannot become an authenticated one.
+    session_regenerate_id(true);
+    login_code_clear();
+    $_SESSION['admin_id'] = (int) $admin['id'];
+    $_SESSION['admin_name'] = $admin['full_name'];
+    $_SESSION['admin_login_time'] = time();
+    $_SESSION['admin_last_activity'] = time();
+    $_SESSION['admin_session_rotated'] = time();
+    $_SESSION['admin_fingerprint'] = admin_session_fingerprint();
+    // A fresh CSRF token per session, never one carried over from before
+    // sign-in.
+    unset($_SESSION['csrf_token']);
+
+    log_admin_activity('Signed in', $how, (int) $admin['id'], $admin['full_name']);
+}
+
+/**
+ * Password check and sign-in in one, for callers that never need the code
+ * step. The login page itself goes through the two steps separately.
+ */
+function attempt_admin_login(string $identifier, string $password): bool
+{
+    $admin = verify_admin_credentials($identifier, $password);
+    if ($admin === null) {
         return false;
     }
-
-    if ($admin['is_active'] && password_verify($password, $admin['password_hash'])) {
-        // A brand new id for the signed-in session, so an id an attacker
-        // may already know cannot become an authenticated one.
-        session_regenerate_id(true);
-        $_SESSION['admin_id'] = $admin['id'];
-        $_SESSION['admin_name'] = $admin['full_name'];
-        $_SESSION['admin_login_time'] = time();
-        $_SESSION['admin_last_activity'] = time();
-        $_SESSION['admin_session_rotated'] = time();
-        $_SESSION['admin_fingerprint'] = admin_session_fingerprint();
-        // A fresh CSRF token per session, never one carried over from
-        // before sign-in.
-        unset($_SESSION['csrf_token']);
-
-        // If the stored hash was made with older settings than this PHP
-        // build now uses, quietly upgrade it while the password is in hand.
-        if (password_needs_rehash($admin['password_hash'], PASSWORD_DEFAULT)) {
-            $rehash = db()->prepare('UPDATE admins SET password_hash = ? WHERE id = ?');
-            $rehash->execute([password_hash($password, PASSWORD_DEFAULT), $admin['id']]);
-        }
-
-        log_admin_activity('Signed in', '', $admin['id'], $admin['full_name']);
-        return true;
-    }
-
-    return false;
+    complete_admin_login($admin);
+    return true;
 }
 
 function admin_logout(): void
@@ -355,6 +389,14 @@ function set_admin_password(int $adminId, string $newPassword): void
     // new password itself to be temporary.
     $stmt = db()->prepare('UPDATE admins SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL, must_change_password = 0 WHERE id = ?');
     $stmt->execute([$hash, $adminId]);
+
+    // A new password means every remembered browser has to prove itself
+    // again with an emailed code: whoever made the change may be doing it
+    // precisely because the old password got out. The one exception is
+    // the browser of an admin changing their own password, who is plainly
+    // sitting at it.
+    $changingOwn = admin_logged_in() && (int) $_SESSION['admin_id'] === $adminId;
+    forget_trusted_browsers($adminId, $changingOwn);
 }
 
 function set_must_change_password(int $adminId, bool $mustChange): void

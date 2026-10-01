@@ -3,6 +3,7 @@
  * Shared public site header. Expects $activeNav to be set (optional) by the caller.
  */
 $activeNav = $activeNav ?? '';
+require_once __DIR__ . '/site.php';
 maybe_send_go_live_alert();
 
 // Which page this is, for the SEO record staff wrote in the admin panel.
@@ -13,7 +14,7 @@ $googleVerification = seo_verification_token('seo_google_verification');
 $bingVerification = seo_verification_token('seo_bing_verification');
 ?>
 <!DOCTYPE html>
-<html lang="en" data-template="<?= h(active_template_layout_key()) ?>" data-animation="<?= h(active_template_animation_key()) ?>">
+<html lang="en" data-template="<?= h(site_template()) ?>" data-animation="<?= h(active_template_animation_key()) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,7 +61,17 @@ $bingVerification = seo_verification_token('seo_bing_verification');
 <?= seo_structured_data() ?>
 
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+<?php
+// Each template has its own typeface. The files live on this site, so no
+// visitor's address is handed to a font service, and a blocked or slow
+// third party can never hold the page up. Classic uses the system's own.
+$__tpl = site_template();
+if (is_file(__DIR__ . '/../assets/fonts/fonts-' . $__tpl . '.css')): ?>
+<link rel="stylesheet" href="<?= h(asset_url('/assets/fonts/fonts-' . $__tpl . '.css')) ?>">
+<?php endif; ?>
 <link rel="stylesheet" href="<?= h(asset_url('/assets/css/style.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('/assets/css/site.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('/assets/css/templates/' . $__tpl . '.css')) ?>">
 <?= palette_style_tag() ?>
 <script>
   /* Opts this page in to the scroll-reveal animations by adding .js-anim,
@@ -68,7 +79,9 @@ $bingVerification = seo_verification_token('seo_bing_verification');
      scroll into view. Inline and in <head> on purpose: it has to run
      before first paint, or hidden sections would flash visible first.
 
-     The timer is the safety net. If assets/js/reveal.js never gets to run: blocked by an extension, 404 after a bad upload, a future CSP change, nothing would ever add .is-visible and those sections would stay
+     The timer is the safety net. If assets/js/reveal.js never gets to run
+     (blocked by an extension, 404 after a bad upload, a future CSP change),
+     nothing would ever add .is-visible and those sections would stay
      invisible forever. reveal.js stamps data-reveal-ready on <html> as
      soon as it starts; if that hasn't happened shortly after load, the
      class comes back off and every section simply renders normally,
@@ -84,87 +97,15 @@ $bingVerification = seo_verification_token('seo_bing_verification');
   })();
 </script>
 </head>
-<body>
+<body class="tpl-<?= h($__tpl) ?> page-<?= h($activeNav !== '' ? $activeNav : ($seoPage ?? 'page')) ?>">
+<a class="skip-link" href="#main">Skip to content</a>
 
-<div class="topbar">
-  <div class="container">
-    <div>Customer Service: <a href="tel:<?= h(preg_replace('/[^0-9+]/', '', get_setting('contact_phone', '+18005550199'))) ?>"><?= h(get_setting('contact_phone', '+1 (800) 555-0199')) ?></a></div>
-    <div class="topbar-links">
-      <a href="/contact.php">Support</a>
-      <?php // The staff sign-in link is hidden by default so the panel is
-            // not advertised on every public page; a super admin can turn
-            // it back on under Branding. When an access key is set the link
-            // carries it, so whoever the owner shows it to can actually get
-            // in. ?>
-      <?php if (header_shows_login()): ?>
-        <a href="<?= h(admin_login_url()) ?>">Staff Login</a>
-      <?php endif; ?>
-    </div>
-  </div>
-</div>
-
-<header class="site-header">
-  <div class="container">
-    <?php
-      // Both switches off means the logo is the whole brand area and is
-      // shown considerably larger. Otherwise it is a mark beside the text,
-      // and the name's size comes from its length (see
-      // brand_name_max_font_size) so a short name reads large and a
-      // 24-character one still fits on one line beside the navigation.
-      $logoAlone   = logo_stands_alone();
-      $showTitle   = header_shows_title();
-      $headerTagline = header_shows_tagline() ? get_header_tagline() : '';
-      // A wide logo squeezed in beside text would end up tiny, so it is
-      // allowed more width there than a square mark would be.
-      $markMaxWidth = logo_is_wide() ? 170 : 100;
-    ?>
-    <a href="/index.php" class="logo <?= $logoAlone ? 'logo-lockup' : '' ?>">
-      <?= logo_img_tag(
-            $logoAlone ? 68 : 56,
-            $logoAlone ? 300 : $markMaxWidth,
-            'mark-img',
-            // With no text beside it the picture is the only thing naming
-            // the company, so it carries that name for anyone using a
-            // screen reader. Beside the text it is decoration and is left
-            // unlabelled, so the name is not announced twice.
-            $logoAlone ? get_site_name() : ''
-          ) ?>
-      <?php if (!$logoAlone): ?>
-        <span class="brand-text" style="--brand-min:<?= brand_name_min_font_size() ?>px;--brand-max:<?= brand_name_max_font_size() ?>px;">
-          <?php if ($showTitle): ?>
-            <span class="word-brand"><?= h(get_site_name()) ?></span>
-          <?php endif; ?>
-          <?php if ($headerTagline !== ''): ?>
-            <span class="brand-tagline"><?= h($headerTagline) ?></span>
-          <?php endif; ?>
-        </span>
-      <?php endif; ?>
-    </a>
-    <nav class="main-nav">
-      <a href="/index.php" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
-      <a href="/track.php" class="<?= $activeNav === 'track' ? 'active' : '' ?>">Track Shipment</a>
-      <?php if (request_shipment_enabled()): ?><a href="/request-shipment.php" class="<?= $activeNav === 'request' ? 'active' : '' ?>">Ship Now</a><?php endif; ?>
-      <a href="/services.php" class="<?= $activeNav === 'services' ? 'active' : '' ?>">Services</a>
-      <a href="/countries.php" class="<?= $activeNav === 'countries' ? 'active' : '' ?>">Countries</a>
-      <a href="/about.php" class="<?= $activeNav === 'about' ? 'active' : '' ?>">About</a>
-      <a href="/contact.php" class="<?= $activeNav === 'contact' ? 'active' : '' ?>">Contact</a>
-    </nav>
-    <div class="header-actions">
-      <a href="/track.php" class="btn btn-primary header-track-btn">Track Now</a>
-      <button type="button" class="nav-menu-btn" id="nav-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav-dropdown">&#9776;</button>
-    </div>
-  </div>
-
-  <nav class="mobile-nav-dropdown" id="mobile-nav-dropdown" aria-label="Mobile navigation">
-    <a href="/index.php" class="mobile-nav-link <?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
-    <a href="/track.php" class="mobile-nav-link <?= $activeNav === 'track' ? 'active' : '' ?>">Track Shipment</a>
-    <?php if (request_shipment_enabled()): ?><a href="/request-shipment.php" class="mobile-nav-link <?= $activeNav === 'request' ? 'active' : '' ?>">Ship Now</a><?php endif; ?>
-    <a href="/services.php" class="mobile-nav-link <?= $activeNav === 'services' ? 'active' : '' ?>">Services</a>
-    <a href="/countries.php" class="mobile-nav-link <?= $activeNav === 'countries' ? 'active' : '' ?>">Countries</a>
-    <a href="/about.php" class="mobile-nav-link <?= $activeNav === 'about' ? 'active' : '' ?>">About</a>
-    <a href="/contact.php" class="mobile-nav-link <?= $activeNav === 'contact' ? 'active' : '' ?>">Contact</a>
-  </nav>
-</header>
+<?php
+// The header itself is the template's own: a two-row header, a floating
+// pill, a centred editorial masthead, a loud slab with a ticker, a
+// three-tier corporate header, or a dark glass bar.
+include __DIR__ . '/headers/' . $__tpl . '.php';
+?>
 
 <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
 
@@ -179,19 +120,25 @@ $bingVerification = seo_verification_token('seo_bing_verification');
       dropdown.classList.remove('is-open');
       backdrop.classList.remove('is-open');
       menuBtn.setAttribute('aria-expanded', 'false');
+      document.documentElement.classList.remove('nav-open');
     }
     function openMenu() {
       dropdown.classList.add('is-open');
       backdrop.classList.add('is-open');
       menuBtn.setAttribute('aria-expanded', 'true');
+      document.documentElement.classList.add('nav-open');
     }
 
     menuBtn.addEventListener('click', function () {
       dropdown.classList.contains('is-open') ? closeMenu() : openMenu();
     });
     backdrop.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && dropdown.classList.contains('is-open')) { closeMenu(); menuBtn.focus(); }
+    });
     dropdown.querySelectorAll('a').forEach(function (link) {
       link.addEventListener('click', closeMenu);
     });
   })();
 </script>
+<main id="main">
