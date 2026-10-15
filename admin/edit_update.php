@@ -108,16 +108,7 @@ include __DIR__ . '/includes/admin_header.php';
       </select>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Date of this update</label>
-        <input type="date" name="event_date" value="<?= h($_POST['event_date'] ?? date_input_value($event['event_time'])) ?>" required>
-      </div>
-      <div class="form-group">
-        <label>Time of this update</label>
-        <input type="time" name="event_time" value="<?= h($_POST['event_time'] ?? time_input_value($event['event_time'])) ?>" required>
-      </div>
-    </div>
+    <?= event_datetime_fields('event_date', 'event_time', 'Date of this update', 'Time of this update', (string) ($_POST['event_date'] ?? date_input_value($event['event_time'])), (string) ($_POST['event_time'] ?? time_input_value($event['event_time']))) ?>
     <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
       Click either box to pick from a calendar and a clock. This is exactly
       what the customer sees against this checkpoint. Changing it can also

@@ -146,21 +146,12 @@ include __DIR__ . '/includes/admin_header.php';
       and click the numbers at the top of the menu to copy them.
     </p>
     <?php endif; ?>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Date of this update</label>
-        <input type="date" name="event_date" value="<?= h($_POST['event_date'] ?? date('Y-m-d')) ?>" required>
-      </div>
-      <div class="form-group">
-        <label>Time of this update</label>
-        <input type="time" name="event_time" value="<?= h($_POST['event_time'] ?? date('H:i')) ?>" required>
-      </div>
-    </div>
+    <?= event_datetime_fields('event_date', 'event_time', 'Date of this update', 'Time of this update', (string) ($_POST['event_date'] ?? ''), (string) ($_POST['event_time'] ?? '')) ?>
     <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
-      Click either box to pick from a calendar and a clock. This exact date and
-      time is what the customer sees on the timeline. Both are prefilled with
-      now, so change them only when you are recording something that happened
-      earlier.
+      Nothing is filled in for you. Pick the exact date and time you want the
+      customer to see on the timeline, today or any date in the past (the
+      year list goes back to 1970). It is shown exactly as chosen and is not
+      converted from any time zone.
     </p>
     <div class="form-group">
       <label>Remark or comment (optional)</label>

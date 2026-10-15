@@ -118,6 +118,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+    // The time of the status change (existing shipment) or of the opening
+    // update (new shipment) is typed in, never taken from the clock.
+    $changeTimeSql = parse_admin_date_and_time((string) ($_POST['change_date'] ?? ''), (string) ($_POST['change_time'] ?? ''));
+    if (($newStatus !== null || !$shipment) && $changeTimeSql === null) {
+        $errors[] = $shipment
+            ? 'Pick the date and time of this status change.'
+            : 'Pick the date and time the shipment was booked: it becomes the first entry on the timeline.';
+    }
 
     // Validate a hand-entered tracking number: shape, then that no other
     // shipment already has it. A blank field is allowed here (a new
@@ -267,7 +275,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $shipment['current_lat'],
                     $shipment['current_lng'],
                     $statusNote,
-                    date('Y-m-d H:i:s'),
+                    $changeTimeSql,
                 ]);
                 resync_shipment_from_events((int) $shipment['id']);
                 log_admin_activity('Changed shipment status', $shipment['tracking_number'] . ' to ' . $newStatus);
@@ -321,10 +329,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pendingNote = get_status_message('Pending') ?: 'Shipment booked and label created.';
             $eventStmt = db()->prepare('
-                INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note)
-                VALUES (?, \'Pending\', ?, ?, ?, ?)
+                INSERT INTO tracking_events (shipment_id, status, location_label, lat, lng, note, event_time)
+                VALUES (?, \'Pending\', ?, ?, ?, ?, ?)
             ');
-            $eventStmt->execute([$newId, $originLabel, $originLat, $originLng, $pendingNote]);
+            $eventStmt->execute([$newId, $originLabel, $originLat, $originLng, $pendingNote, $changeTimeSql]);
 
             if ($fromRequestId) {
                 $convertStmt = db()->prepare("UPDATE shipment_requests SET status = 'Converted' WHERE id = ?");
@@ -477,6 +485,14 @@ include __DIR__ . '/includes/admin_header.php';
       </div>
     </div>
 
+    <?php if (!$shipment): ?>
+      <h3>Booking time</h3>
+      <?= event_datetime_fields('change_date', 'change_time', 'Date shipment was booked', 'Time shipment was booked', (string) ($_POST['change_date'] ?? ''), (string) ($_POST['change_time'] ?? '')) ?>
+      <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 18px;">
+        This becomes the first entry on the customer's timeline. Pick any date
+        and time, including one in the past; nothing is filled in from the clock.
+      </p>
+    <?php endif; ?>
     <h3>Service</h3>
     <div class="form-row">
       <div class="form-group">
@@ -514,6 +530,7 @@ include __DIR__ . '/includes/admin_header.php';
             <option value="<?= h($shipment['status']) ?>" selected><?= h($shipment['status']) ?> (no longer in the status list)</option>
           <?php endif; ?>
         </select>
+        <?= event_datetime_fields('change_date', 'change_time', 'Date of the status change (only if you change the status)', 'Time of the status change', (string) ($_POST['change_date'] ?? ''), (string) ($_POST['change_time'] ?? ''), false) ?>
         <span style="display:block;font-size:12.5px;color:var(--muted);margin-top:6px;">
           Changing this records a tracking update at the shipment's current
           position, so the customer's timeline stays truthful. Add or remove

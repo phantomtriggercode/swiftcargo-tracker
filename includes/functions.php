@@ -451,6 +451,30 @@ function time_input_value(?string $sqlDateTime): string
 }
 
 /**
+ * Earliest and latest year the date pickers offer. Wide on purpose so a
+ * shipment can be backdated years (2010 or earlier); the database column
+ * holding the time (TIMESTAMP) stores 1970 to 2038.
+ */
+const EVENT_DATE_MIN = '1970-01-02';
+const EVENT_DATE_MAX = '2037-12-31';
+
+/**
+ * A date box and a time box for "when did this happen". Both start empty:
+ * nothing is filled in from the admin's clock or time zone, the person
+ * picks exactly what the customer should see.
+ */
+function event_datetime_fields(string $dateName, string $timeName, string $dateLabel, string $timeLabel, string $dateValue = '', string $timeValue = '', bool $required = true): string
+{
+    $req = $required ? ' required' : '';
+    return '<div class="form-row">'
+        . '<div class="form-group"><label>' . h($dateLabel) . '</label>'
+        . '<input type="date" name="' . h($dateName) . '" value="' . h($dateValue) . '" min="' . EVENT_DATE_MIN . '" max="' . EVENT_DATE_MAX . '"' . $req . '></div>'
+        . '<div class="form-group"><label>' . h($timeLabel) . '</label>'
+        . '<input type="time" name="' . h($timeName) . '" value="' . h($timeValue) . '"' . $req . '></div>'
+        . '</div>';
+}
+
+/**
  * Combines a date field and a time field into one value MySQL will store,
  * or null if either half is missing or impossible. Validation stays in
  * parse_admin_datetime(), which rejects dates that only look valid because
@@ -462,6 +486,10 @@ function parse_admin_date_and_time(string $date, string $time): ?string
     $time = trim($time);
 
     if ($date === '' || $time === '') {
+        return null;
+    }
+
+    if ($date < EVENT_DATE_MIN || $date > EVENT_DATE_MAX) {
         return null;
     }
 
