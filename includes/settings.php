@@ -164,7 +164,8 @@ function logo_file_dimensions(string $url): ?array
  */
 function logo_is_custom(): bool
 {
-    return get_setting('logo_path', '') !== '';
+    $path = get_setting('logo_path', '');
+    return $path !== '' && logo_file_exists($path);
 }
 
 /** The logo actually in use, including the built-in fallback. */
@@ -478,9 +479,13 @@ function brand_name_min_font_size(): int
 function get_logo_url(): ?string
 {
     $path = get_setting('logo_path', '');
-    if ($path !== '') {
+    if ($path !== '' && logo_file_exists($path)) {
         return $path;
     }
+    // A saved logo whose file is gone (the uploads folder was replaced
+    // when the site files were re-uploaded) must not leave a broken
+    // picture: the template's own mark is shown instead until a logo is
+    // picked again. The setting itself is left alone.
     return active_template_logo_url();
 }
 
@@ -611,4 +616,15 @@ function tracking_shows_history(): bool
 function coordinates_collected(): bool
 {
     return live_map_enabled() || get_setting('collect_coordinates', '0') === '1';
+}
+
+/** True if a logo path points at a file that is really on this server (or at another site). */
+function logo_file_exists(string $url): bool
+{
+    if (str_contains($url, '://')) {
+        return true;
+    }
+    $path = realpath(__DIR__ . '/..' . rawurldecode((string) parse_url($url, PHP_URL_PATH)));
+    $root = realpath(__DIR__ . '/..');
+    return $path !== false && $root !== false && str_starts_with($path, $root . DIRECTORY_SEPARATOR) && is_file($path);
 }

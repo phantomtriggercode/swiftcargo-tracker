@@ -764,6 +764,16 @@ forgotten import is caught by the site itself rather than by a customer.
 
 ## Updating an existing site
 
+> **Keep `assets/images/uploads/` and `config/config.php` when you update.**
+> Logos and photos you uploaded through the panel live in
+> `assets/images/uploads/`, which is not part of the download. If you
+> delete the site folder (or replace it from a ZIP) that folder goes too,
+> while the database still remembers the file, and the logo disappears.
+> Upload the new files over the old ones instead of deleting first, or copy
+> that folder out before and back after. The site now shows the built-in
+> mark instead of a broken picture if this happens, and System Health says
+> so, but the picture itself has to be uploaded again.
+
 If you already deployed an earlier version of this project:
 
 1. Download the latest code (GitHub → Code → Download ZIP, or `git pull`).

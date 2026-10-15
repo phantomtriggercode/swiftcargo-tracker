@@ -353,6 +353,10 @@ if (!is_dir($uploadDir)) {
     check('Image uploads folder', 'fail', 'assets/images/uploads/ exists but is not writable.', 'In your file manager, set that folder\'s permissions to 755 so uploads can be saved.');
 } else {
     check('Image uploads folder', 'ok', 'Exists and is writable, so logo and image uploads will work.');
+    $savedLogo = get_setting('logo_path', '');
+    if ($savedLogo !== '' && !logo_file_exists($savedLogo)) {
+        check('Saved logo file', 'warn', 'A logo is saved under Branding, but its file is missing from the server, so the built-in mark is showing instead.', 'This happens when the site files are re-uploaded over the old ones and the assets/images/uploads/ folder is replaced. Pick the logo again under Branding. To avoid it, never delete or replace assets/images/uploads/ when updating (see the operator guide).');
+    }
 }
 
 // ---------------------------------------------------------------
